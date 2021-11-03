@@ -32,6 +32,10 @@ Route::group([
             return auth()->user();
         });
         Route::post('/logout', [App\Http\Controllers\Api\AuthController::class, 'logout']);
+        Route::apiResource('/role', App\Http\Controllers\Api\RoleController::class)->only(['index', 'show']);
+        Route::apiResource('/module', App\Http\Controllers\Api\ModuleController::class)->only(['index', 'show']);
+        Route::get('module/{module}/role', [App\Http\Controllers\Api\ModuleController::class, 'get_roles']);
+        Route::apiResource('/permission', App\Http\Controllers\Api\PermissionController::class)->only(['index']);
     });
 });
 

@@ -11,7 +11,7 @@ class LaratrustSetupTables extends Migration
      *
      * @return  void
      */
-    public function up()
+    /*public function up()
     {
         // Create table for storing roles
         Schema::create('roles', function (Blueprint $table) {

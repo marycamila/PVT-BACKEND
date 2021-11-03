@@ -14,15 +14,24 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-/*Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
-});*/
+});
 
 Route::group([
     'middleware' => 'api',
-    'prefix' => 'v1',
+    'prefix' => 'pvt'
 ], function () {
-    Route::apiResource('role', 'Api\V1\RoleController')->only('index', 'show');
-
+    // Rutas abiertas
+    Route::post('/login', [App\Http\Controllers\Api\AuthController::class, 'login']);
+    // Rutas autenticadas con token
+    Route::group([
+        'middleware' => ['auth:sanctum']
+    ], function () {
+        Route::get('/profile', function(Request $request) {
+            return auth()->user();
+        });
+        Route::post('/logout', [App\Http\Controllers\Api\AuthController::class, 'logout']);
+    });
 });
 

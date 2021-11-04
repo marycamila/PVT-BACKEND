@@ -9,7 +9,7 @@ use App\Models\User;
 class UserController extends Controller
 {
     /**
-     * Listado de todos los Usuario Paginado con filtros con full name.
+     * Listado de todos los Usuario Paginado.
      *
      * @return \Illuminate\Http\Response
      */

@@ -20,8 +20,14 @@ class User extends Authenticatable
      * @var string[]
      */
     protected $fillable = [
+        'first_name',
+        'last_name',
         'username',
         'password',
+        'active',
+        'position',
+        'cyti_id',
+        'phone'
     ];
 
     /**
@@ -31,6 +37,7 @@ class User extends Authenticatable
      */
     protected $hidden = [
         'password',
+        'status',
         'remember_token',
     ];
 
@@ -39,7 +46,19 @@ class User extends Authenticatable
      *
      * @var array
      */
-    protected $casts = [
+    /*protected $casts = [
         'email_verified_at' => 'datetime',
-    ];
+    ];*/
+
+    // full name de usuario
+    public function getFullNameAttribute()
+    {
+        return mb_strtoupper(preg_replace('/[[:blank:]]+/', ' ', join(' ', [$this->first_name, $this->last_name])));
+    }
+    // relacion con la tabla roles
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class);
+    }
+
 }

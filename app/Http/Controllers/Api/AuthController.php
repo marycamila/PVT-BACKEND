@@ -10,7 +10,40 @@ use App\Models\User;
 
 class AuthController extends Controller
 {
-    //login con sanctum
+ 
+    /**
+     * @OA\Post(
+     *      path="/api/pvt/login",
+     *      tags={"USER"},
+     *      summary="LOGS USER INTO THE SYSTEM",
+     *      operationId="login",
+     *      @OA\Parameter(
+     *          name="username",
+     *          in="query",
+     *          required=true,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
+     *      ),
+     *      @OA\Parameter(
+     *          name="password",
+     *          in="query",
+     *          required=true,
+     *          @OA\Schema(
+     *              type="string"
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Success"
+     *      )
+     * )
+     *
+     * Logs user into the system.
+     *
+     * @param Request $request
+     * @return void
+    */
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(),[

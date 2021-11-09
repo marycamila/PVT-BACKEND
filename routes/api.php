@@ -37,7 +37,7 @@ Route::group([
         Route::apiResource('/module', App\Http\Controllers\Api\ModuleController::class)->only(['index', 'show']);
         Route::get('module/{module}/role', [App\Http\Controllers\Api\ModuleController::class, 'get_roles']);
         Route::apiResource('/permission', App\Http\Controllers\Api\PermissionController::class)->only(['index']);
-        Route::get('user_role', [App\Http\Controllers\Api\UserController::class, 'index']);
+        Route::get('user', [App\Http\Controllers\Api\UserController::class, 'index']);
         Route::get('user/module_role_permision', [App\Http\Controllers\Api\UserController::class, 'module_role_permision']);
         });
 });

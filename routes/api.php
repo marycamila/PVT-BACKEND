@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Auth\AuthenticationException;
 
 /*
 |--------------------------------------------------------------------------
@@ -37,6 +38,7 @@ Route::group([
         Route::get('module/{module}/role', [App\Http\Controllers\Api\ModuleController::class, 'get_roles']);
         Route::apiResource('/permission', App\Http\Controllers\Api\PermissionController::class)->only(['index']);
         Route::get('user_role', [App\Http\Controllers\Api\UserController::class, 'index']);
+        Route::get('user/module_role_permision', [App\Http\Controllers\Api\UserController::class, 'module_role_permision']);
         });
 });
 

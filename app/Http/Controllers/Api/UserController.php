@@ -25,6 +25,50 @@ class UserController extends Controller
      *     tags={"USER"},
      *     summary="GET LIST OF USERS",
      *     operationId="getUsers",
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         description="Pagina a mostrar",
+     *         required=false, 
+     *       ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Por Pagina",
+     *         example=10,
+     *         required=false,
+     *     ),
+     *     @OA\Parameter(
+     *         name="active",
+     *         in="query",
+     *         description="Usuarios activos(1) o inactivos(0) ",
+     *         example=1,
+     *         required=false,
+     *     ),
+     *     @OA\Parameter(
+     *         name="first_name",
+     *         in="query",
+     *         description="Filtro por nombre de Usuario ",
+     *         required=false,
+     *     ),
+     *     @OA\Parameter(
+     *         name="last_name",
+     *         in="query",
+     *         description="Filtro por Apellidos",
+     *         required=false,
+     *     ),
+     *     @OA\Parameter(
+     *         name="position",
+     *         in="query",
+     *         description="Filtro por cargo",
+     *         required=false,
+     *     ),
+     *     @OA\Parameter(
+     *         name="username",
+     *         in="query",
+     *         description="filtro por nombre de Usuario",
+     *         required=false,
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Success"
@@ -41,8 +85,26 @@ class UserController extends Controller
      */
 
     public function index(Request $request){
+        $active = request('active') ?? 1;
+        $first_name = request('first_name') ?? '';
+        $last_name = request('last_name') ?? '';
+        $position = request('position') ?? '';
+        $username = request('username') ?? '';
+        $conditions = [];
+        if ($position != '') {
+          array_push($conditions, array('position', 'ilike', "%{$position}%"));
+        }
+        if ($first_name != '') {
+            array_push($conditions, array('first_name', 'ilike', "%{$first_name}%"));      
+        }
+        if ($last_name != '') {
+            array_push($conditions, array('last_name', 'ilike', "%{$last_name}%"));  
+        }  
+        if ($username != '') {
+            array_push($conditions, array('username', 'ilike', "%{$username}%"));
+        }  
         $per_page = $request->per_page ?? 10;
-        $users = User::with('roles')->paginate($per_page);
+        $users = User::with('roles')->where('active',$active)->where($conditions)->paginate($per_page);
         return response()->json($users);
     }
 

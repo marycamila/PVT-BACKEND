@@ -21,7 +21,7 @@ class UserController extends Controller
 {
     /**
      * @OA\Get(
-     *     path="/api/pvt/user_role",
+     *     path="/api/pvt/user",
      *     tags={"USER"},
      *     summary="GET LIST OF USERS",
      *     operationId="getUsers",

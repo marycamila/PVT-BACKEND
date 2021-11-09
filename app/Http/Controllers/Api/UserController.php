@@ -45,8 +45,7 @@ class UserController extends Controller
         $users = User::with('roles')->paginate($per_page);
         return response()->json($users);
     }
-  
-    
+
     /**
      * @OA\SecurityScheme(
      *       securityScheme="bearerAuth",
@@ -59,6 +58,9 @@ class UserController extends Controller
     /**
      * @OA\Get(
      *     path="/api/pvt/user/module_role_permision",
+     *     tags={"USER"},
+     *     summary="GET MODULE ROLE PERMSION USER",
+     *     operationId="module_role_permision",
      *     description="Obtiene los modulos, roles y permisos del usuario",
      *     security={{"bearerAuth":{}}},
      *     @OA\Response(response="200", description="ok")

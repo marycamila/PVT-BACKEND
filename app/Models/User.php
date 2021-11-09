@@ -61,4 +61,18 @@ class User extends Authenticatable
         return $this->belongsToMany(Role::class);
     }
 
+    /*public function permissions()
+    {
+        return $this->belongsToMany(Permission::class, 'user_permissions');
+    }*/
+    //modulos del usuario
+    public function getModulesAttribute()
+    {
+        return $this->roles()->pluck('module_id')->unique()->toArray();
+    }
+    //roles por modulo del usuario
+    public function rolesByModule($id_module)
+    {
+        return $this->roles()->where('module_id',$id_module)->get();
+    }
 }

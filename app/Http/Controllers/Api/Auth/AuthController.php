@@ -1,5 +1,6 @@
 <?php
-namespace App\Http\Controllers\API;
+
+namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -10,11 +11,26 @@ use App\Models\User;
 
 class AuthController extends Controller
 {
+    /**
+     * @OA\Get(
+     *     path="/api/pvt/aut",
+     *     tags={"AUTHENTICATION"},
+     *     summary="USER AUTENTICATED",
+     *     operationId="getuser",
+     *     description="Obtiene el usuario autenticado",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(response="200", description="ok")
+     * )
+     */
+    public function index()
+    {
+        return Auth::user();
+    }
  
     /**
      * @OA\Post(
      *      path="/api/pvt/login",
-     *      tags={"USER"},
+     *      tags={"AUTHENTICATION"},
      *      summary="LOGS USER INTO THE SYSTEM",
      *      operationId="login",
      *      @OA\Parameter(
@@ -65,13 +81,45 @@ class AuthController extends Controller
         }
     }
 
-    // method for user logout and delete token
+    /**
+     * @OA\Post(
+     *     path="/api/pvt/logout",
+     *     tags={"AUTHENTICATION"},
+     *     summary="LOGOUT SESION USER",
+     *     operationId="logout",
+     *     description="Cierra la sesion actual del usuario",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(response="200", description="Sesion cerrada correctamente")
+     * )
+     */
+
     public function logout()
     {
         auth()->user()->tokens()->delete();
 
         return [
-            'message' => 'You have successfully logged out and the token was successfully deleted'
+            'message' => 'Has cerrado sesión correctamente y el token se ha eliminado correctamente.'
         ];
+    }
+
+     /**
+     * @OA\Get(
+     *     path="/api/pvt/refresh",
+     *     tags={"AUTHENTICATION"},
+     *     summary="REFRESH TOCKEN OF USER",
+     *     operationId="refresh",
+     *     description="Refresca la sesion actual del usuario",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(response="200", description="Refrescado correctamente")
+     * )
+     */
+    public function refresh()
+    {
+        return Auth::refresh();
+    }
+
+    public function guard()
+    {
+        return Auth::Guard('api');
     }
 }

@@ -67,18 +67,21 @@ class AuthController extends Controller
             'password' => 'required|string|min:8'
         ]);
 
-        if($validator->fails()){
-            return response()->json($validator->errors());       
-        }
-
-        if(Auth::attempt(['username' => $request->username, 'password' => $request->password])){
-            $user = Auth::user();
-            $token = $user->createToken('auth_token')->plainTextToken;
-            return response()
-                ->json(['data' => $user,'access_token' => $token, 'token_type' => 'Bearer', ]);
-        }else{
-            return response()->json(['error' => 'No Autorizado'], 401);
-        }
+        $user= User::where('username', $request->username)->first();
+            if (!$user || !Hash::check($request->password, $user->password)) {
+                return response([
+                    'message' => ['These credentials do not match our records.']
+                ], 404);
+            }
+        
+             $token = $user->createToken('my-app-token')->plainTextToken;
+        
+            $response = [
+                'user' => $user,
+                'token' => $token
+            ];
+        
+             return response($response, 201);
     }
 
     /**

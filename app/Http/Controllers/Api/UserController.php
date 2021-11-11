@@ -104,7 +104,7 @@ class UserController extends Controller
             array_push($conditions, array('username', 'ilike', "%{$username}%"));
         }  
         $per_page = $request->per_page ?? 10;
-        $users = User::with('roles')->where('active',$active)->where($conditions)->paginate($per_page);
+        $users = User::where('active',$active)->where($conditions)->paginate($per_page);
         return response()->json($users);
     }
 

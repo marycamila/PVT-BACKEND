@@ -10,7 +10,7 @@ use App\Models\Permission;
 class PermissionController extends Controller
 {
     /**
-    * Lista de permisos
+    * Lista de permisos per
     * Devuelve el listado de los permisos disponibles en el sistema
     * @authenticated
     * @responseFile responses/permission/index.200.json

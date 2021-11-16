@@ -23,7 +23,7 @@ class UserController extends Controller
      * @OA\Get(
      *     path="/api/pvt/user",
      *     tags={"USER"},
-     *     summary="GET LIST OF USERS",
+     *     summary="LISTADO DE USUARIOS",
      *     operationId="getUsers",
      *     @OA\Parameter(
      *         name="page",
@@ -121,9 +121,9 @@ class UserController extends Controller
      * @OA\Get(
      *     path="/api/pvt/user/module_role_permision",
      *     tags={"USER"},
-     *     summary="GET MODULE ROLE PERMSION USER",
+     *     summary="OBTENER DEL USUARIO EL MODULO ROLES Y PERMISOS ",
      *     operationId="module_role_permision",
-     *     description="Obtiene los modulos, roles y permisos del usuario",
+     *     description="Obtiene los modulos, roles y permisos del usuario AUTENTICADO",
      *     security={{"bearerAuth":{}}},
      *     @OA\Response(response="200", description="ok")
      * )

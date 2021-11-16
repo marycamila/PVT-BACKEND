@@ -14,8 +14,8 @@ class AuthController extends Controller
     /**
      * @OA\Get(
      *     path="/api/pvt/aut",
-     *     tags={"AUTHENTICATION"},
-     *     summary="USER AUTENTICATED",
+     *     tags={"AUTENTICACIÓN"},
+     *     summary="OBTENER USUARIO AUTENTICADO",
      *     operationId="getuser",
      *     description="Obtiene el usuario autenticado",
      *     security={{"bearerAuth":{}}},
@@ -30,25 +30,19 @@ class AuthController extends Controller
     /**
      * @OA\Post(
      *      path="/api/pvt/login",
-     *      tags={"AUTHENTICATION"},
-     *      summary="LOGS USER INTO THE SYSTEM",
+     *      tags={"AUTENTICACIÓN"},
+     *      summary="ACCESO AL SISTEMA",
      *      operationId="login",
-     *      @OA\Parameter(
-     *          name="username",
-     *          in="query",
+     *      description="Acceso al sistema con el token",
+     *      @OA\RequestBody(
+     *          description= "Provide auth credentials",
      *          required=true,
-     *          @OA\Schema(
-     *              type="string"
+     *          @OA\JsonContent(
+     *              type="object",
+     *              @OA\Property(property="username", type="string",description="username"),
+     *              @OA\Property(property="password", type="string",description="password")
      *          )
-     *      ),
-     *      @OA\Parameter(
-     *          name="password",
-     *          in="query",
-     *          required=true,
-     *          @OA\Schema(
-     *              type="string"
-     *          )
-     *      ),
+     *     ),
      *      @OA\Response(
      *          response=200,
      *          description="Success"
@@ -66,29 +60,24 @@ class AuthController extends Controller
             'username' => 'required|string|max:255',
             'password' => 'required|string|min:8'
         ]);
-
-        $user= User::where('username', $request->username)->first();
-            if (!$user || !Hash::check($request->password, $user->password)) {
-                return response([
-                    'message' => ['These credentials do not match our records.']
-                ], 404);
-            }
-        
-             $token = $user->createToken('my-app-token')->plainTextToken;
-        
-            $response = [
-                'user' => $user,
-                'token' => $token
-            ];
-        
-             return response($response, 201);
+        if($validator->fails()){
+            return response()->json($validator->errors());
+        }
+        if(Auth::attempt(['username' => $request->username, 'password' => $request->password])){
+            $user = Auth::user();
+            $token = $user->createToken('auth_token')->plainTextToken;
+            return response()
+                ->json(['data' => $user,'access_token' => $token, 'token_type' => 'Bearer', ]);
+        }else{
+            return response()->json(['error' => 'No Autorizado'], 401);
+        }
     }
 
     /**
      * @OA\Post(
      *     path="/api/pvt/logout",
-     *     tags={"AUTHENTICATION"},
-     *     summary="LOGOUT SESION USER",
+     *     tags={"AUTENTICACIÓN"},
+     *     summary="CERRAR SESIÓN",
      *     operationId="logout",
      *     description="Cierra la sesion actual del usuario",
      *     security={{"bearerAuth":{}}},
@@ -106,10 +95,10 @@ class AuthController extends Controller
     }
 
      /**
-     * @OA\Get(
+     * @OA\Patch(
      *     path="/api/pvt/refresh",
-     *     tags={"AUTHENTICATION"},
-     *     summary="REFRESH TOCKEN OF USER",
+     *     tags={"AUTENTICACIÓN"},
+     *     summary="REFRESCAR TOCKEN",
      *     operationId="refresh",
      *     description="Refresca la sesion actual del usuario",
      *     security={{"bearerAuth":{}}},
@@ -118,7 +107,12 @@ class AuthController extends Controller
      */
     public function refresh()
     {
-        return Auth::refresh();
+        Auth::user()->tokens()->delete();
+
+        return response()->json([
+            'access_token' => Auth::user()->createToken('api')->plainTextToken,
+            'token_type' => 'Bearer',
+        ]);
     }
 
     public function guard()

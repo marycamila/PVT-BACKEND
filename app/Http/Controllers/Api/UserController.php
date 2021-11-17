@@ -131,7 +131,6 @@ class UserController extends Controller
     public function module_role_permision(Request $request){
         $modules_objects = collect();
         $user = Auth::user();
-        //$user = User::find(1);
         $modules = $user->modules;
         if(isset($modules)){
             foreach($modules as $module){
@@ -147,7 +146,12 @@ class UserController extends Controller
                 $modules_objects->push($module_object);
             }
         }
-        return response()->json($modules_objects);
+        return response()->json([
+            'message' => 'Realizado con exito',
+            'payload' => [
+                'modules' => $modules_objects
+            ],
+        ]);
     }
 
 }

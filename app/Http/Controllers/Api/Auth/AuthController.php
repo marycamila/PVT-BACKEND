@@ -57,20 +57,17 @@ class AuthController extends Controller
     */
     public function login(Request $request)
     {
+        $request->validate([
+            'username' => 'required',
+            'password' => 'required|string',
+        ]);
         $user = User::whereUsername($request->username)->first();
         if ($user) {
             if (Hash::check($request->password, $user->password)) {
                 $tokens = $user->tokens()->count();
-                if ($tokens == 1) {
-                    $token = $user->getRememberToken();
-                } else {
-                    if ($tokens > 1) {
-                        $user->tokens()->delete();
-                    }
                     $token = $user->createToken('api')->plainTextToken;
                     $user->remember_token = $token;
                     $user->save();
-                }
                 return [
                     'message' => 'Sesión iniciada',
                     'payload' => [
@@ -124,11 +121,16 @@ class AuthController extends Controller
      */
     public function refresh()
     {
+        $user = Auth::user();
         Auth::user()->tokens()->delete();
 
         return response()->json([
-            'access_token' => Auth::user()->createToken('api')->plainTextToken,
-            'token_type' => 'Bearer',
+            'message' => 'Sesión refrescada',
+            'payload' => [
+                'access_token' => Auth::user()->createToken('api')->plainTextToken,
+                'token_type' => 'Bearer',
+                'user' => new UserResource($user),
+            ],
         ]);
     }
 

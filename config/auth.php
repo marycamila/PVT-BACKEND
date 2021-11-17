@@ -14,8 +14,7 @@ return [
     */
 
     'defaults' => [
-        'guard' => 'web',
-        //'guard' => 'api',
+        'guard' => 'api',
         'passwords' => 'users',
     ],
 
@@ -32,19 +31,20 @@ return [
     | users are actually retrieved out of your database or other storage
     | mechanisms used by this application to persist your user's data.
     |
-    | Supported: "session"
+    | Supported: "session", "token"
     |
     */
 
     'guards' => [
+        'api' => [
+            'driver' => 'sanctum',
+            'provider' => 'users',
+            'hash' => false,
+        ],
         'web' => [
             'driver' => 'session',
             'provider' => 'users',
         ],
-        'api' => [
-            'driver' => 'sanctum',
-            'provider' => 'users',
-          ],
     ],
 
     /*
@@ -91,14 +91,14 @@ return [
     |
     */
 
-    'passwords' => [
-        'users' => [
-            'provider' => 'users',
-            //'table' => 'password_resets',
-            'expire' => 60,
-            'throttle' => 60,
-        ],
-    ],
+    // 'passwords' => [
+    //     'users' => [
+    //         'provider' => 'users',
+    //         'table' => 'password_resets',
+    //         'expire' => 60,
+    //         'throttle' => 60,
+    //     ],
+    // ],
 
     /*
     |--------------------------------------------------------------------------
@@ -111,6 +111,6 @@ return [
     |
     */
 
-    'password_timeout' => 10800,
+    // 'password_timeout' => 10800,
 
 ];

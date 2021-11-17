@@ -26,7 +26,7 @@ class User extends Authenticatable
         'password',
         'active',
         'position',
-        'cyti_id',
+        'city_id',
         'phone'
     ];
 
@@ -41,38 +41,44 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array
-     */
-    /*protected $casts = [
-        'email_verified_at' => 'datetime',
-    ];*/
-
-    // full name de usuario
     public function getFullNameAttribute()
     {
-        return mb_strtoupper(preg_replace('/[[:blank:]]+/', ' ', join(' ', [$this->first_name, $this->last_name])));
+        return $this->first_name . ' ' . $this->last_name;
     }
-    // relacion con la tabla roles
+
     public function roles()
     {
         return $this->belongsToMany(Role::class);
     }
 
-    /*public function permissions()
-    {
-        return $this->belongsToMany(Permission::class, 'user_permissions');
-    }*/
-    //modulos del usuario
     public function getModulesAttribute()
     {
         return $this->roles()->pluck('module_id')->unique()->toArray();
     }
-    //roles por modulo del usuario
+
     public function rolesByModule($id_module)
     {
         return $this->roles()->where('module_id',$id_module)->get();
+    }
+
+    public function setFirstNameAttribute($value)
+    {
+        $this->attributes['first_name'] = trim(mb_strtoupper($value));
+    }
+
+    public function setLastNameAttribute($value)
+    {
+        $this->attributes['last_name'] = trim(mb_strtoupper($value));
+    }
+
+
+    public function setUsernameAttribute($value)
+    {
+        $this->attributes['username'] = trim(mb_strtoupper($value));
+    }
+
+    public function setPasswordAttribute($value)
+    {
+        $this->attributes['password'] = Hash::make($value);
     }
 }

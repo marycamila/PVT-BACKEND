@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use Auth;
 use Validator;
 use App\Models\User;
+use App\Http\Resources\UserResource;
 
 class AuthController extends Controller
 {
@@ -56,21 +57,37 @@ class AuthController extends Controller
     */
     public function login(Request $request)
     {
-        $validator = Validator::make($request->all(),[
-            'username' => 'required|string|max:255',
-            'password' => 'required|string|min:8'
-        ]);
-        if($validator->fails()){
-            return response()->json($validator->errors());
+        $user = User::whereUsername($request->username)->first();
+        if ($user) {
+            if (Hash::check($request->password, $user->password)) {
+                $tokens = $user->tokens()->count();
+                if ($tokens == 1) {
+                    $token = $user->getRememberToken();
+                } else {
+                    if ($tokens > 1) {
+                        $user->tokens()->delete();
+                    }
+                    $token = $user->createToken('api')->plainTextToken;
+                    $user->remember_token = $token;
+                    $user->save();
+                }
+                return [
+                    'message' => 'Sesión iniciada',
+                    'payload' => [
+                        'access_token' => $token,
+                        'token_type' => 'Bearer',
+                        'user' => new UserResource($user),
+                        //'permissions' => $user->getAllPermissions()->pluck('name')->unique(),
+                    ],
+                ];
+            }
         }
-        if(Auth::attempt(['username' => $request->username, 'password' => $request->password])){
-            $user = Auth::user();
-            $token = $user->createToken('auth_token')->plainTextToken;
-            return response()
-                ->json(['data' => $user,'access_token' => $token, 'token_type' => 'Bearer', ]);
-        }else{
-            return response()->json(['error' => 'No Autorizado'], 401);
-        }
+        return response()->json([
+            'message' => 'Credenciales inválidas',
+            'errors' => [
+                'username' => ['Usuario o contraseña incorrecta']
+            ]
+        ], 401);
     }
 
     /**

@@ -105,7 +105,12 @@ class UserController extends Controller
         }  
         $per_page = $request->per_page ?? 10;
         $users = User::where('active',$active)->where($conditions)->paginate($per_page);
-        return response()->json($users);
+        return response()->json([
+            'message' => 'Realizado con exito',
+            'payload' => [
+                'users' => $users
+            ],
+        ]);
     }
 
     /**

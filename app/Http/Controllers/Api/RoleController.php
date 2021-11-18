@@ -9,17 +9,45 @@ use App\Models\Role;
 class RoleController extends Controller
 {
    /**
-    * Lista de roles
-    * Devuelve el listado de los roles disponibles en el sistema
-    * @queryParam name Filtrar roles por nombre. Example: PRE-recepcion
-    * @authenticated
-    * @responseFile responses/role/index.200.json
-    */
+     * @OA\Get(
+     *     path="/api/pvt/role",
+     *     tags={"ROLES"},
+     *     summary="LISTADO DE ROLES",
+     *     operationId="getRoles",
+     *     @OA\Parameter(
+     *         name="display_name",
+     *         in="query",
+     *         description="Nombre del Rol",
+     *         required=false,
+     *       ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *         type="json"
+     *         )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     }
+     * )
+     *
+     * Get list of roles
+     *
+     * @param Request $request
+     * @return void
+     */
     public function index(Request $request)
     {
-        $query = Role::orderBy('name');
-        if ($request->has('name')) $query = $query->whereName($request->name);
-        return $query->get();
+        $query = Role::query();
+        if ($request->has('display_name')) $query = $query->where('display_name', 'ilike','%'.$request->display_name.'%');
+
+        return [
+            'message' => 'Realizado con éxito',
+            'payload' => [
+                'modules' => $query->get(),
+            ]
+         ];
     }
 
     /**
@@ -43,16 +71,48 @@ class RoleController extends Controller
         //
     }
 
-    /**
-    * Detalle de rol
-    * Devuelve el detalle de un rol mediante su ID
-    * @urlParam role required ID de rol. Example: 42
-    * @authenticated
-    * @responseFile responses/role/show.200.json
-    */
+     /**
+     * @OA\Get(
+     *     path="/api/pvt/role/{role}",
+     *     tags={"ROLES"},
+     *     summary="DETALLE DEL ROL",
+     *     operationId="getROle",
+     *     @OA\Parameter(
+     *         name="role",
+     *         in="path",
+     *         description="",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="integer",
+     *             format = "int64"
+     *         )
+     *       ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *            type="json"
+     *         )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     }
+     * )
+     *
+     * Get user
+     *
+     * @param Request $request
+     * @return void
+     */
     public function show(Role $role)
     {
-        return $role;
+        return [
+            'message' => 'Realizado con éxito',
+            'payload' => [
+                'role' => $role,
+                'permissions' => $role->permissions()->orderBy('id')->get()
+            ]
+         ];
     }
 
     /**

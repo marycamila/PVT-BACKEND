@@ -15,7 +15,7 @@ class ModuleController extends Controller
      *     summary="LISTADO DE MÓDULOS",
      *     operationId="getModules",
      *     @OA\Parameter(
-     *         name="name",
+     *         name="display_name",
      *         in="query",
      *         description="Nombre del módulo",
      *         required=false, 
@@ -32,7 +32,7 @@ class ModuleController extends Controller
      *     }
      * )
      *
-     * Get list of users.
+     * Get list of modules.
      *
      * @param Request $request
      * @return void
@@ -40,7 +40,7 @@ class ModuleController extends Controller
     public function index(Request $request)
     {
         $query = Module::query();
-        if ($request->has('name')) $query = $query->where('display_name', 'like','%'.$request->name.'%');
+        if ($request->has('display_name')) $query = $query->where('display_name', 'ilike','%'.$request->display_name.'%');
 
         return [
             'message' => 'Realizado con éxito',
@@ -78,7 +78,7 @@ class ModuleController extends Controller
      *     }
      * )
      *
-     * Get user
+     * Get module
      *
      * @param Request $request
      * @return void
@@ -122,7 +122,7 @@ class ModuleController extends Controller
      *     }
      * )
      *
-     * Get user
+     * Get roles
      *
      * @param Request $request
      * @return void

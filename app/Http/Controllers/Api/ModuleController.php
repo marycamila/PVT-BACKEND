@@ -8,41 +8,132 @@ use App\Models\Module;
 
 class ModuleController extends Controller
 {
-   /**
-    * Lista de módulos
-    * Devuelve el listado con los datos paginados
-    * @queryParam name Filtro por nombre. Example: prestamos
-    * @queryParam sortBy Vector de ordenamiento. Example: [name]
-    * @authenticated
-    * @responseFile responses/module/index.200.json
-    */
+    /**
+     * @OA\Get(
+     *     path="/api/pvt/module",
+     *     tags={"MÓDULO"},
+     *     summary="LISTADO DE MÓDULOS",
+     *     operationId="getModules",
+     *     @OA\Parameter(
+     *         name="name",
+     *         in="query",
+     *         description="Nombre del módulo",
+     *         required=false, 
+     *       ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *         type="json"
+     *         )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     }
+     * )
+     *
+     * Get list of users.
+     *
+     * @param Request $request
+     * @return void
+     */
     public function index(Request $request)
     {
-        $query = Module::orderBy('name');
-        if ($request->has('name')) $query = $query->whereName($request->name);
-        return $query->get();
-    }
-     /**
-    * Detalle de módulo
-    * Devuelve el detalle de un módulo mediante su ID
-    * @urlParam module required ID de afiliado. Example: 3
-    * @authenticated
-    * @responseFile responses/module/show.200.json
-    */
-    public function show(Module $module)
-    {
-        return $module;
+        $query = Module::query();
+        if ($request->has('name')) $query = $query->where('display_name', 'like','%'.$request->name.'%');
+
+        return [
+            'message' => 'Realizado con éxito',
+            'payload' => [
+                'modules' => $query->get(),
+            ]
+         ];
     }
 
     /**
-    * Roles asociados al módulo
-    * Devuelve la lista de roles asociados a un módulo
-    * @urlParam module required ID del módulo. Example: 6
-    * @authenticated
-    * @responseFile responses/module/get_roles.200.json
-    */
+     * @OA\Get(
+     *     path="/api/pvt/module/{module}",
+     *     tags={"MÓDULO"},
+     *     summary="DETALLE DEL MÓDULO",
+     *     operationId="getModule",
+     *     @OA\Parameter(
+     *         name="module",
+     *         in="path",
+     *         description="",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="integer",
+     *             format = "int64"
+     *         )
+     *       ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *            type="json"
+     *         )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     }
+     * )
+     *
+     * Get user
+     *
+     * @param Request $request
+     * @return void
+     */
+
+    public function show(Module $module)
+    {
+        return [
+            'message' => 'Realizado con éxito',
+            'payload' => [
+                'module' => $module
+            ]
+         ];
+    }
+
+   /**
+     * @OA\Get(
+     *     path="/api/pvt/module/{module}/role",
+     *     tags={"MÓDULO"},
+     *     summary="LISTADO DE ROLES DEACUERDO AL MODULO SOLICITADO",
+     *     operationId="getRolesByModule",
+     *     @OA\Parameter(
+     *         name="module",
+     *         in="path",
+     *         description="",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="integer",
+     *             format = "int64"
+     *         )
+     *       ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *            type="json"
+     *         )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     }
+     * )
+     *
+     * Get user
+     *
+     * @param Request $request
+     * @return void
+     */
     public function get_roles(Module $module)
     {
-        return $module->roles()->get();
+        return [
+            'message' => 'Realizado con éxito',
+            'payload' => [
+                'roles' => $module->roles()->get()
+            ]
+         ];
     }
 }

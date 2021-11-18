@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Module;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Requests\UserRequest;
+use App\Http\Resources\UserResource;
 
   /**
      * @OA\Info(
@@ -22,7 +24,7 @@ class UserController extends Controller
     /**
      * @OA\Get(
      *     path="/api/pvt/user",
-     *     tags={"USER"},
+     *     tags={"USUARIO"},
      *     summary="LISTADO DE USUARIOS",
      *     operationId="getUsers",
      *     @OA\Parameter(
@@ -125,7 +127,7 @@ class UserController extends Controller
     /**
      * @OA\Get(
      *     path="/api/pvt/user/module_role_permision",
-     *     tags={"USER"},
+     *     tags={"USUARIO"},
      *     summary="OBTENER DEL USUARIO EL MODULO ROLES Y PERMISOS ",
      *     operationId="module_role_permision",
      *     description="Obtiene los modulos, roles y permisos del usuario AUTENTICADO",
@@ -157,6 +159,47 @@ class UserController extends Controller
                 'modules' => $modules_objects
             ],
         ]);
+    }
+    /**
+     * @OA\Post(
+     *      path="/api/pvt/user",
+     *      tags={"USUARIO"},
+     *      summary="NUEVO USUARIO",
+     *      operationId="crear usuario",
+     *      description="Creación de un nuevo usuario",
+     *      security={{"bearerAuth":{}}},
+     *      @OA\RequestBody(
+     *          description= "Provide auth credentials",
+     *          required=true,
+     *          @OA\JsonContent(
+     *              type="object",
+     *              @OA\Property(property="first_name", type="string",description="nombres required"),
+     *              @OA\Property(property="last_name", type="string",description="apellidos required"),
+     *              @OA\Property(property="username", type="string",description="nombre de usuario required"),
+     *              @OA\Property(property="password", type="string",description="contraceña required"),
+     *              @OA\Property(property="active", type="boolean",description="true o false required"),
+     *              @OA\Property(property="position", type="boolean",description="Cargo del usuario required"),
+     *              @OA\Property(property="city_id", type="boolean",description="ide de ciudad"),
+     *          )
+     *     ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Success"
+     *      )
+     * )
+     *
+     * @return void
+    */
+
+    public function store(UserRequest $request)
+    {
+        $user = User::create($request->all());
+        return [
+            'message' => 'Usuario creado',
+            'payload' => [
+                'user' => new UserResource($user),
+            ]
+        ];
     }
 
 }

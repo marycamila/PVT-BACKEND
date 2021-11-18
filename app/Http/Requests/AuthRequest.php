@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class AuthForm extends FormRequest
+class AuthRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,11 +22,11 @@ class AuthForm extends FormRequest
      * @return array
      */
     public function rules()
-    {   
+    {
         $rules = ['username' => 'required|min:4|max:255'];
         if (env('APP_ENV') == 'production') {
             $rules['password'] = 'required|min:4|max:255';
         }
         return $rules;
-	}
+    }
 }

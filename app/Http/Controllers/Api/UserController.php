@@ -73,7 +73,10 @@ class UserController extends Controller
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Success"
+     *         description="Success",
+     *         @OA\JsonContent(
+     *         type="json"
+     *         )
      *     ),
      *     security={
      *         {"bearerAuth": {}}

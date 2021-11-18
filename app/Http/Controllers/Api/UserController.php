@@ -132,7 +132,11 @@ class UserController extends Controller
      *     operationId="module_role_permision",
      *     description="Obtiene los modulos, roles y permisos del usuario AUTENTICADO",
      *     security={{"bearerAuth":{}}},
-     *     @OA\Response(response="200", description="ok")
+     *     @OA\Response(response="200", description="ok",
+     *     @OA\JsonContent(
+     *     type="json"
+     *     )
+     * )
      * )
      */
     public function module_role_permision(Request $request){
@@ -184,7 +188,10 @@ class UserController extends Controller
      *     ),
      *      @OA\Response(
      *          response=200,
-     *          description="Success"
+     *          description="Success",
+     *          @OA\JsonContent(
+     *            type="json"
+     *         )
      *      )
      * )
      *
@@ -201,5 +208,50 @@ class UserController extends Controller
             ]
         ];
     }
+
+    /**
+     * @OA\Get(
+     *     path="/api/pvt/user/{user}",
+     *     tags={"USUARIO"},
+     *     summary="DETALLE DE USUARIO",
+     *     operationId="getUser",
+     *     @OA\Parameter(
+     *         name="user",
+     *         in="path",
+     *         description="",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="integer",
+     *             format = "int64"
+     *         )
+     *       ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *            type="json"
+     *         )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     }
+     * )
+     *
+     * Get user
+     *
+     * @param Request $request
+     * @return void
+     */
+
+    public function show(User $user)
+    {
+        return [
+            'message' => 'Usuario encontrado',
+            'payload' => [
+                'user' => new UserResource($user),
+            ]
+         ];
+    }
+
 
 }

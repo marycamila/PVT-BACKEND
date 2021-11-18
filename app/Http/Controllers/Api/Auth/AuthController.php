@@ -14,20 +14,24 @@ class AuthController extends Controller
 {
     /**
      * @OA\Get(
-     *     path="/api/pvt/aut",
+     *     path="/api/pvt/auth",
      *     tags={"AUTENTICACIÓN"},
      *     summary="OBTENER USUARIO AUTENTICADO",
      *     operationId="getuser",
      *     description="Obtiene el usuario autenticado",
      *     security={{"bearerAuth":{}}},
-     *     @OA\Response(response="200", description="ok")
+     *     @OA\Response(response="200", description="ok",
+     *     @OA\JsonContent(
+     *     type="json"
+     *     )
+     *   )
      * )
      */
     public function index()
     {
         return Auth::user();
     }
- 
+
     /**
      * @OA\Post(
      *      path="/api/pvt/login",
@@ -46,7 +50,10 @@ class AuthController extends Controller
      *     ),
      *      @OA\Response(
      *          response=200,
-     *          description="Success"
+     *          description="Success",
+     *          @OA\JsonContent(
+     *            type="json"
+     *         )
      *      )
      * )
      *
@@ -105,7 +112,11 @@ class AuthController extends Controller
      *     operationId="logout",
      *     description="Cierra la sesion actual del usuario",
      *     security={{"bearerAuth":{}}},
-     *     @OA\Response(response="200", description="Sesion cerrada correctamente")
+     *     @OA\Response(response="200", description="Sesion cerrada correctamente",
+     *     @OA\JsonContent(
+     *     type="json"
+     *     )
+     *   )
      * )
      */
 
@@ -126,7 +137,11 @@ class AuthController extends Controller
      *     operationId="refresh",
      *     description="Refresca la sesion actual del usuario",
      *     security={{"bearerAuth":{}}},
-     *     @OA\Response(response="200", description="Refrescado correctamente")
+     *     @OA\Response(response="200", description="Refrescado correctamente",
+     *     @OA\JsonContent(
+     *     type="json"
+     *     )
+     *   )
      * )
      */
     public function refresh()

@@ -35,12 +35,11 @@ Route::group([
         Route::delete('/logout', [App\Http\Controllers\Api\Auth\AuthController::class, 'logout']);
         Route::get('/auth', [App\Http\Controllers\Api\Auth\AuthController::class,'index']);
         Route::patch('/refresh', [App\Http\Controllers\Api\Auth\AuthController::class, 'refresh']);
-
         Route::apiResource('/role', App\Http\Controllers\Api\RoleController::class)->only(['index', 'show']);
         Route::apiResource('/module', App\Http\Controllers\Api\ModuleController::class)->only(['index', 'show']);
         Route::get('module/{module}/role', [App\Http\Controllers\Api\ModuleController::class, 'get_roles']);
         Route::apiResource('/permission', App\Http\Controllers\Api\PermissionController::class)->only(['index']);
-        Route::get('user', [App\Http\Controllers\Api\UserController::class, 'index']);
+        Route::apiResource('/user', App\Http\Controllers\Api\UserController::class)->only(['index', 'store']);
         Route::get('user/module_role_permision', [App\Http\Controllers\Api\UserController::class, 'module_role_permision']);
     });
 });

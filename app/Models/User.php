@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Laratrust\Traits\LaratrustUserTrait;
+use Illuminate\Support\Facades\Hash;
 
 class User extends Authenticatable
 {
@@ -74,7 +75,7 @@ class User extends Authenticatable
 
     public function setUsernameAttribute($value)
     {
-        $this->attributes['username'] = trim(mb_strtoupper($value));
+        $this->attributes['username'] = trim($value);
     }
 
     public function setPasswordAttribute($value)

@@ -22,7 +22,7 @@ class AuthController extends Controller
      *     security={{"bearerAuth":{}}},
      *     @OA\Response(response="200", description="ok",
      *     @OA\JsonContent(
-     *     type="json"
+     *     type="object"
      *     )
      *   )
      * )
@@ -52,7 +52,7 @@ class AuthController extends Controller
      *          response=200,
      *          description="Success",
      *          @OA\JsonContent(
-     *            type="json"
+     *            type="object"
      *         )
      *      )
      * )
@@ -114,7 +114,7 @@ class AuthController extends Controller
      *     security={{"bearerAuth":{}}},
      *     @OA\Response(response="200", description="Sesion cerrada correctamente",
      *     @OA\JsonContent(
-     *     type="json"
+     *     type="object"
      *     )
      *   )
      * )
@@ -139,7 +139,7 @@ class AuthController extends Controller
      *     security={{"bearerAuth":{}}},
      *     @OA\Response(response="200", description="Refrescado correctamente",
      *     @OA\JsonContent(
-     *     type="json"
+     *     type="object"
      *     )
      *   )
      * )

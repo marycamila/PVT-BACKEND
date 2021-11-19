@@ -75,7 +75,7 @@ class UserController extends Controller
      *         response=200,
      *         description="Success",
      *         @OA\JsonContent(
-     *         type="json"
+     *         type="object"
      *         )
      *     ),
      *     security={
@@ -137,7 +137,7 @@ class UserController extends Controller
      *     security={{"bearerAuth":{}}},
      *     @OA\Response(response="200", description="ok",
      *     @OA\JsonContent(
-     *     type="json"
+     *     type="object"
      *     )
      * )
      * )
@@ -193,7 +193,7 @@ class UserController extends Controller
      *          response=200,
      *          description="Success",
      *          @OA\JsonContent(
-     *            type="json"
+     *            type="object"
      *         )
      *      )
      * )
@@ -232,7 +232,7 @@ class UserController extends Controller
      *         response=200,
      *         description="Success",
      *         @OA\JsonContent(
-     *            type="json"
+     *            type="object"
      *         )
      *     ),
      *     security={

@@ -24,7 +24,7 @@ class RoleController extends Controller
      *         response=200,
      *         description="Success",
      *         @OA\JsonContent(
-     *         type="json"
+     *         type="object"
      *         )
      *     ),
      *     security={
@@ -91,7 +91,7 @@ class RoleController extends Controller
      *         response=200,
      *         description="Success",
      *         @OA\JsonContent(
-     *            type="json"
+     *            type="object"
      *         )
      *     ),
      *     security={
@@ -148,4 +148,63 @@ class RoleController extends Controller
     {
         //
     }
+
+    /**
+     * @OA\Patch(
+     *     path="/api/pvt/role/{role}/permission",
+     *     tags={"ROLES"},
+     *     summary="ESTABLECER PERMISOS A UN ROL",
+     *     operationId="getPermissionsByRole",
+     *     @OA\Parameter(
+     *         name="role",
+     *         in="path",
+     *         description="",
+     *         required=true,
+     *         example=1,
+     *         @OA\Schema(
+     *             type="integer",
+     *             format = "int64"
+     *         )
+     *       ),
+     *      @OA\RequestBody(
+     *          description= "Provide auth credentials",
+     *          required=true,
+     *          @OA\JsonContent(
+     *              type="object",
+     *              @OA\Property(property="permissions", type="[]",description="nombres required",example="[1,2]")
+     *          )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *           type="object"
+     *         )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     }
+     * )
+     *
+     * Get user
+     *
+     * @param Request $request
+     * @return void
+     */
+
+
+    public function set_permissions(Request $request,Role $role) {
+       $request->validate([
+            'permissions' => 'required|array|min:1',
+            'permissions.*' => 'exists:permissions,id'
+        ]);
+        $role->syncPermissions($request->permissions);
+        return [
+            'message' => 'Realizado con éxito',
+            'payload' => [
+                'permissions' => $role->permissions
+            ]
+         ];
+    }
+
 }

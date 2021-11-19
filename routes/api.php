@@ -42,6 +42,7 @@ Route::group([
         Route::patch('role/{role}/permission', [App\Http\Controllers\Api\RoleController::class,'set_permissions']);
         Route::apiResource('/user', App\Http\Controllers\Api\UserController::class)->only(['index', 'store','show']);
         Route::get('user/module_role_permision', [App\Http\Controllers\Api\UserController::class, 'module_role_permision']);
+        Route::patch('user/{user}/role', [App\Http\Controllers\Api\UserController::class, 'set_roles']);
     });
 });
 

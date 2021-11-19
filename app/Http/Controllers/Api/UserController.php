@@ -255,6 +255,64 @@ class UserController extends Controller
             ]
          ];
     }
+    /**
+     * @OA\Patch(
+     *     path="/api/pvt/user/{user}/role",
+     *     tags={"USUARIO"},
+     *     summary="ESTABLECER ROLES A UN USUARIO",
+     *     operationId="setRolesForUser",
+     *     @OA\Parameter(
+     *         name="user",
+     *         in="path",
+     *         description="",
+     *         required=true,
+     *         example=240,
+     *         @OA\Schema(
+     *             type="integer",
+     *             format = "int64"
+     *         )
+     *       ),
+     *      @OA\RequestBody(
+     *          description= "Provide auth credentials",
+     *          required=true,
+     *          @OA\JsonContent(
+     *              type="object",
+     *              @OA\Property(property="roles", type="[]",description="nombres required",example="[1,2]")
+     *          )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *           type="object"
+     *         )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     }
+     * )
+     *
+     * Get user
+     *
+     * @param Request $request
+     * @return void
+     */
 
+    public function set_roles(Request $request, User $user)
+    {
+        //return $user->roles;
+        $request->validate([
+            'roles' => 'required|array',
+            'roles.*' => 'exists:roles,id'
+        ]);
+        $user->syncRoles($request->roles);
+
+        return response()->json([
+            'message' => 'Realizado con éxito',
+            'payload' => [
+                'user' => new UserResource($user),
+            ],
+        ]);
+    }
 
 }

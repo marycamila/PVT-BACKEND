@@ -24,7 +24,7 @@ class ModuleController extends Controller
      *         response=200,
      *         description="Success",
      *         @OA\JsonContent(
-     *         type="json"
+     *         type="object"
      *         )
      *     ),
      *     security={
@@ -70,7 +70,7 @@ class ModuleController extends Controller
      *         response=200,
      *         description="Success",
      *         @OA\JsonContent(
-     *            type="json"
+     *            type="object"
      *         )
      *     ),
      *     security={
@@ -114,7 +114,7 @@ class ModuleController extends Controller
      *         response=200,
      *         description="Success",
      *         @OA\JsonContent(
-     *            type="json"
+     *            type="object"
      *         )
      *     ),
      *     security={

@@ -5,11 +5,12 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Role;
 use App\Models\Module;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\UserRequest;
 use App\Http\Resources\UserResource;
-
+use Illuminate\Support\Facades\DB;
   /**
      * @OA\Info(
      *      version="1.0.0",
@@ -259,8 +260,8 @@ class UserController extends Controller
      * @OA\Patch(
      *     path="/api/pvt/user/{user}/role",
      *     tags={"USUARIO"},
-     *     summary="ESTABLECER ROLES A UN USUARIO",
-     *     operationId="setRolesForUser",
+     *     summary="ESTABLECER O ELIMINAR EL ROL A UN USUARIO",
+     *     operationId="setOrRemoveRolForUser",
      *     @OA\Parameter(
      *         name="user",
      *         in="path",
@@ -277,7 +278,7 @@ class UserController extends Controller
      *          required=true,
      *          @OA\JsonContent(
      *              type="object",
-     *              @OA\Property(property="roles", type="[]",description="nombres required",example="[1,2]")
+     *              @OA\Property(property="role_id", type="integer",description="id rol required",example=1)
      *          )
      *     ),
      *     @OA\Response(
@@ -298,21 +299,43 @@ class UserController extends Controller
      * @return void
      */
 
-    public function set_roles(Request $request, User $user)
+    public function set_or_remove_role(Request $request, User $user)
     {
-        //return $user->roles;
         $request->validate([
-            'roles' => 'required|array',
-            'roles.*' => 'exists:roles,id'
+            'role_id' => 'required|exists:roles,id',
         ]);
-        $user->syncRoles($request->roles);
-
-        return response()->json([
-            'message' => 'Realizado con éxito',
-            'payload' => [
-                'user' => new UserResource($user),
-            ],
-        ]);
+        DB::beginTransaction();
+        try {
+            $role= Role::find($request->role_id);
+            $user_roles = $user->roles()->pluck('id');
+            $add_role = true;
+            foreach($user_roles as $user_role){
+                if($user_role == $role->id){
+                    $add_role = false;
+                    break;
+                }
+            }
+            if($add_role){
+                $insert = "INSERT INTO role_user (role_id,user_id) VALUES ($role->id, $user->id)";
+                $insert = DB::select($insert);
+            }else{
+                $delete = "DELETE from role_user where role_id =$role->id AND user_id = $user->id";
+                $delete = DB::select($delete);
+            }
+            DB::commit();
+            return response()->json([
+                'message' => $add_role? 'Realizado con éxito la adición del rol: '.$role->display_name:'Realizado con éxito la eliminación del rol: '.$role->display_name,
+                'payload' => [
+                    'user' => new UserResource($user),
+                ],
+            ]);
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json([
+                'message' => 'Ocurrio un error',
+                'error' => $e
+            ]);
+        }
     }
 
 }

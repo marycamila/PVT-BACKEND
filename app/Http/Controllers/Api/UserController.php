@@ -337,5 +337,122 @@ class UserController extends Controller
             ]);
         }
     }
+    /**
+     * @OA\Get(
+     *     path="/api/pvt/user/{user}/module_role_state_user",
+     *     tags={"USUARIO"},
+     *     summary="LISTADO DE ROLES ASIGNADOS A UN USURIO POR MODULO",
+     *     operationId="module_role_state_user",
+     *     @OA\Parameter(
+     *         name="user",
+     *         in="path",
+     *         description="",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="integer",
+     *             format = "int64"
+     *         )
+     *       ),
+     *     @OA\Parameter(
+     *         name="module_id",
+     *         in="query",
+     *         description="id del modulo",
+     *         required=true,
+     *       ),
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="query",
+     *         description="id rol",
+     *         required=false,
+     *       ),
+     *     @OA\Parameter(
+     *         name="action",
+     *         in="query",
+     *         description="Nombre de la accion a realizar",
+     *         required=false,
+     *     ),
+     *     @OA\Parameter(
+     *         name="name",
+     *         in="query",
+     *         description="Filtro por nombre del rol ",
+     *         required=false,
+     *     ),
+     *     @OA\Parameter(
+     *         name="display_name",
+     *         in="query",
+     *         description="Filtro del nombre de visualización del rol",
+     *         required=false,
+     *     ),
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         description="Pagina a mostrar",
+     *         example=1,
+     *         required=false,
+     *       ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Por Pagina",
+     *         example=10,
+     *         required=false,
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *           type="object"
+     *         )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     }
+     * )
+     *
+     * obtener listado roles asignados a un usuario por modulo
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function module_role_state_user(Request $request, User $user)
+    {  
+        $request->validate([
+            'module_id' => 'required|integer|exists:modules,id'
+        ]);
+
+        $id = request('id') ?? '';
+        $display_name = request('display_name') ?? '';
+        $action = request('action') ?? '';
+        $name = request('name') ?? '';
+        
+        $conditions = [];
+
+        if ($id != '') array_push($conditions, array('id', '=', "{$id}"));
+        if ($display_name != '') array_push($conditions, array('display_name', 'ilike', "%{$display_name}%"));
+        if ($action != '') array_push($conditions, array('action', 'ilike', "%{$action}%"));
+        if ($name != '') array_push($conditions, array('name', 'ilike', "%{$name}%"));
+
+        $per_page = $request->per_page ?? 10;
+
+        $active = false;
+        $user_role_asignes = $user->rolesByModule($request->module_id)->pluck('id');
+        $module_roles = Role::where('module_id', $request->module_id)->where($conditions)->paginate($per_page);
+
+        foreach ($module_roles as $module_role) {
+            $contar_active = 0;
+            foreach ($user_role_asignes as $user_role_asigne){
+                if($module_role->id == $user_role_asigne) $contar_active++;
+            }
+            if($contar_active == 1) $active = true;
+            else $active = false;
+            $module_role->active = $active;
+        }
+        return response()->json([
+            'message' => 'Realizado con éxito',
+            'payload' => [
+                'role' => $module_roles,
+            ],
+        ]);
+    }
 
 }

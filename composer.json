@@ -13,6 +13,7 @@
         "laravel/sanctum": "^2.11",
         "laravel/tinker": "^2.5",
         "laraveles/spanish": "^1.5",
+        "nesbot/carbon": "^2.54",
         "santigarcor/laratrust": "^6.3"
     },
     "require-dev": {

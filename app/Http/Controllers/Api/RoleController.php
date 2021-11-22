@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Role;
 use App\Models\Permission;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class RoleController extends Controller
 {
@@ -150,7 +152,7 @@ class RoleController extends Controller
         //
     }
 
-    /**
+/**
      * @OA\Patch(
      *     path="/api/pvt/role/{role}/permission",
      *     tags={"ROLES"},
@@ -194,19 +196,49 @@ class RoleController extends Controller
      */
 
 
-    public function set_permissions(Request $request,Role $role) {
-       $request->validate([
-            'permissions' => 'required|array|min:1',
-            'permissions.*' => 'exists:permissions,id'
-        ]);
-        $role->syncPermissions($request->permissions);
-        return [
-            'message' => 'Realizado con éxito',
-            'payload' => [
-                'permissions' => $role->permissions
-            ]
-         ];
-    }
+    public function set_or_remove_permission(Request $request,Role $role) {
+        $request->validate([
+             'permission_id' => 'required|exists:permissions,id',
+         ]);
+         DB::beginTransaction();
+         try {
+ 
+             $permission= Permission::find($request->permission_id);
+ 
+             $role_permissions = $role->permissions->pluck('id');
+ 
+             $add_permission = true;
+             foreach($role_permissions as $role_permission){
+                 if($role_permission === $permission->id){
+                     $add_permission = false;
+                     break;
+                 }
+             }
+             $date_current = Carbon::now()->format('Y-m-d h:i:s');
+
+             if($add_permission){
+                 $insert = "INSERT INTO role_permissions (role_id,permission_id,created_at,updated_at) VALUES ($role->id, $permission->id,'$date_current','$date_current')";
+                 $insert = DB::select($insert);
+             }else{
+                 $delete = "DELETE from role_permissions where role_id = $role->id AND permission_id = $permission->id";
+                 $delete = DB::select($delete);
+             }
+             DB::commit();
+             return response()->json([
+                 'message' => $add_permission? 'Realizado con éxito la adición del permiso: '.$permission->name:'Realizado con éxito la eliminación del rol: '.$permission->name,
+                 'payload' => [
+                     'permissions' => Role::where('id',$role->id)->get()->first()->permissions,
+                 ],
+             ]);
+
+         } catch (\Exception $e) {
+             DB::rollback();
+             return response()->json([
+                 'message' => 'Ocurrio un error',
+                 'error' => $e
+             ]);
+         }
+     }
     /**
      * @OA\Get(
      *     path="/api/pvt/role/{role}/role_permisions",

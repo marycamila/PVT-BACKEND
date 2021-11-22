@@ -40,7 +40,7 @@ Route::group([
         Route::get('module/{module}/role', [App\Http\Controllers\Api\ModuleController::class, 'get_roles']);
         Route::get('role/{role}/role_permisions', [App\Http\Controllers\Api\RoleController::class, 'role_permisions']);
         Route::apiResource('/permission', App\Http\Controllers\Api\PermissionController::class)->only(['index']);
-        Route::patch('role/{role}/permission', [App\Http\Controllers\Api\RoleController::class,'set_permissions']);
+        Route::patch('role/{role}/permission', [App\Http\Controllers\Api\RoleController::class,'set_or_remove_permission']);
         Route::apiResource('/user', App\Http\Controllers\Api\UserController::class)->only(['index', 'store','show']);
         Route::get('user/module_role_permision', [App\Http\Controllers\Api\UserController::class, 'module_role_permision']);
         Route::get('user/{user}/module_role_state_user', [App\Http\Controllers\Api\UserController::class, 'module_role_state_user']);

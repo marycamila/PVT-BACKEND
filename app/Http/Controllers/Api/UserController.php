@@ -5,11 +5,12 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Role;
 use App\Models\Module;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\UserRequest;
 use App\Http\Resources\UserResource;
-
+use Illuminate\Support\Facades\DB;
   /**
      * @OA\Info(
      *      version="1.0.0",
@@ -259,8 +260,8 @@ class UserController extends Controller
      * @OA\Patch(
      *     path="/api/pvt/user/{user}/role",
      *     tags={"USUARIO"},
-     *     summary="ESTABLECER ROLES A UN USUARIO",
-     *     operationId="setRolesForUser",
+     *     summary="ESTABLECER O ELIMINAR EL ROL A UN USUARIO",
+     *     operationId="setOrRemoveRolForUser",
      *     @OA\Parameter(
      *         name="user",
      *         in="path",
@@ -277,7 +278,7 @@ class UserController extends Controller
      *          required=true,
      *          @OA\JsonContent(
      *              type="object",
-     *              @OA\Property(property="roles", type="[]",description="nombres required",example="[1,2]")
+     *              @OA\Property(property="role_id", type="integer",description="id rol required",example=1)
      *          )
      *     ),
      *     @OA\Response(
@@ -298,19 +299,158 @@ class UserController extends Controller
      * @return void
      */
 
-    public function set_roles(Request $request, User $user)
+    public function set_or_remove_role(Request $request, User $user)
     {
-        //return $user->roles;
         $request->validate([
-            'roles' => 'required|array',
-            'roles.*' => 'exists:roles,id'
+            'role_id' => 'required|exists:roles,id',
         ]);
-        $user->syncRoles($request->roles);
+        DB::beginTransaction();
+        try {
+            $role= Role::find($request->role_id);
+            $user_roles = $user->roles()->pluck('id');
+            $add_role = true;
+            foreach($user_roles as $user_role){
+                if($user_role == $role->id){
+                    $add_role = false;
+                    break;
+                }
+            }
+            if($add_role){
+                $insert = "INSERT INTO role_user (role_id,user_id) VALUES ($role->id, $user->id)";
+                $insert = DB::select($insert);
+            }else{
+                $delete = "DELETE from role_user where role_id =$role->id AND user_id = $user->id";
+                $delete = DB::select($delete);
+            }
+            DB::commit();
+            return response()->json([
+                'message' => $add_role? 'Realizado con éxito la adición del rol: '.$role->display_name:'Realizado con éxito la eliminación del rol: '.$role->display_name,
+                'payload' => [
+                    'user' => new UserResource($user),
+                ],
+            ]);
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json([
+                'message' => 'Ocurrio un error',
+                'error' => $e
+            ]);
+        }
+    }
+    /**
+     * @OA\Get(
+     *     path="/api/pvt/user/{user}/module_role_state_user",
+     *     tags={"USUARIO"},
+     *     summary="LISTADO DE ROLES ASIGNADOS A UN USURIO POR MODULO",
+     *     operationId="module_role_state_user",
+     *     @OA\Parameter(
+     *         name="user",
+     *         in="path",
+     *         description="",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="integer",
+     *             format = "int64"
+     *         )
+     *       ),
+     *     @OA\Parameter(
+     *         name="module_id",
+     *         in="query",
+     *         description="id del modulo",
+     *         required=true,
+     *       ),
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="query",
+     *         description="id rol",
+     *         required=false,
+     *       ),
+     *     @OA\Parameter(
+     *         name="action",
+     *         in="query",
+     *         description="Nombre de la accion a realizar",
+     *         required=false,
+     *     ),
+     *     @OA\Parameter(
+     *         name="name",
+     *         in="query",
+     *         description="Filtro por nombre del rol ",
+     *         required=false,
+     *     ),
+     *     @OA\Parameter(
+     *         name="display_name",
+     *         in="query",
+     *         description="Filtro del nombre de visualización del rol",
+     *         required=false,
+     *     ),
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         description="Pagina a mostrar",
+     *         example=1,
+     *         required=false,
+     *       ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Por Pagina",
+     *         example=10,
+     *         required=false,
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *           type="object"
+     *         )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     }
+     * )
+     *
+     * obtener listado roles asignados a un usuario por modulo
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function module_role_state_user(Request $request, User $user)
+    {  
+        $request->validate([
+            'module_id' => 'required|integer|exists:modules,id'
+        ]);
 
+        $id = request('id') ?? '';
+        $display_name = request('display_name') ?? '';
+        $action = request('action') ?? '';
+        $name = request('name') ?? '';
+        
+        $conditions = [];
+
+        if ($id != '') array_push($conditions, array('id', '=', "{$id}"));
+        if ($display_name != '') array_push($conditions, array('display_name', 'ilike', "%{$display_name}%"));
+        if ($action != '') array_push($conditions, array('action', 'ilike', "%{$action}%"));
+        if ($name != '') array_push($conditions, array('name', 'ilike', "%{$name}%"));
+
+        $per_page = $request->per_page ?? 10;
+
+        $active = false;
+        $user_role_asignes = $user->rolesByModule($request->module_id)->pluck('id');
+        $module_roles = Role::where('module_id', $request->module_id)->where($conditions)->paginate($per_page);
+
+        foreach ($module_roles as $module_role) {
+            $contar_active = 0;
+            foreach ($user_role_asignes as $user_role_asigne){
+                if($module_role->id == $user_role_asigne) $contar_active++;
+            }
+            if($contar_active == 1) $active = true;
+            else $active = false;
+            $module_role->active = $active;
+        }
         return response()->json([
             'message' => 'Realizado con éxito',
             'payload' => [
-                'user' => new UserResource($user),
+                'role' => $module_roles,
             ],
         ]);
     }

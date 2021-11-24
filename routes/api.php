@@ -38,12 +38,13 @@ Route::group([
         Route::apiResource('/role', App\Http\Controllers\Api\RoleController::class)->only(['index', 'show']);
         Route::apiResource('/module', App\Http\Controllers\Api\ModuleController::class)->only(['index', 'show']);
         Route::get('module/{module}/role', [App\Http\Controllers\Api\ModuleController::class, 'get_roles']);
+        Route::get('role/{role}/role_permisions', [App\Http\Controllers\Api\RoleController::class, 'role_permisions']);
         Route::apiResource('/permission', App\Http\Controllers\Api\PermissionController::class)->only(['index']);
-        Route::patch('role/{role}/permission', [App\Http\Controllers\Api\RoleController::class,'set_permissions']);
-        Route::get('/role_permisions', [App\Http\Controllers\Api\PermissionController::class, 'role_permisions']);
+        Route::patch('role/{role}/permission', [App\Http\Controllers\Api\RoleController::class,'set_or_remove_permission']);
         Route::apiResource('/user', App\Http\Controllers\Api\UserController::class)->only(['index', 'store','show']);
         Route::get('user/module_role_permision', [App\Http\Controllers\Api\UserController::class, 'module_role_permision']);
-        Route::patch('user/{user}/role', [App\Http\Controllers\Api\UserController::class, 'set_roles']);
+        Route::get('user/{user}/module_role_state_user', [App\Http\Controllers\Api\UserController::class, 'module_role_state_user']);
+        Route::patch('user/{user}/role', [App\Http\Controllers\Api\UserController::class, 'set_or_remove_role']);
     });
 });
 

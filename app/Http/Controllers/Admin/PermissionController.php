@@ -12,7 +12,7 @@ class PermissionController extends Controller
 {
      /**
      * @OA\Get(
-     *     path="/api/pvt/permission",
+     *     path="/api/admin/permission",
      *     tags={"PERMISOS"},
      *     summary="LISTADO DE PERMISOS",
      *     operationId="getUsers",

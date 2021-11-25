@@ -24,7 +24,7 @@ class UserController extends Controller
 {
     /**
      * @OA\Get(
-     *     path="/api/pvt/user",
+     *     path="/api/admin/user",
      *     tags={"USUARIO"},
      *     summary="LISTADO DE USUARIOS",
      *     operationId="getUsers",
@@ -130,7 +130,7 @@ class UserController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/api/pvt/user/module_role_permision",
+     *     path="/api/admin/user/module_role_permision",
      *     tags={"USUARIO"},
      *     summary="OBTENER DEL USUARIO EL MODULO ROLES Y PERMISOS ",
      *     operationId="module_role_permision",
@@ -170,7 +170,7 @@ class UserController extends Controller
     }
     /**
      * @OA\Post(
-     *      path="/api/pvt/user",
+     *      path="/api/admin/user",
      *      tags={"USUARIO"},
      *      summary="NUEVO USUARIO",
      *      operationId="crear usuario",
@@ -215,7 +215,7 @@ class UserController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/api/pvt/user/{user}",
+     *     path="/api/admin/user/{user}",
      *     tags={"USUARIO"},
      *     summary="DETALLE DE USUARIO",
      *     operationId="getUser",
@@ -258,7 +258,7 @@ class UserController extends Controller
     }
     /**
      * @OA\Patch(
-     *     path="/api/pvt/user/{user}/role",
+     *     path="/api/admin/user/{user}/role",
      *     tags={"USUARIO"},
      *     summary="ESTABLECER O ELIMINAR EL ROL A UN USUARIO",
      *     operationId="setOrRemoveRolForUser",
@@ -339,7 +339,7 @@ class UserController extends Controller
     }
     /**
      * @OA\Get(
-     *     path="/api/pvt/user/{user}/module_role_state_user",
+     *     path="/api/admin/user/{user}/module_role_state_user",
      *     tags={"USUARIO"},
      *     summary="LISTADO DE ROLES ASIGNADOS A UN USURIO POR MODULO",
      *     operationId="module_role_state_user",

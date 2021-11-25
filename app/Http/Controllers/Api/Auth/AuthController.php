@@ -9,6 +9,7 @@ use Auth;
 use App\Http\Requests\AuthRequest;
 use App\Models\User;
 use App\Http\Resources\UserResource;
+use Ldap;
 
 class AuthController extends Controller
 {
@@ -67,20 +68,25 @@ class AuthController extends Controller
         $user = User::whereUsername($request->username)->first();
         if ($user) {
             if (env('APP_ENV') == 'production') {
-                if (Hash::check($request->password, $user->password)) {
-                    $tokens = $user->tokens()->count();
+                $ldap = new Ldap();
+                if($ldap->verify_open_port())
+                {
+                    if($ldap->bind($request->username, $request->password))
+                    {
+                        $tokens = $user->tokens()->count();
                         $token = $user->createToken('api')->plainTextToken;
                         $user->remember_token = $token;
                         $user->save();
-                    return [
-                        'message' => 'Sesión iniciada',
-                        'payload' => [
-                            'access_token' => $token,
-                            'token_type' => 'Bearer',
-                            'user' => new UserResource($user),
-                            //'permissions' => $user->getAllPermissions()->pluck('name')->unique(),
-                        ],
-                    ];
+                        return [
+                            'message' => 'Sesión iniciada',
+                            'payload' => [
+                                'access_token' => $token,
+                                'token_type' => 'Bearer',
+                                'user' => new UserResource($user),
+                                //'permissions' => $user->getAllPermissions()->pluck('name')->unique(),
+                            ],
+                        ];
+                    }
                 }
             }else{
                 $token = $user->createToken('api')->plainTextToken;

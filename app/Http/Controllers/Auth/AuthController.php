@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Auth;
 use App\Http\Requests\AuthRequest;
-use App\Models\User;
+use App\Models\Admin\User;
 use App\Http\Resources\UserResource;
 use Ldap;
 

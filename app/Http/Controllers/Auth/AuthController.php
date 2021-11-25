@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Auth;
-use App\Http\Requests\Admin\AuthRequest;
+use App\Http\Requests\Auth\AuthRequest;
 use App\Models\Admin\User;
 use App\Http\Resources\Admin\UserResource;
 use Ldap;

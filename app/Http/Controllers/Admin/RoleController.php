@@ -156,7 +156,7 @@ class RoleController extends Controller
      * @OA\Patch(
      *     path="/api/admin/role/{role}/permission",
      *     tags={"ROLES"},
-     *     summary="ESTABLECER PERMISOS A UN ROL",
+     *     summary="ESTABLECER O ELIMINAR EL PERMISO A UN ROL",
      *     operationId="getPermissionsByRole",
      *     @OA\Parameter(
      *         name="role",
@@ -174,7 +174,7 @@ class RoleController extends Controller
      *          required=true,
      *          @OA\JsonContent(
      *              type="object",
-     *              @OA\Property(property="permissions", type="[]",description="nombres required",example="[1,2]")
+     *              @OA\Property(property="permission_id", type="integer",description="nombres required",example="1")
      *          )
      *     ),
      *     @OA\Response(

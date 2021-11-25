@@ -10,7 +10,7 @@ class ModuleController extends Controller
 {
     /**
      * @OA\Get(
-     *     path="/api/pvt/module",
+     *     path="/api/admin/module",
      *     tags={"MÓDULO"},
      *     summary="LISTADO DE MÓDULOS",
      *     operationId="getModules",
@@ -52,7 +52,7 @@ class ModuleController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/api/pvt/module/{module}",
+     *     path="/api/admin/module/{module}",
      *     tags={"MÓDULO"},
      *     summary="DETALLE DEL MÓDULO",
      *     operationId="getModule",
@@ -96,7 +96,7 @@ class ModuleController extends Controller
 
    /**
      * @OA\Get(
-     *     path="/api/pvt/module/{module}/role",
+     *     path="/api/admin/module/{module}/role",
      *     tags={"MÓDULO"},
      *     summary="LISTADO DE ROLES DEACUERDO AL MODULO SOLICITADO",
      *     operationId="getRolesByModule",

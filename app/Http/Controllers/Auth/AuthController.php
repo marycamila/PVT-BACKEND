@@ -15,7 +15,7 @@ class AuthController extends Controller
 {
     /**
      * @OA\Get(
-     *     path="/api/pvt/auth",
+     *     path="/api/auth/auth_user",
      *     tags={"AUTENTICACIÓN"},
      *     summary="OBTENER USUARIO AUTENTICADO",
      *     operationId="getuser",
@@ -35,7 +35,7 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     *      path="/api/pvt/login",
+     *      path="/api/auth/login",
      *      tags={"AUTENTICACIÓN"},
      *      summary="ACCESO AL SISTEMA",
      *      operationId="login",
@@ -112,7 +112,7 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/api/pvt/logout",
+     *     path="/api/auth/logout",
      *     tags={"AUTENTICACIÓN"},
      *     summary="CERRAR SESIÓN",
      *     operationId="logout",
@@ -137,7 +137,7 @@ class AuthController extends Controller
 
      /**
      * @OA\Patch(
-     *     path="/api/pvt/refresh",
+     *     path="/api/auth/refresh",
      *     tags={"AUTENTICACIÓN"},
      *     summary="REFRESCAR TOCKEN",
      *     operationId="refresh",

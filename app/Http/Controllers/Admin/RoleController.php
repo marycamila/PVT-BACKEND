@@ -13,7 +13,7 @@ class RoleController extends Controller
 {
    /**
      * @OA\Get(
-     *     path="/api/pvt/role",
+     *     path="/api/admin/role",
      *     tags={"ROLES"},
      *     summary="LISTADO DE ROLES",
      *     operationId="getRoles",
@@ -76,7 +76,7 @@ class RoleController extends Controller
 
      /**
      * @OA\Get(
-     *     path="/api/pvt/role/{role}",
+     *     path="/api/admin/role/{role}",
      *     tags={"ROLES"},
      *     summary="DETALLE DEL ROL",
      *     operationId="getROle",
@@ -154,7 +154,7 @@ class RoleController extends Controller
 
 /**
      * @OA\Patch(
-     *     path="/api/pvt/role/{role}/permission",
+     *     path="/api/admin/role/{role}/permission",
      *     tags={"ROLES"},
      *     summary="ESTABLECER PERMISOS A UN ROL",
      *     operationId="getPermissionsByRole",
@@ -241,7 +241,7 @@ class RoleController extends Controller
      }
     /**
      * @OA\Get(
-     *     path="/api/pvt/role/{role}/role_permisions",
+     *     path="/api/admin/role/{role}/role_permisions",
      *     tags={"ROLES"},
      *     summary="LISTADO DE PERMISOS ASIGNADOS A UN ROL",
      *     operationId="role_permisions",

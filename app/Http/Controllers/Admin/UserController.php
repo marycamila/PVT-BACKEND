@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\User;
-use App\Models\Role;
-use App\Models\Module;
+use App\Models\Admin\User;
+use App\Models\Admin\Role;
+use App\Models\Admin\Module;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\UserRequest;
 use App\Http\Resources\UserResource;

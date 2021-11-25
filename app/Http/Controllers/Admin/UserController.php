@@ -8,8 +8,8 @@ use App\Models\Admin\User;
 use App\Models\Admin\Role;
 use App\Models\Admin\Module;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Requests\UserRequest;
-use App\Http\Resources\UserResource;
+use App\Http\Requests\Admin\UserRequest;
+use App\Http\Resources\Admin\UserResource;
 use Illuminate\Support\Facades\DB;
   /**
      * @OA\Info(

@@ -27,6 +27,9 @@ Route::group([
         Route::get('user/module_role_permision', [App\Http\Controllers\Admin\UserController::class, 'module_role_permision']);
         Route::get('user/{user}/module_role_state_user', [App\Http\Controllers\Admin\UserController::class, 'module_role_state_user']);
         Route::patch('user/{user}/role', [App\Http\Controllers\Admin\UserController::class, 'set_or_remove_role']);
+        //rutas de sincronizacion de usuarios
+        Route::get('get_employees', [App\Http\Controllers\Admin\UserController::class, 'get_employees']);
+        Route::get('sync_employees', [App\Http\Controllers\Admin\UserController::class, 'sync_employees']);
     });
 });
 

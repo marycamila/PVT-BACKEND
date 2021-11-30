@@ -11,6 +11,9 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\Admin\UserRequest;
 use App\Http\Resources\Admin\UserResource;
 use Illuminate\Support\Facades\DB;
+use Ldap;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Hash;
   /**
      * @OA\Info(
      *      version="1.0.0",
@@ -181,13 +184,13 @@ class UserController extends Controller
      *          required=true,
      *          @OA\JsonContent(
      *              type="object",
+     *              @OA\Property(property="username", type="string",description="nombre de usuario required"),
      *              @OA\Property(property="first_name", type="string",description="nombres required"),
      *              @OA\Property(property="last_name", type="string",description="apellidos required"),
-     *              @OA\Property(property="username", type="string",description="nombre de usuario required"),
-     *              @OA\Property(property="password", type="string",description="contraceña required"),
-     *              @OA\Property(property="active", type="boolean",description="true o false required"),
-     *              @OA\Property(property="position", type="boolean",description="Cargo del usuario required"),
-     *              @OA\Property(property="city_id", type="boolean",description="ide de ciudad"),
+     *              @OA\Property(property="identity_card", type="string",description="carnet de identidad required"),
+     *              @OA\Property(property="position", type="string",description="Cargo del usuario required"),
+     *              @OA\Property(property="phone", type="integer",description="telefono required"),
+     *              @OA\Property(property="city_id", type="integer",description="id de ciudad"),
      *          )
      *     ),
      *      @OA\Response(
@@ -204,13 +207,35 @@ class UserController extends Controller
 
     public function store(UserRequest $request)
     {
-        $user = User::create($request->all());
-        return [
-            'message' => 'Usuario creado',
-            'payload' => [
-                'user' => new UserResource($user),
-            ]
-        ];
+        try{
+            DB::beginTransaction();
+            $user = new User();
+            $user->username = $request->username;
+            $user->first_name = $request->first_name;
+            $user->last_name = $request->last_name;
+            $user->position = $request->position;
+            $user->phone = $request->phone;
+            $user->city_id = $request->city_id;
+            $user->password = Hash::make($request->identity_card);
+            $user->active = true;
+            $user->status = 'active';
+            $user->save();
+            DB::commit();
+            return response()->json([
+                'message' => 'Realizado con éxito',
+                'payload' => [
+                    'user' => $user,
+                ],
+            ]);
+        }catch(Exception $e){
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Error al crear el usuario',
+                'payload' => [
+                    'error' => $e->getMessage(),
+                ],
+            ]);
+        }
     }
 
     /**
@@ -455,4 +480,123 @@ class UserController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/admin/get_employees",
+     *     tags={"USUARIO"},
+     *     summary="OBTENER DEL USUARIO EL MODULO ROLES Y PERMISOS ",
+     *     operationId="get_employees",
+     *     description="Obtiene los empleados no registrados en usuarios",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(response="200", description="ok",
+     *     @OA\JsonContent(
+     *     type="object"
+     *     )
+     * )
+     * )
+     */
+    public function get_employees()
+    {
+        $ldap_entries = new Ldap();
+        $users = array();
+        foreach($ldap_entries->list_entries() as $ldap_entry)
+        {
+            $employee = json_decode(Http::get('http://pva.muserpol.gob.bo/api/v1/employee/'.$ldap_entry->employeeNumber));
+            $user = User::where('username', trim($ldap_entry->uid))->where('first_name', trim($ldap_entry->givenName))->where('last_name', trim($ldap_entry->sn))->first();
+            if(!$user)
+            {
+                array_push($users, array(
+                    'city_id' => trim($employee->city_identity_card_id),
+                    'username' => trim($ldap_entry->uid),
+                    'first_name' => trim($ldap_entry->givenName),
+                    'last_name' => trim($ldap_entry->sn),
+                    'identity_card' => trim($employee->identity_card),
+                    'position' => trim($ldap_entry->title),
+                    'phone' => trim($employee->phone_number),
+                ));
+            }
+        }
+        return response()->json([
+            'message' => 'Realizado con éxito',
+            'payload' => [
+                'employees' => $users,
+            ],
+        ]);
+    }
+
+
+    /**
+     * @OA\Get(
+     *     path="/api/admin/sync_employees",
+     *     tags={"USUARIO"},
+     *     summary="sincronizacion de usuarios y ldap",
+     *     operationId="sync_employees",
+     *     description="sincronizacion de usuarios",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(response="200", description="ok",
+     *     @OA\JsonContent(
+     *     type="object"
+     *     )
+     * )
+     * )
+     */
+    public function sync_employees()
+    {
+        try{
+            DB::beginTransaction();
+            $ldap = new Ldap();
+            // inhabilita a todos los usuarios
+            $users = DB::table('users')->update(['active'=>false, 'status'=>'inactive']);
+            // obtiene todos los empleados del ldap
+            $ldap_entries = $ldap->list_entries();
+            $update_users = 0;
+            $new_users = 0;
+            $dupĺicate_users = 0;
+            foreach($ldap_entries as $ldap_entry){
+                $ldap_entry;
+                $user = User::where('username', trim($ldap_entry->uid))->where('first_name', trim($ldap_entry->givenName))->where('last_name', trim($ldap_entry->sn))->first();
+                if($user)
+                {
+                    if($user->active == false)
+                    {
+                        $update_users++;
+                    }
+                    $user->position = $ldap_entry->title;
+                    $user->active = true;
+                    $user->status = 'active';
+                    $user->save();
+                }
+                else
+                {
+                    if(User::where('username', $ldap_entry->uid)->first())
+                    {
+                        $dupĺicate_users++;
+                    }
+                    else
+                    {
+                        $new_users++;
+                    }
+                }
+            }
+            DB::commit();
+            return response()->json([
+                'message' => 'Realizado con éxito',
+                'payload' => [
+                    'new_users' => $new_users,
+                    'update_users' => $update_users,
+                    'duplicate_users' => $dupĺicate_users,
+                ],
+            ]);
+        }
+        catch(Exception $e)
+        {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Error al sincronizar los empleados',
+                'payload' => [
+                    'error' => $e->getMessage(),
+                ],
+            ]);
+        }
+    }
 }

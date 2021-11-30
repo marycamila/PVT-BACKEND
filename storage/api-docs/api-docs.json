@@ -1,0 +1,929 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "PVT OpenApi",
+        "description": "L5 Swagger OpenApi description",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/api/admin/module": {
+            "get": {
+                "tags": [
+                    "MÓDULO"
+                ],
+                "summary": "LISTADO DE MÓDULOS",
+                "operationId": "getModules",
+                "parameters": [
+                    {
+                        "name": "display_name",
+                        "in": "query",
+                        "description": "Nombre del módulo",
+                        "required": false
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/module/{module}": {
+            "get": {
+                "tags": [
+                    "MÓDULO"
+                ],
+                "summary": "DETALLE DEL MÓDULO",
+                "operationId": "getModule",
+                "parameters": [
+                    {
+                        "name": "module",
+                        "in": "path",
+                        "description": "",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/module/{module}/role": {
+            "get": {
+                "tags": [
+                    "MÓDULO"
+                ],
+                "summary": "LISTADO DE ROLES DEACUERDO AL MODULO SOLICITADO",
+                "operationId": "getRolesByModule",
+                "parameters": [
+                    {
+                        "name": "module",
+                        "in": "path",
+                        "description": "",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/permission": {
+            "get": {
+                "tags": [
+                    "PERMISOS"
+                ],
+                "summary": "LISTADO DE PERMISOS",
+                "operationId": "getUsers",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "query",
+                        "description": "id permiso",
+                        "required": false
+                    },
+                    {
+                        "name": "operation_id",
+                        "in": "query",
+                        "description": "id de la operacion",
+                        "required": false
+                    },
+                    {
+                        "name": "action_id",
+                        "in": "query",
+                        "description": "id de la acción ",
+                        "required": false
+                    },
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "description": "Filtro por nombre de permiso ",
+                        "required": false,
+                        "example": "delete-note"
+                    },
+                    {
+                        "name": "display_name",
+                        "in": "query",
+                        "description": "Filtro del nombre de visualización del permiso",
+                        "required": false,
+                        "example": "Eliminar notas"
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Pagina a mostrar",
+                        "required": false,
+                        "example": 1
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Por Pagina",
+                        "required": false,
+                        "example": 10
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/role": {
+            "get": {
+                "tags": [
+                    "ROLES"
+                ],
+                "summary": "LISTADO DE ROLES",
+                "operationId": "getRoles",
+                "parameters": [
+                    {
+                        "name": "display_name",
+                        "in": "query",
+                        "description": "Nombre del Rol",
+                        "required": false
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/role/{role}": {
+            "get": {
+                "tags": [
+                    "ROLES"
+                ],
+                "summary": "DETALLE DEL ROL",
+                "operationId": "getROle",
+                "parameters": [
+                    {
+                        "name": "role",
+                        "in": "path",
+                        "description": "",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/role/{role}/permission": {
+            "patch": {
+                "tags": [
+                    "ROLES"
+                ],
+                "summary": "ESTABLECER O ELIMINAR EL PERMISO A UN ROL",
+                "operationId": "getPermissionsByRole",
+                "parameters": [
+                    {
+                        "name": "role",
+                        "in": "path",
+                        "description": "",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        },
+                        "example": 1
+                    }
+                ],
+                "requestBody": {
+                    "description": "Provide auth credentials",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "permission_id": {
+                                        "description": "nombres required",
+                                        "type": "integer",
+                                        "example": "1"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/role/{role}/role_permisions": {
+            "get": {
+                "tags": [
+                    "ROLES"
+                ],
+                "summary": "LISTADO DE PERMISOS ASIGNADOS A UN ROL",
+                "operationId": "role_permisions",
+                "parameters": [
+                    {
+                        "name": "role",
+                        "in": "path",
+                        "description": "",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "query",
+                        "description": "id permiso",
+                        "required": false
+                    },
+                    {
+                        "name": "operation_id",
+                        "in": "query",
+                        "description": "id de la operacion",
+                        "required": false
+                    },
+                    {
+                        "name": "action_id",
+                        "in": "query",
+                        "description": "id de la acción ",
+                        "required": false
+                    },
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "description": "Filtro por nombre de permiso ",
+                        "required": false
+                    },
+                    {
+                        "name": "display_name",
+                        "in": "query",
+                        "description": "Filtro del nombre de visualización del permiso",
+                        "required": false
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Pagina a mostrar",
+                        "required": false,
+                        "example": 1
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Por Pagina",
+                        "required": false,
+                        "example": 10
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/user": {
+            "get": {
+                "tags": [
+                    "USUARIO"
+                ],
+                "summary": "LISTADO DE USUARIOS",
+                "operationId": "getUsers",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Pagina a mostrar",
+                        "required": false
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Por Pagina",
+                        "required": false,
+                        "example": 10
+                    },
+                    {
+                        "name": "active",
+                        "in": "query",
+                        "description": "Usuarios activos(1) o inactivos(0) ",
+                        "required": false,
+                        "example": 1
+                    },
+                    {
+                        "name": "first_name",
+                        "in": "query",
+                        "description": "Filtro por nombre de Usuario ",
+                        "required": false
+                    },
+                    {
+                        "name": "last_name",
+                        "in": "query",
+                        "description": "Filtro por Apellidos",
+                        "required": false
+                    },
+                    {
+                        "name": "position",
+                        "in": "query",
+                        "description": "Filtro por cargo",
+                        "required": false
+                    },
+                    {
+                        "name": "username",
+                        "in": "query",
+                        "description": "filtro por nombre de Usuario",
+                        "required": false
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "USUARIO"
+                ],
+                "summary": "NUEVO USUARIO",
+                "description": "Creación de un nuevo usuario",
+                "operationId": "crear usuario",
+                "requestBody": {
+                    "description": "Provide auth credentials",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "username": {
+                                        "description": "nombre de usuario required",
+                                        "type": "string"
+                                    },
+                                    "first_name": {
+                                        "description": "nombres required",
+                                        "type": "string"
+                                    },
+                                    "last_name": {
+                                        "description": "apellidos required",
+                                        "type": "string"
+                                    },
+                                    "identity_card": {
+                                        "description": "carnet de identidad required",
+                                        "type": "string"
+                                    },
+                                    "position": {
+                                        "description": "Cargo del usuario required",
+                                        "type": "string"
+                                    },
+                                    "phone": {
+                                        "description": "telefono required",
+                                        "type": "integer"
+                                    },
+                                    "city_id": {
+                                        "description": "id de ciudad",
+                                        "type": "integer"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/user/module_role_permision": {
+            "get": {
+                "tags": [
+                    "USUARIO"
+                ],
+                "summary": "OBTENER DEL USUARIO EL MODULO ROLES Y PERMISOS ",
+                "description": "Obtiene los modulos, roles y permisos del usuario AUTENTICADO",
+                "operationId": "module_role_permision",
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/user/{user}": {
+            "get": {
+                "tags": [
+                    "USUARIO"
+                ],
+                "summary": "DETALLE DE USUARIO",
+                "operationId": "getUser",
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "description": "",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/user/{user}/role": {
+            "patch": {
+                "tags": [
+                    "USUARIO"
+                ],
+                "summary": "ESTABLECER O ELIMINAR EL ROL A UN USUARIO",
+                "operationId": "setOrRemoveRolForUser",
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "description": "",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        },
+                        "example": 240
+                    }
+                ],
+                "requestBody": {
+                    "description": "Provide auth credentials",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "role_id": {
+                                        "description": "id rol required",
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/user/{user}/module_role_state_user": {
+            "get": {
+                "tags": [
+                    "USUARIO"
+                ],
+                "summary": "LISTADO DE ROLES ASIGNADOS A UN USURIO POR MODULO",
+                "operationId": "module_role_state_user",
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "description": "",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "module_id",
+                        "in": "query",
+                        "description": "id del modulo",
+                        "required": true
+                    },
+                    {
+                        "name": "id",
+                        "in": "query",
+                        "description": "id rol",
+                        "required": false
+                    },
+                    {
+                        "name": "action",
+                        "in": "query",
+                        "description": "Nombre de la accion a realizar",
+                        "required": false
+                    },
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "description": "Filtro por nombre del rol ",
+                        "required": false
+                    },
+                    {
+                        "name": "display_name",
+                        "in": "query",
+                        "description": "Filtro del nombre de visualización del rol",
+                        "required": false
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Pagina a mostrar",
+                        "required": false,
+                        "example": 1
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Por Pagina",
+                        "required": false,
+                        "example": 10
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/get_employees": {
+            "get": {
+                "tags": [
+                    "USUARIO"
+                ],
+                "summary": "OBTENER DEL USUARIO EL MODULO ROLES Y PERMISOS ",
+                "description": "Obtiene los empleados no registrados en usuarios",
+                "operationId": "get_employees",
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/sync_employees": {
+            "get": {
+                "tags": [
+                    "USUARIO"
+                ],
+                "summary": "sincronizacion de usuarios y ldap",
+                "description": "sincronizacion de usuarios",
+                "operationId": "sync_employees",
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/auth/auth_user": {
+            "get": {
+                "tags": [
+                    "AUTENTICACIÓN"
+                ],
+                "summary": "OBTENER USUARIO AUTENTICADO",
+                "description": "Obtiene el usuario autenticado",
+                "operationId": "getuser",
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/auth/login": {
+            "post": {
+                "tags": [
+                    "AUTENTICACIÓN"
+                ],
+                "summary": "ACCESO AL SISTEMA",
+                "description": "Acceso al sistema con el token",
+                "operationId": "login",
+                "requestBody": {
+                    "description": "Provide auth credentials",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "username": {
+                                        "description": "username",
+                                        "type": "string"
+                                    },
+                                    "password": {
+                                        "description": "password",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/logout": {
+            "post": {
+                "tags": [
+                    "AUTENTICACIÓN"
+                ],
+                "summary": "CERRAR SESIÓN",
+                "description": "Cierra la sesion actual del usuario",
+                "operationId": "logout",
+                "responses": {
+                    "200": {
+                        "description": "Sesion cerrada correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/auth/refresh": {
+            "patch": {
+                "tags": [
+                    "AUTENTICACIÓN"
+                ],
+                "summary": "REFRESCAR TOCKEN",
+                "description": "Refresca la sesion actual del usuario",
+                "operationId": "refresh",
+                "responses": {
+                    "200": {
+                        "description": "Refrescado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "security": [
+        []
+    ]
+}

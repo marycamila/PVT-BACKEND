@@ -484,7 +484,7 @@ class UserController extends Controller
      * @OA\Get(
      *     path="/api/admin/get_employees",
      *     tags={"USUARIO"},
-     *     summary="OBTENER DEL USUARIO EL MODULO ROLES Y PERMISOS ",
+     *     summary="OBTENER LOS EMPLEADOS NO REGISTRADOS EN USUARIOS",
      *     operationId="get_employees",
      *     description="Obtiene los empleados no registrados en usuarios",
      *     security={{"bearerAuth":{}}},
@@ -501,7 +501,7 @@ class UserController extends Controller
         $users = array();
         foreach($ldap_entries->list_entries() as $ldap_entry)
         {
-            $employee = json_decode(Http::get('http://pva.muserpol.gob.bo/api/v1/employee/'.$ldap_entry->employeeNumber));
+            $employee = json_decode(Http::get(env('MIX_RRHH_URL').'employee/'.$ldap_entry->employeeNumber));
             $user = User::where('username', trim($ldap_entry->uid))->where('first_name', trim($ldap_entry->givenName))->where('last_name', trim($ldap_entry->sn))->first();
             if(!$user)
             {
@@ -529,7 +529,7 @@ class UserController extends Controller
      * @OA\Get(
      *     path="/api/admin/sync_employees",
      *     tags={"USUARIO"},
-     *     summary="sincronizacion de usuarios y ldap",
+     *     summary="SINCRONIZACION DE USUARIOS Y LDAP",
      *     operationId="sync_employees",
      *     description="sincronizacion de usuarios",
      *     security={{"bearerAuth":{}}},

@@ -24,12 +24,13 @@ class UserRequest extends FormRequest
     public function rules()
     {
         $rules = [
-            'first_name' => 'alpha_spaces|min:3',
-            'last_name' => 'alpha_spaces|min:3',
-            'password' => 'string|min:5',
-            'position' => 'alpha_spaces|min:3',
-            'active' => 'boolean',
-            'status' => 'boolean',
+            'username' => 'required|alpha_spaces|min:3',
+            'first_name' => 'required|alpha_spaces|min:3',
+            'last_name' => 'required|alpha_spaces|min:3',
+            'identity_card' => 'required|string|min:3',
+            'position' => 'required|alpha_spaces|min:3',
+            'phone' => 'required|integer|min:8',
+            'city_id' => 'required|integer|exists:cities,id',
         ];
         switch ($this->method()) {
             case 'POST': {

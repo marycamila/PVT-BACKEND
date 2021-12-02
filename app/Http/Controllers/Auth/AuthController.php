@@ -89,19 +89,11 @@ class AuthController extends Controller
                     }
                 }
             }else{
-                $token = $user->createToken('api')->plainTextToken;
-                $user->remember_token = $token;
-                $user->save();
-                return [
-                    'message' => 'Sesión iniciada',
-                    'payload' => [
-                        'access_token' => $token,
-                        'token_type' => 'Bearer',
-                        'user' => new UserResource($user),
-                    ],
-                ];
+                if (Auth::guard('web')->attempt($request->only('username', 'password'))) {
+                    return response()->json(Auth::user(), 200);
+                }
             }
-    }
+        }
         return response()->json([
             'message' => 'Credenciales inválidas',
             'errors' => [
@@ -126,9 +118,13 @@ class AuthController extends Controller
      * )
      */
 
-    public function logout()
+    public function logout(Request $request)
     {
-        auth()->user()->tokens()->delete();
+        Auth::guard('web')->logout();
+
+        $request->session()->invalidate();
+
+        $request->session()->regenerateToken();
 
         return [
             'message' => 'Has cerrado sesión correctamente y el token se ha eliminado correctamente.'

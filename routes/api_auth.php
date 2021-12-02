@@ -14,7 +14,7 @@ Route::group([
     Route::group([
         'middleware' => ['auth:sanctum']
     ], function () {
-        Route::delete('/logout', [App\Http\Controllers\Auth\AuthController::class, 'logout']);
+        Route::post('/logout', [App\Http\Controllers\Auth\AuthController::class, 'logout']);
         Route::get('/auth_user', [App\Http\Controllers\Auth\AuthController::class,'index']);
         Route::patch('/refresh', [App\Http\Controllers\Auth\AuthController::class, 'refresh']);
 

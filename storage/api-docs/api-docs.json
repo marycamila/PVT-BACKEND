@@ -741,7 +741,7 @@
                 "tags": [
                     "USUARIO"
                 ],
-                "summary": "OBTENER DEL USUARIO EL MODULO ROLES Y PERMISOS ",
+                "summary": "OBTENER LOS EMPLEADOS NO REGISTRADOS EN USUARIOS",
                 "description": "Obtiene los empleados no registrados en usuarios",
                 "operationId": "get_employees",
                 "responses": {
@@ -768,7 +768,7 @@
                 "tags": [
                     "USUARIO"
                 ],
-                "summary": "sincronizacion de usuarios y ldap",
+                "summary": "SINCRONIZACION DE USUARIOS Y LDAP",
                 "description": "sincronizacion de usuarios",
                 "operationId": "sync_employees",
                 "responses": {

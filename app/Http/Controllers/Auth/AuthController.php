@@ -89,9 +89,17 @@ class AuthController extends Controller
                     }
                 }
             }else{
-                if (Auth::guard('web')->attempt($request->only('username', 'password'))) {
-                    return response()->json(Auth::user(), 200);
-                }
+                $token = $user->createToken('api')->plainTextToken;
+                $user->remember_token = $token;
+                $user->save();
+                return [
+                    'message' => 'Sesión iniciada',
+                    'payload' => [
+                        'access_token' => $token,
+                        'token_type' => 'Bearer',
+                        'user' => new UserResource($user),
+                    ],
+                ];
             }
         }
         return response()->json([
@@ -120,6 +128,7 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        //auth()->user()->tokens()->delete(); cod anterior
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();

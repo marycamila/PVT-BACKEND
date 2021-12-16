@@ -33,7 +33,8 @@ class CreateContributionFormatPayrollCommandsTable extends Migration
             $table->decimal('cat', 13, 2)->comment('Bono antiguedad');
             $table->decimal('est', 13, 2)->comment('Bono estudio');
             $table->decimal('carg', 13, 2)->comment('Bono cargo');
-            $table->decimal('ori', 13, 2)->comment('Bono frontera');
+            $table->decimal('fro', 13, 2)->comment('Bono frontera');
+            $table->decimal('ori', 13, 2)->comment('Bono oriente');
             $table->decimal('bseg', 13, 2)->comment('Bono seguridad');
             $table->decimal('gan', 13, 2)->comment('Ganancia');
             $table->decimal('mus', 13, 2)->comment('total');

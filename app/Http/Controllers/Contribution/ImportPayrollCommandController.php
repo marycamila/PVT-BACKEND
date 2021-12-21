@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\Contribution\ContributionCopyPayrollCommand;
 use Carbon\Carbon;
 use DateTime;
+use DB;
 
 class ImportPayrollCommandController extends Controller
 {
@@ -34,20 +35,23 @@ class ImportPayrollCommandController extends Controller
      * @param Request $request
      * @return void
      */
-    public function period_copy_payroll_upload_command(request $request){
+    public function command_payroll_period(request $request){
         $last_iportation =  ContributionCopyPayrollCommand::orderBy('id')->get()->last();
         if($last_iportation){
-          $last_year = $last_iportation->a_o;
-          $year = DateTime::createFromFormat('y', $last_year);
-          $last_date = Carbon::parse($year->format('Y').'-'.$last_iportation->mes);
-          $estimated_date = $last_date->addMonth();
+            $last_year = $last_iportation->a_o;
+            $year = DateTime::createFromFormat('y', $last_year);
+            $last_date = Carbon::parse($year->format('Y').'-'.$last_iportation->mes);
+            $estimated_date = $last_date->addMonth();
         }else{
-          $estimated_date = Carbon::now()->subMonth();
+            $month_year="select max(month_year) as date from contributions";
+            $estimated_date = DB::select($month_year);
+            $estimated_date = $estimated_date[0]->date;
+            $estimated_date = Carbon::parse($estimated_date)->addMonth();
         }
         return response()->json([
-          'message' => 'Realizado con exito',
-          'payload' => [
-              'estimated_date' => $estimated_date
+            'message' => 'Realizado con exito',
+            'payload' => [
+                'estimated_date' => $estimated_date
           ]
         ]); 
     }

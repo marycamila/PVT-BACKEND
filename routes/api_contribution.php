@@ -14,7 +14,7 @@ Route::group([
         'middleware' => ['auth:sanctum']
     ], function () {
        // Route::post('/upload_copy_payroll_command', [App\Http\Controllers\Contribution\ImportPayrollCommandController::class, 'upload_copy_payroll_command']);
-        Route::get('/period_copy_payroll_upload_command', [App\Http\Controllers\Contribution\ImportPayrollCommandController::class, 'period_copy_payroll_upload_command']);
+        Route::get('/command_payroll_period', [App\Http\Controllers\Contribution\ImportPayrollCommandController::class, 'command_payroll_period']);
         
     });
 });

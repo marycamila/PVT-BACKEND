@@ -9,6 +9,7 @@ use App\Models\Contribution\ContributionCopyPayrollCommand;
 use Carbon\Carbon;
 use DateTime;
 use DB;
+use Auth;
 
 class ImportPayrollCommandController extends Controller
 {
@@ -132,4 +133,86 @@ class ImportPayrollCommandController extends Controller
         ]);
         }
     }
+
+    /**
+     * @OA\Post(
+     *      path="/api/contribution/update_base_wages",
+     *      tags={"CONTRIBUCION"},
+     *      summary="PASO 3 ACTUALIZACION DE SUELDOS BASE",
+     *      operationId="updateData",
+     *      description="Actualización de sueldos base tabla base_wages",
+     *      @OA\RequestBody(
+     *          description= "Provide auth credentials",
+     *          required=true,
+     *          @OA\JsonContent(
+     *              type="object",
+     *              @OA\Property(property="month", type="integer",description="mes required",example=11),
+     *              @OA\Property(property="year", type="integer",description="año required",example=2021)
+     *          )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     },
+     *      @OA\Response(
+     *          response=200,
+     *          description="Success",
+     *          @OA\JsonContent(
+     *            type="object"
+     *         )
+     *      )
+     * )
+     *
+     * Logs user into the system.
+     *
+     * @param Request $request
+     * @return void
+    */
+    public function update_base_wages(Request $request){
+        $request->validate([
+          'month' => 'required|integer|min:1|max:12',
+          'year' => 'required|integer|min:1',
+        ]);
+
+        try{
+            DB::beginTransaction();
+            $message = "No hay datos de sueldos base por actualizar";
+            $successfully =false;
+            $user = Auth::user();
+            $user_id = Auth::user()->id;
+
+            $month = $request->get('month');
+            $year_completed =  $request->get('year');
+            $year = substr(strval($year_completed), strlen($year_completed)-2,2);
+
+            $date_base_wages = Carbon::create($year_completed, $month, 1);
+            $date_base_wages = Carbon::parse($date_base_wages)->format('Y-m-d');
+
+            $query = "select * from update_base_wages($month,$year,$user_id,'$date_base_wages');";
+            $update_base_wages = DB::select($query);
+
+            if($update_base_wages != []){
+                $message = "Realizado con exito la actualización de sueldos base";
+                $successfully = true;
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => $message,
+                'payload' => [
+                    'successfully' => $successfully,
+                    'update_base_wages'=> $update_base_wages
+                ],
+            ]);
+            }catch(Exception $e){
+                DB::rollBack();
+                return response()->json([
+                    'message' => 'Error en el formateo de datos',
+                    'payload' => [
+                        'successfully' => false,
+                        'error' => $e->getMessage(),
+                    ],
+                ]);
+            }
+        }
 }

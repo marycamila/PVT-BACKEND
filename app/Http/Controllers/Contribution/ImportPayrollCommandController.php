@@ -106,22 +106,31 @@ class ImportPayrollCommandController extends Controller
         if(strlen($month) == 1) $month = '0'.$month;
         $year = substr(strval($year), strlen($year)-2,2);
 
-        $query = "select * from format_contribution_format_payroll_command('$month','$year');";
-        $data_format = DB::select($query);
+        if(!$this->exists_data_table_contribution_format_commad($request->get('month'),$year)){
+            $query = "select * from format_contribution_format_payroll_command('$month','$year');";
+            $data_format = DB::select($query);
 
-        if($data_format != []){
-            $message = "Realizado con exito";
-            $successfully = true;
+            if($data_format != []){
+                $message = "Realizado con exito";
+                $successfully = true;
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => $message,
+                'payload' => [
+                    'successfully' => $successfully,
+                ],
+            ]);
+        }else{
+            return response()->json([
+                'message' => "Ya existen datos con formato, no se puede volver a realizar esta acción",
+                'payload' => [
+                    'successfully' => $successfully,
+                ],
+            ]);
         }
-
-        DB::commit();
-
-        return response()->json([
-            'message' => $message,
-            'payload' => [
-                'successfully' => $successfully,
-            ],
-        ]);
         }catch(Exception $e){
         DB::rollBack();
         return response()->json([
@@ -187,7 +196,8 @@ class ImportPayrollCommandController extends Controller
             $date_base_wages = Carbon::create($year_completed, $month, 1);
             $date_base_wages = Carbon::parse($date_base_wages)->format('Y-m-d');
 
-            $query = "select * from update_base_wages($month,$year,$user_id,'$date_base_wages');";
+            if(!$this->exists_data_table_base_wages($date_base_wages)){
+                $query = "select * from update_base_wages($month,$year,$user_id,'$date_base_wages');";
             $update_base_wages = DB::select($query);
 
             if($update_base_wages != []){
@@ -204,6 +214,15 @@ class ImportPayrollCommandController extends Controller
                     'update_base_wages'=> $update_base_wages
                 ],
             ]);
+            }else{
+                return response()->json([
+                    'message' => "Ya existen datos de sueldos base, no se puede volver a realizar esta acción",
+                    'payload' => [
+                        'successfully' => $successfully,
+                    ],
+                ]);
+
+            }
             }catch(Exception $e){
                 DB::rollBack();
                 return response()->json([
@@ -212,9 +231,9 @@ class ImportPayrollCommandController extends Controller
                         'successfully' => false,
                         'error' => $e->getMessage(),
                     ],
-                ]);
-            }
+            ]);
         }
+    }
      /**
      * @OA\Post(
      *      path="/api/contribution/upload_copy_payroll_command",
@@ -340,5 +359,27 @@ class ImportPayrollCommandController extends Controller
                ],
            ]);
         }
+    }
+    // -------------metodo para verificar si existen datos en el la tabla format del pedido-----//
+    public function exists_data_table_contribution_format_commad($mes,$a_o){
+        $month = $mes;
+        $year = substr(strval($a_o), strlen($a_o)-2,2);
+        $exists_data = true;
+        $query = "select * from contribution_format_payroll_commands where mes = $month::INTEGER and a_o = $year::INTEGER;";
+        $verify_data = DB::select($query);
+
+        if($verify_data == []) $exists_data = false;
+
+        return $exists_data;
+    }
+    // -------------metodo para verificar si ya existen sueldos base registrados-----//
+    public function exists_data_table_base_wages($date){
+        $exists_data = true;
+        $query = "select * from base_wages bw  where month_year = '$date'";
+        $verify_data = DB::select($query);
+
+        if($verify_data == []) $exists_data = false;
+
+        return $exists_data;
     }
 }

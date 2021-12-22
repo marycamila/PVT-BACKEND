@@ -15,7 +15,7 @@ class ImportPayrollCommandController extends Controller
 {
       /**
      * @OA\Get(
-     *     path="/api/contribution/period_copy_payroll_upload_command",
+     *     path="/api/contribution/command_payroll_period",
      *     tags={"CONTRIBUCION"},
      *     summary="PERIODO DE LA CONTRIBUCION",
      *     operationId="period_upload_command",
@@ -215,4 +215,130 @@ class ImportPayrollCommandController extends Controller
                 ]);
             }
         }
+     /**
+     * @OA\Post(
+     *      path="/api/contribution/upload_copy_payroll_command",
+     *      tags={"CONTRIBUCION"},
+     *      summary="PASO 1 COPIADO DE DATOS PLANILLA COMANDO",
+     *      operationId="upload_copy_payroll_command",
+     *      description="Copiado de datos del archivo de planillas comando a la tabla contribution_copy_payroll_commands",
+     *      @OA\RequestBody(
+     *          description= "Provide auth credentials",
+     *          required=true,
+     *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
+     *            @OA\Property(property="file", type="file", description="file required", example="file"),
+     *             @OA\Property(property="date_payroll", type="string",description="fecha de planilla required",example= "2021-11-01")
+     *            ) 
+     *          ),
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     },
+     *      @OA\Response(
+     *          response=200,
+     *          description="Success",
+     *          @OA\JsonContent(
+     *            type="object"
+     *         )
+     *      )
+     * )
+     *
+     * Logs user into the system.
+     *
+     * @param Request $request
+     * @return void
+    */
+    
+    public function upload_copy_payroll_command(request $request)
+    {    
+        $request->validate([
+            'file' => 'required',
+            'date_payroll' => 'required|date_format:"Y-m-d"',
+        ]);
+        $extencion = strtolower($request->file->getClientOriginalExtension());
+        $file_name_entry = $request->file->getClientOriginalName();
+        DB::beginTransaction();
+        try{
+            $username = env('FTP_USERNAME');
+            $password = env('FTP_PASSWORD');
+            if($extencion == "csv"){
+                $date_payroll = Carbon::parse($request->date_payroll);
+                $year = $date_payroll->format("Y");
+                $year_format = $date_payroll->format("y");
+                $month = $date_payroll->format("m");
+                $existing_period = "select  count(*) from  contribution_copy_payroll_commands  where mes ='$month' and a_o='$year_format'";
+                $existing_period = DB::select($existing_period)[0]->count;
+                if($existing_period == 0){   
+                    $file_name = "comando-".$month."-".$year.'.'.$extencion;
+                    if($file_name_entry == $file_name){
+                        $base_path = 'contribucion/planilla_comando';
+                        $file_path = Storage::disk('ftp')->putFileAs($base_path,$request->file,$file_name);
+                        $base_path ='ftp://'.env('FTP_HOST').env('FTP_ROOT').$file_path;
+
+                        $temporary_payroll = "create temporary table contribution_copy_payroll_commands_aux(uni varchar,desg varchar, mes varchar, a_o varchar,che varchar,car varchar,pat varchar,mat varchar,apes varchar,nom varchar,nom2 varchar,eciv varchar,niv varchar,gra varchar,sex varchar,dtr varchar,sue varchar,cat varchar,est varchar,carg varchar,fro varchar,ori varchar,bseg varchar,      
+                                      dfu varchar, nat varchar,lac varchar, pre varchar, sub varchar,gan varchar, mus varchar, ode varchar,lpag varchar,nac varchar,ing varchar, c31 varchar)";
+                        $temporary_payroll = DB::select($temporary_payroll);
+
+                        $copy = "copy contribution_copy_payroll_commands_aux(uni,desg,mes,a_o,che,car,pat,mat,apes,nom,nom2,eciv,niv,gra,sex,dtr,sue,cat,est,carg,fro,ori,bseg,   
+                                dfu, nat,lac, pre, sub,gan, mus, ode,lpag,nac,ing,c31)
+                                FROM PROGRAM 'wget -q -O - $@  --user=$username --password=$password $base_path'
+                                WITH DELIMITER ';' CSV header;";
+                        $copy = DB::select($copy);
+
+                        $insert = "INSERT INTO contribution_copy_payroll_commands(uni,desg,mes,a_o,car,pat,mat,apes,nom,nom2,eciv,niv,gra,sex,sue,cat,est,carg,fro,ori,bseg,gan,mus,lpag,nac,ing)
+                                   SELECT uni,desg,mes,a_o,car,pat,mat,apes,nom,nom2,eciv,niv,gra,sex,sue,cat,est,carg,fro,ori,bseg,gan,mus,lpag,nac,ing FROM contribution_copy_payroll_commands_aux; ";
+                        $insert = DB::select($insert);
+                        DB::commit();
+
+                        $drop = "drop table if exists contribution_copy_payroll_commands_aux";
+                        $drop = DB::select($drop);
+
+                        $consult = "select  count(*) from  contribution_copy_payroll_commands where mes ='$month' and a_o='$year_format'";
+                        $consult = DB::select($consult)[0]->count;
+
+                        return response()->json([
+                            'message' => 'Realizado con exito',
+                            'payload' => [
+                                'successfully' => true,
+                                'copied_record' => $consult
+                            ],
+                        ]);
+                    } else {  
+                           return response()->json([
+                            'message' => 'Error en el copiado del archivo',
+                            'payload' => [
+                                'successfully' => false,
+                                'error' => 'El nombre del archivo no coincide con en nombre requerido'
+                            ],
+                        ]);
+                    }
+                } else {
+                    return response()->json([
+                        'message' => 'Error en el copiado del archivo',
+                        'payload' => [
+                            'successfully' => false,
+                            'error' => 'El periodo ya existe'
+                        ],
+                    ]);
+                }
+            } else {   
+                    return response()->json([
+                        'message' => 'Error en el copiado del archivo',
+                        'payload' => [
+                            'successfully' => false,
+                            'error' => 'El archivo no es un archivo CSV'
+                        ],
+                    ]);
+            }
+        }catch(Exception $e){
+           DB::rollBack();
+           return response()->json([
+               'message' => 'Error en el copiado de datos',
+               'payload' => [
+                   'successfully' => false,
+                   'error' => $e->getMessage(),
+               ],
+           ]);
+        }
+    }
 }

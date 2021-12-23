@@ -30,7 +30,14 @@ class AuthController extends Controller
      */
     public function index()
     {
-        return Auth::user();
+        //return Auth::user();
+        $user = Auth::user();
+        return response()->json([
+            'message' => 'ok',
+            'payload' => [
+                'user' => new UserResource($user),
+            ],
+        ]);
     }
 
     /**

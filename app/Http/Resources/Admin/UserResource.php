@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Admin;
 
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Http\Controllers\Admin\UserController;
 
 class UserResource extends JsonResource
 {
@@ -27,7 +28,7 @@ class UserResource extends JsonResource
             'city_id'=>$this->city_id,
             'created_at' => $this->created_at,
             'deleted_at' => $this->deleted_at,
-            'roles' => $this->roles? $this->roles:null
+            'modules' => UserController::user_module_role_permision($this->id)? UserController::user_module_role_permision($this->id):null
         ];
     }
 }

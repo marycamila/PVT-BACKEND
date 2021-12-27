@@ -130,25 +130,14 @@ class UserController extends Controller
      * )
      */
 
-
-    /**
-     * @OA\Get(
-     *     path="/api/admin/user/module_role_permision",
-     *     tags={"USUARIO"},
-     *     summary="OBTENER DEL USUARIO EL MODULO ROLES Y PERMISOS ",
-     *     operationId="module_role_permision",
-     *     description="Obtiene los modulos, roles y permisos del usuario AUTENTICADO",
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Response(response="200", description="ok",
-     *     @OA\JsonContent(
-     *     type="object"
-     *     )
-     * )
-     * )
-     */
-    public function module_role_permision(Request $request){
-        $modules_objects = collect();
+    //obtener del usuario sus modulos, roles y permisos
+    public static function user_module_role_permision($id){
+        if($id){
+        $user = User::find($id);
+        }else{
         $user = Auth::user();
+        }
+        $modules_objects = collect();
         $modules = $user->modules;
         if(isset($modules)){
             foreach($modules as $module){
@@ -164,12 +153,13 @@ class UserController extends Controller
                 $modules_objects->push($module_object);
             }
         }
-        return response()->json([
+        return $modules_objects;
+      /*  return response()->json([
             'message' => 'Realizado con exito',
             'payload' => [
                 'modules' => $modules_objects
             ],
-        ]);
+        ]);*/
     }
     /**
      * @OA\Post(

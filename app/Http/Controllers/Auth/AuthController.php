@@ -135,12 +135,12 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        //auth()->user()->tokens()->delete(); cod anterior
-        Auth::guard('web')->logout();
+        auth()->user()->tokens()->delete(); //cod anterior
+       /* Auth::guard('web')->logout();
 
         $request->session()->invalidate();
 
-        $request->session()->regenerateToken();
+        $request->session()->regenerateToken();*/
 
         return [
             'message' => 'Has cerrado sesión correctamente y el token se ha eliminado correctamente.'

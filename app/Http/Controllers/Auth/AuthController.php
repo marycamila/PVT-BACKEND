@@ -89,6 +89,7 @@ class AuthController extends Controller
                             'payload' => [
                                 'access_token' => $token,
                                 'token_type' => 'Bearer',
+                                'user' => new UserResource($user),
                             ],
                         ];
                     }
@@ -102,6 +103,7 @@ class AuthController extends Controller
                     'payload' => [
                         'access_token' => $token,
                         'token_type' => 'Bearer',
+                        'user' => new UserResource($user),
                     ],
                 ];
             }

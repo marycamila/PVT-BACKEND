@@ -17,6 +17,7 @@ Route::group([
         Route::get('/command_payroll_period', [App\Http\Controllers\Contribution\ImportPayrollCommandController::class, 'command_payroll_period']);
         Route::post('/format_payroll_data_type_command', [App\Http\Controllers\Contribution\ImportPayrollCommandController::class, 'format_payroll_data_type_command']);
         Route::post('/update_base_wages', [App\Http\Controllers\Contribution\ImportPayrollCommandController::class, 'update_base_wages']);
+        Route::post('/upload_copy_payroll_senasir', [App\Http\Controllers\Contribution\ImportPayrollSenasirController::class, 'upload_copy_payroll_senasir']);
     });
 });
 

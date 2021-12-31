@@ -18,10 +18,10 @@ class CreateAidContributionCopyPayrollSenasirsTable extends Migration
             $table->integer('a_o')->comment('año');
             $table->integer('mes')->comment('Mes');
             $table->string('matricula_titular')->comment('Matricula titular');
-            $table->string('mat_dh')->comment('Matricula derechohabiente');
+            $table->string('mat_dh')->nullable()->comment('Matricula derechohabiente');
             $table->string('departamento')->comment('Departamento');
             $table->string('carnet')->comment('Carnet numero');
-            $table->string('num_com')->comment('complemento del numero de carnet');
+            $table->string('num_com')->nullable()->comment('complemento del numero de carnet');
             $table->string('paterno')->nullable()->comment('Apellido paterno');
             $table->string('materno')->nullable()->comment('Apellido materno');
             $table->string('p_nombre')->comment('Primer nombre');
@@ -35,10 +35,10 @@ class CreateAidContributionCopyPayrollSenasirsTable extends Migration
             $table->string('mat_titular')->nullable()->comment('Apellido materno titular');
             $table->string('p_nom_titular')->nullable()->comment('Primer nombre titular');
             $table->string('s_nombre_titular')->nullable()->comment('Segundo nombre titular');
-            $table->string('clase_rent_tit')->comment('Clase de renta titular');
-            $table->string('carnet_tit')->comment('Carnet numero titular');
-            $table->string('num_com_tit')->comment('complemento del numero de carnet titular');
-            $table->date('fec_fail_tit')->comment('Fecha de fallecimiento titular');
+            $table->string('clase_rent_tit')->nullable()->comment('Clase de renta titular');
+            $table->string('carnet_tit')->nullable()->comment('Carnet numero titular');
+            $table->string('num_com_tit')->nullable()->comment('complemento del numero de carnet titular');
+            $table->date('fec_fail_tit')->nullable()->comment('Fecha de fallecimiento titular');
             $table->timestamps();
             $table->softDeletes();
         });

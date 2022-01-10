@@ -63,10 +63,9 @@ class ImportPayrollSenasirController extends Controller
              if($extencion == "csv"){
                  $date_payroll = Carbon::parse($request->date_payroll);
                  $year = $date_payroll->format("Y");
-                 $year_format = $date_payroll->format("y");
                  $month = $date_payroll->format("m");
 
-                 $existing_period = "select  count(*) from  aid_contribution_copy_payroll_senasirs  where mes ='$month' and a_o='$year_format'";
+                 $existing_period = "select  count(*) from  aid_contribution_copy_payroll_senasirs  where mes ='$month' and a_o='$year'";
                  $existing_period = DB::select($existing_period)[0]->count;
                  //return $existing_period;
                  if($existing_period == 0){
@@ -92,9 +91,6 @@ class ImportPayrollSenasirController extends Controller
                          $temporary_payroll = DB::select($temporary_payroll);
 
                          //return $temporary_payroll;
-
-
- 
                          $copy = "copy aid_contribution_copy_payroll_senasirs_aux(a_o ,mes ,matricula_titular , mat_dh , departamento , regional , renta ,
                          tipo_renta , carnet , num_com , paterno , materno , p_nombre , s_nombre , fecha_nacimiento , clase_renta ,
                          total_ganado ,
@@ -124,7 +120,7 @@ class ImportPayrollSenasirController extends Controller
                          $drop = "drop table if exists aid_contribution_copy_payroll_senasirs_aux";
                          $drop = DB::select($drop);
  
-                         $consult = "select  count(*) from  aid_contribution_copy_payroll_senasirs where mes ='$month' and a_o='$year_format'";
+                         $consult = "select  count(*) from  aid_contribution_copy_payroll_senasirs where mes ='$month' and a_o='$year'";
                          $consult = DB::select($consult)[0]->count;
                          //return $consult;
                          return response()->json([

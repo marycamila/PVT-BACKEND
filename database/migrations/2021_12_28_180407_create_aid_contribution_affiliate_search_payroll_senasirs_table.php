@@ -20,7 +20,7 @@ class CreateAidContributionAffiliateSearchPayrollSenasirsTable extends Migration
             $table->integer('a_o')->comment('año');
             $table->integer('mes')->comment('Mes');
             $table->string('matricula_titular')->comment('Matricula titular');
-            $table->string('mat_dh')->comment('Matricula derechohabiente');
+            $table->string('mat_dh')->nullable()->comment('Matricula derechohabiente');
             $table->string('departamento')->comment('Departamento');
             $table->string('carnet_num_com')->nullable()->comment('Carnet numero');
             $table->string('paterno')->nullable()->comment('Apellido paterno');
@@ -36,9 +36,9 @@ class CreateAidContributionAffiliateSearchPayrollSenasirsTable extends Migration
             $table->string('mat_titular')->nullable()->comment('Apellido materno titular');
             $table->string('p_nom_titular')->nullable()->comment('Primer nombre titular');
             $table->string('s_nombre_titular')->nullable()->comment('Segundo nombre titular');
-            $table->string('clase_rent_tit')->comment('Clase de renta titular');
+            $table->string('clase_rent_tit')->nullable()->comment('Clase de renta titular');
             $table->string('carnet_num_com_tit')->nullable()->comment('Carnet numero complemento titular');
-            $table->date('fec_fail_tit')->comment('Fecha de fallecimiento titular');
+            $table->date('fec_fail_tit')->nullable()->comment('Fecha de fallecimiento titular');
             $table->timestamps();
             $table->softDeletes();
         });

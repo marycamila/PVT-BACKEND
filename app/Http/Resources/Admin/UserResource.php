@@ -28,7 +28,7 @@ class UserResource extends JsonResource
             'city_id'=>$this->city_id,
             'created_at' => $this->created_at,
             'deleted_at' => $this->deleted_at,
-            'modules' => UserController::user_module_role_permision($this->id)? UserController::user_module_role_permision($this->id):null
+            'modules' => UserController::user_module_role_permission($this->id)? UserController::user_module_role_permission($this->id):null
         ];
     }
 }

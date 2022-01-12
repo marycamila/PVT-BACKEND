@@ -241,10 +241,10 @@ class RoleController extends Controller
      }
     /**
      * @OA\Get(
-     *     path="/api/admin/role/{role}/role_permisions",
+     *     path="/api/admin/role/{role}/role_permissions",
      *     tags={"ROLES"},
      *     summary="LISTADO DE PERMISOS ASIGNADOS A UN ROL",
-     *     operationId="role_permisions",
+     *     operationId="role_permissions",
      *     @OA\Parameter(
      *         name="role",
      *         in="path",
@@ -316,7 +316,7 @@ class RoleController extends Controller
      * @param Request $request
      * @return void
      */
-    public function role_permisions(Request $request,Role $role)
+    public function role_permissions(Request $request,Role $role)
     {   
         $id = request('id') ?? '';
         $operation_id = request('operation_id') ?? '';
@@ -334,12 +334,12 @@ class RoleController extends Controller
         $per_page = $request->per_page ?? 10;
 
         $permissions = Permission::where($conditions)->paginate($per_page);
-        $permision_asignes = $role->permissions()->get()->pluck('id');
+        $permission_asignes = $role->permissions()->get()->pluck('id');
         $active = false;
         foreach ($permissions as $permission) {
             $contar_active = 0;
-            foreach ($permision_asignes as $permision_asigne){
-                if($permission->id == $permision_asigne) $contar_active++;
+            foreach ($permission_asignes as $permission_asigne){
+                if($permission->id == $permission_asigne) $contar_active++;
             }
             if($contar_active == 1) $active = true;
             else $active = false;

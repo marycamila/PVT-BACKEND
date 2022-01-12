@@ -131,7 +131,7 @@ class UserController extends Controller
      */
 
     //obtener del usuario sus modulos, roles y permisos
-    public static function user_module_role_permision($id){
+    public static function user_module_role_permission($id){
         if($id){
         $user = User::find($id);
         }else{

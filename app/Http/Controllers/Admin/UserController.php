@@ -605,4 +605,61 @@ class UserController extends Controller
             ]);
         }
     }
+    /**
+     * @OA\Patch(
+     *      path="/api/admin/user/{user}",
+     *      tags={"USUARIO"},
+     *      summary="ACTUALIZAR USUARIO",
+     *      operationId="ActualizarUsuario",
+     *      description="Actualizar usuario",
+     *      security={{"bearerAuth":{}}},
+     *      @OA\Parameter(
+     *         name="user",
+     *         in="path",
+     *         description="",
+     *         required=true,
+     *         example=1,
+     *         @OA\Schema(
+     *             type="integer",
+     *             format = "int64"
+     *         )
+     *       ),
+     *      @OA\RequestBody(
+     *          description= "Provide auth credentials",
+     *          required=false,
+     *          @OA\JsonContent(
+     *              type="object",
+     *              @OA\Property(property="city_id", type="integer",description="id de ciudad",example="1"),
+     *              @OA\Property(property="first_name", type="string",description="nombres",example="ALEJANDRO ERICK"),
+     *              @OA\Property(property="last_name", type="string",description="apellidos",example="GUISBERT FLOR"),
+     *              @OA\Property(property="username", type="string",description="nombre de usuario",example="aguisbert"),
+     *              @OA\Property(property="position", type="string",description="Cargo del usuario",example="Jefe de Unidad de Sistemas y Soportes Técnico"),
+     *              @OA\Property(property="is_commission", type="boolean",description="usuario en comision",example="false"),
+     *              @OA\Property(property="phone", type="string",description="telefono ",example="78773841"),
+     *              @OA\Property(property="active", type="boolean",description="Usuario activo",example="true"),
+     *          )
+     *     ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Success",
+     *          @OA\JsonContent(
+     *            type="object"
+     *         )
+     *      )
+     * )
+     *
+     * @return void
+    */
+
+    public function update(UserRequest $request, User $user)
+    {
+        $user->fill($request->all());
+        $user->save();
+        return response()->json([
+            'message' => 'Usuario actualizado',
+            'payload' => [
+                'user' => $user,
+            ],
+        ]);
+    }
 }

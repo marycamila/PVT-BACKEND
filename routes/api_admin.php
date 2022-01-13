@@ -23,7 +23,7 @@ Route::group([
         Route::get('role/{role}/role_permissions', [App\Http\Controllers\Admin\RoleController::class, 'role_permissions']);
         Route::apiResource('/permission', App\Http\Controllers\Admin\PermissionController::class)->only(['index']);
         Route::patch('role/{role}/permission', [App\Http\Controllers\Admin\RoleController::class,'set_or_remove_permission']);
-        Route::apiResource('/user', App\Http\Controllers\Admin\UserController::class)->only(['index', 'store','show']);
+        Route::apiResource('/user', App\Http\Controllers\Admin\UserController::class)->only(['index', 'store','show','update']);
         Route::get('user/{user}/module_role_state_user', [App\Http\Controllers\Admin\UserController::class, 'module_role_state_user']);
         Route::patch('user/{user}/role', [App\Http\Controllers\Admin\UserController::class, 'set_or_remove_role']);
         //rutas de sincronizacion de usuarios

@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Ldap;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Hash;
+
   /**
      * @OA\Info(
      *      version="1.0.0",
@@ -542,6 +543,7 @@ class UserController extends Controller
             $update_users = 0;
             $new_users = 0;
             $dupĺicate_users = 0;
+            $users_ldap = array();
             foreach($ldap_entries as $ldap_entry){
                 $ldap_entry;
                 $user = User::where('username', trim($ldap_entry->uid))->where('first_name', trim($ldap_entry->givenName))->where('last_name', trim($ldap_entry->sn))->first();
@@ -564,6 +566,19 @@ class UserController extends Controller
                     }
                     else
                     {
+                        $entry = Http::get(env('MIX_RRHH_URL').'employee/'.$ldap_entry->employeeNumber)->json();
+                        $user = new User();
+                        $user->username = trim($ldap_entry->uid);
+                        $user->first_name = trim($ldap_entry->givenName);
+                        $user->last_name = trim($ldap_entry->sn);
+                        $user->position = trim($ldap_entry->title);
+                        $user->phone = trim($entry['phone_number']);
+                        $user->is_commission = false;
+                        $user->active = true;
+                        $user->status = 'active';
+                        $user->password = bcrypt($entry['identity_card']);
+                        $user->save();
+                        array_push($users_ldap,$user);
                         $new_users++;
                     }
                 }
@@ -573,6 +588,7 @@ class UserController extends Controller
                 'message' => 'Realizado con éxito',
                 'payload' => [
                     'new_users' => $new_users,
+                    'new_users_ldap' => $users_ldap,
                     'update_users' => $update_users,
                     'duplicate_users' => $dupĺicate_users,
                 ],

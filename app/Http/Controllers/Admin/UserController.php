@@ -533,70 +533,37 @@ class UserController extends Controller
      */
     public function sync_employees()
     {
-        try{
-            DB::beginTransaction();
+        try
+        {
             $ldap = new Ldap();
-            // inhabilita a todos los usuarios
-            $users = DB::table('users')->update(['active'=>false, 'status'=>'inactive']);
             // obtiene todos los empleados del ldap
             $ldap_entries = $ldap->list_entries();
-            $update_users = 0;
-            $new_users = 0;
-            $dupĺicate_users = 0;
             $users_ldap = array();
             foreach($ldap_entries as $ldap_entry){
-                $ldap_entry;
                 $user = User::where('username', trim($ldap_entry->uid))->where('first_name', trim($ldap_entry->givenName))->where('last_name', trim($ldap_entry->sn))->first();
-                if($user)
+                if(!$user)
                 {
-                    if($user->active == false)
-                    {
-                        $update_users++;
-                    }
-                    $user->position = $ldap_entry->title;
-                    $user->active = true;
-                    $user->status = 'active';
-                    $user->save();
-                }
-                else
-                {
-                    if(User::where('username', $ldap_entry->uid)->first())
-                    {
-                        $dupĺicate_users++;
-                    }
-                    else
-                    {
-                        $entry = Http::get(env('MIX_RRHH_URL').'employee/'.$ldap_entry->employeeNumber)->json();
-                        $user = new User();
-                        $user->username = trim($ldap_entry->uid);
-                        $user->first_name = trim($ldap_entry->givenName);
-                        $user->last_name = trim($ldap_entry->sn);
-                        $user->position = trim($ldap_entry->title);
-                        $user->phone = trim($entry['phone_number']);
-                        $user->is_commission = false;
-                        $user->active = true;
-                        $user->status = 'active';
-                        $user->password = bcrypt($entry['identity_card']);
-                        $user->save();
-                        array_push($users_ldap,$user);
-                        $new_users++;
-                    }
+                    $entry = Http::get(env('MIX_RRHH_URL').'employee/'.$ldap_entry->employeeNumber)->json();
+                    $user = array(
+                        "username" => trim($ldap_entry->uid),
+                        "first_name" => trim($ldap_entry->givenName),
+                        "last_name" => trim($ldap_entry->sn),
+                        "position" => trim($ldap_entry->title),
+                        "identity_card" => trim($entry['identity_card']),
+                        "phone" => trim($entry['phone_number'])
+                    );
+                    array_push($users_ldap,$user);
                 }
             }
-            DB::commit();
             return response()->json([
                 'message' => 'Realizado con éxito',
                 'payload' => [
-                    'new_users' => $new_users,
                     'new_users_ldap' => $users_ldap,
-                    'update_users' => $update_users,
-                    'duplicate_users' => $dupĺicate_users,
                 ],
             ]);
         }
         catch(Exception $e)
         {
-            DB::rollBack();
             return response()->json([
                 'message' => 'Error al sincronizar los empleados',
                 'payload' => [

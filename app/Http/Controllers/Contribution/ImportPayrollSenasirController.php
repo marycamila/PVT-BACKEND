@@ -108,11 +108,11 @@ class ImportPayrollSenasirController extends Controller
                          $copy = DB::select($copy);
  
                          $insert = "INSERT INTO aid_contribution_copy_payroll_senasirs(a_o,mes,matricula_titular,mat_dh,departamento,carnet,num_com,paterno,materno,
-                         p_nombre,s_nombre,fecha_nacimiento,clase_renta,total_ganado,renta_dignidad,descuento_muserpol,
-                         pat_titular,mat_titular,p_nom_titular,s_nombre_titular,clase_rent_tit,carnet_tit,num_com_tit,fec_fail_tit)
+                         p_nombre,s_nombre,fecha_nacimiento,clase_renta,total_ganado,liquido_pagable,renta_dignidad,descuento_muserpol,
+                         pat_titular,mat_titular,p_nom_titular,s_nombre_titular,carnet_tit,num_com_tit,fec_fail_tit)
                                     SELECT a_o,mes,matricula_titular,mat_dh,departamento,carnet,num_com,paterno,materno,
-                        p_nombre,s_nombre,fecha_nacimiento,clase_renta,total_ganado,renta_dignidad,descuento_muserpol,
-                        pat_titular,mat_titular,p_nom_titular,s_nombre_titular,clase_rent_tit,carnet_tit,num_com_tit,fec_fail_tit FROM  aid_contribution_copy_payroll_senasirs_aux; ";
+                        p_nombre,s_nombre,fecha_nacimiento,clase_renta,total_ganado,liquido_pagable,renta_dignidad,descuento_muserpol,
+                        pat_titular,mat_titular,p_nom_titular,s_nombre_titular,carnet_tit,num_com_tit,fec_fail_tit FROM  aid_contribution_copy_payroll_senasirs_aux; ";
                          $insert = DB::select($insert);
                        //  return $insert;
                     DB::commit();

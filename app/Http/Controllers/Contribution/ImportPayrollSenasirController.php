@@ -104,7 +104,7 @@ class ImportPayrollSenasirController extends Controller
                          desc_cobro_indebido_r026_99_ivm , retencion_judicial , descuento_muserpol , descuento_covipol , prestamo_muserpol ,
                          pat_titular , mat_titular , p_nom_titular , s_nombre_titular , clase_rent_tit , carnet_tit , num_com_tit , fec_fail_tit )
                          FROM PROGRAM 'wget -q -O - $@  --user=$username --password=$password $base_path'
-                                 WITH DELIMITER ';' CSV header;";
+                                 WITH DELIMITER ':' CSV header;";
                          $copy = DB::select($copy);
  
                          $insert = "INSERT INTO aid_contribution_copy_payroll_senasirs(a_o,mes,matricula_titular,mat_dh,departamento,carnet,num_com,paterno,materno,

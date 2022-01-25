@@ -163,6 +163,7 @@ return [
         Illuminate\View\ViewServiceProvider::class,
         // documentacion swagger
         L5Swagger\L5SwaggerServiceProvider::class,
+        Maatwebsite\Excel\ExcelServiceProvider::class,
 
         /*
          * Package Service Providers...
@@ -232,7 +233,7 @@ return [
         'View' => Illuminate\Support\Facades\View::class,
         // LDAP
         'Ldap' => App\Helpers\Ldap::class,
-
+        'Excel' => Maatwebsite\Excel\Facades\Excel::class,
     ],
 
 ];

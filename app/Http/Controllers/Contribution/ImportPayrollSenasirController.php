@@ -287,6 +287,58 @@ class ImportPayrollSenasirController extends Controller
             ]);
             }
         }
+         /**
+     * @OA\Post(
+     *      path="/api/contribution/download_fail_validated_senasir",
+     *      tags={"CONTRIBUCION"},
+     *      summary="DESCARGA DE ARCHIVO DE FALLA DEL PASO 2 DE VALIDACION DE DATOS AFILIADO TITULAR ",
+     *      operationId="download_fail_validated_senasir",
+     *      description="Descarga el archivo de falla del paso 2 de validacion de datos del afiliado titular",
+     *      @OA\RequestBody(
+     *          description= "Provide auth credentials",
+     *          required=true,
+     *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
+     *             @OA\Property(property="date_payroll", type="string",description="fecha de planilla required",example= "2021-10-01")
+     *            )
+     *          ),
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     },
+     *      @OA\Response(
+     *          response=200,
+     *          description="Success",
+     *          @OA\JsonContent(
+     *            type="object"
+     *         )
+     *      )
+     * )
+     *
+     * Logs user into the system.
+     *
+     * @param Request $request
+     * @return void
+    */
+        public function download_fail_validated_senasir(Request $request){
+
+            $request->validate([
+                'date_payroll' => 'required|date_format:"Y-m-d"',
+            ]);
+
+            $date_payroll = Carbon::parse($request->date_payroll);
+            $year = (int)$date_payroll->format("Y");
+            $month = (int)$date_payroll->format("m");
+            $last_date = Carbon::parse($year.'-'.$month)->toDateString();
+
+            $file_name = 'error-senasir'.'-'.$last_date.'.xls';
+            $base_path = 'contribucion/Error-Import-Contribution-Senasir/'.'error-senasir-'.$last_date;
+
+            if(Storage::disk('ftp')->has($base_path.'/'.$file_name)){
+                return $file = Storage::disk('ftp')->download($base_path.'/'.$file_name);
+            }else{
+                return abort(403, 'No existe archivo de falla senasir para mostrar');
+            }
+        }
     // -------------metodo para verificar si existe datos en el paso 2 -----//
     public function exists_data_table_aid_contribution_affiliate_payrroll($mes,$a_o){
         $month = $mes;

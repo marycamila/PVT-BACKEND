@@ -9,6 +9,8 @@ use Carbon\Carbon;
 use DateTime;
 use Illuminate\Support\Facades\DB;
 use Auth;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\ArchivoPrimarioExport;
 
 class ImportPayrollSenasirController extends Controller
 {
@@ -24,7 +26,7 @@ class ImportPayrollSenasirController extends Controller
      *          required=true,
      *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
      *            @OA\Property(property="file", type="file", description="file required", example="file"),
-     *             @OA\Property(property="date_payroll", type="string",description="fecha de planilla required",example= "2021-11-01")
+     *             @OA\Property(property="date_payroll", type="string",description="fecha de planilla required",example= "2021-10-01")
      *            ) 
      *          ),
      *     ),
@@ -166,6 +168,195 @@ class ImportPayrollSenasirController extends Controller
                     'error' => $e->getMessage(),
                 ],
             ]);
+         }
+     }
+
+     /**
+     * @OA\Post(
+     *      path="/api/contribution/validation_aid_contribution_affiliate_payroll_senasir",
+     *      tags={"CONTRIBUCION"},
+     *      summary="PASO 2 VALIDACION DE DATOS DE TITULARES SENASIR",
+     *      operationId="validation_aid_contribution_affiliate_payroll_senasir",
+     *      description="validacion de datos de titulares senasir a la tabla validation_aid_contribution_affiliate_payroll_senasir",
+     *      @OA\RequestBody(
+     *          description= "Provide auth credentials",
+     *          required=true,
+     *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
+     *             @OA\Property(property="date_payroll", type="string",description="fecha de planilla required",example= "2021-10-01")
+     *            )
+     *          ),
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     },
+     *      @OA\Response(
+     *          response=200,
+     *          description="Success",
+     *          @OA\JsonContent(
+     *            type="object"
+     *         )
+     *      )
+     * )
+     *
+     * Logs user into the system.
+     *
+     * @param Request $request
+     * @return void
+    */
+     public function validation_aid_contribution_affiliate_payroll_senasir(Request $request){
+        $request->validate([
+          'date_payroll' => 'required|date_format:"Y-m-d"',
+        ]);
+      try{
+            DB::beginTransaction();
+            $message = "No hay datos";
+            $successfully =false;
+            $data_cabeceraS=array(array("AÑO","MES","MATRÍCULA TITULAR", "MATRÍCULA D_H","DEPARTAMENTO","CARNET","NUM_COM", "APELLIDO PATERNO","APELLIDO MATERNO", "PRIMER NOMBRE","SEGUNDO NOMBRE"));
+
+            $date_payroll = Carbon::parse($request->date_payroll);
+            $year = (int)$date_payroll->format("Y");
+            $month = (int)$date_payroll->format("m");
+            $last_date = Carbon::parse($year.'-'.$month)->toDateString();
+
+            //tabla temporal
+            $temporary_payroll = "CREATE temporary table aid_contribution_copy_payroll_senasirs_aux_no_exist(
+            a_o integer, mes integer, matricula_titular varchar, mat_dh varchar, departamento varchar, clase_renta varchar,
+            carnet varchar, num_com varchar, paterno varchar, materno varchar, p_nombre varchar, s_nombre varchar);";
+            $temporary_payroll = DB::select($temporary_payroll);
+
+        if(!$this->exists_data_table_aid_contribution_affiliate_payrroll($month,$year)){
+            if($this->exists_data_table_aid_contribution_copy_payroll_senasirs($month,$year)){
+                $query = "select * from registration_aid_contribution_affiliate_payroll_senasir($month,$year);";
+                $data_format = DB::select($query);
+
+                if($data_format == []){
+                    $message = "Realizado con exito";
+                    $successfully = true;
+                }else{
+                    $message = "Error! Las matriculas de los siguientes titulare no fueron encontradas";
+                    foreach ($data_format as $row){
+                        array_push($data_cabeceraS, array($row->a_o_retorno,$row->mes_retorno,$row->matricula_titular_retorno, $row->mat_dh_retorno,$row->departamento_retorno,
+                        $row->carnet_retorno,$row->num_com_retorno,
+                        $row->paterno_retorno,$row->materno_retorno,$row->p_nombre_retorno,$row->s_nombre_retorno
+                       ));
+                    }
+                    $export = new ArchivoPrimarioExport($data_cabeceraS);
+                    $file_name = 'error-senasir'.'-'.$last_date.'.xls';
+                    $base_path = 'contribucion/Error-Import-Contribution-Senasir/'.'error-senasir-'.$last_date;
+                    Excel::store($export,$base_path.'/'.$file_name, 'ftp');
+                }
+
+                $drop = "drop table if exists aid_contribution_copy_payroll_senasirs_aux_no_exist";
+                $drop = DB::select($drop);
+
+                $this->delete_aid_contribution_affiliate_payroll_senasirs($month,$year);
+                $this->delete_aid_contribution_copy_payroll_senasirs($month,$year);
+
+                DB::commit();
+                return response()->json([
+                    'message' => $message,
+                    'payload' => [
+                        'successfully' => $successfully,
+                    ],
+                ]);
+
+            }else{
+                return response()->json([
+                    'message' => "Error el primer paso no esta concluido.",
+                    'payload' => [
+                        'successfully' => $successfully,
+                    ],
+                ]);
+            }
+            }else{
+                return response()->json([
+                    'message' => "Ya existen datos, no se puede volver a realizar esta acción.",
+                    'payload' => [
+                        'successfully' => $successfully,
+                    ],
+                ]);
+            }
+            }catch(Exception $e){
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Error en la busqueda de datos de titulares.',
+                'payload' => [
+                    'successfully' => false,
+                    'error' => $e->getMessage(),
+                ],
+            ]);
+            }
+        }
+    // -------------metodo para verificar si existe datos en el paso 2 -----//
+    public function exists_data_table_aid_contribution_affiliate_payrroll($mes,$a_o){
+        $month = $mes;
+        $year = $a_o;
+        $exists_data = true;
+        $query = "select * from aid_contribution_affiliate_payroll_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER;";
+        $verify_data = DB::select($query);
+
+        if($verify_data == []) $exists_data = false;
+
+        return $exists_data;
+    }
+    // -------------metodo para verificar si existe datos en el paso 1 -----//
+    public function exists_data_table_aid_contribution_copy_payroll_senasirs($mes,$a_o){
+        $month = $mes;
+        $year = $a_o;
+        $exists_data = true;
+        $query = "select * from aid_contribution_copy_payroll_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER;";
+        $verify_data = DB::select($query);
+
+        if($verify_data == []) $exists_data = false;
+
+        return $exists_data;
+    }
+
+     //-----------borrado de datos de la tabla aid_contribution_affiliate_payroll_senasirs paso 2
+     public function delete_aid_contribution_affiliate_payroll_senasirs($month, $year)
+     {
+         DB::beginTransaction();
+         try{
+             if($this->exists_data_table_aid_contribution_affiliate_payrroll($month,$year))
+             {
+                $query = "delete
+                        from aid_contribution_affiliate_payroll_senasirs
+                        where a_o = $year::INTEGER and mes = $month::INTEGER ";
+                $query = DB::select($query);
+                DB::commit();
+                return true;
+             }
+             else
+                 return false;
+         }
+         catch (Exception $e)
+         {
+             DB::rollback();
+             return $e;
+         }
+     }
+
+     //------------borrado de datos de la tabla aid_contribution_copy_payroll_senasirs paso 1
+     public function delete_aid_contribution_copy_payroll_senasirs($month, $year)
+     {
+         DB::beginTransaction();
+         try{
+             if($this->exists_data_table_aid_contribution_copy_payroll_senasirs($month,$year))
+             {
+                $query = "delete
+                        from aid_contribution_copy_payroll_senasirs
+                        where a_o = $year::INTEGER and mes = $month::INTEGER ";
+                $query = DB::select($query);
+                DB::commit();
+                return true;
+             }
+             else
+                 return false;
+         }
+         catch (Exception $e)
+         {
+             DB::rollback();
+             return $e;
          }
      }
 }

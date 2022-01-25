@@ -82,8 +82,8 @@ class ContributionOriginSeeder extends Seeder
                         'shortened' => 'SEN',        
                      ]
                     ];
-            }       
-        }    
-        DB::table('contribution_origins')->insert($contribution_origins);
+            }  
+            DB::table('contribution_origins')->insert($contribution_origins);     
+        }           
     }
 }

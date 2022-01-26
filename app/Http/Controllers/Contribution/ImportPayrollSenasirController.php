@@ -587,4 +587,70 @@ class ImportPayrollSenasirController extends Controller
             return $e;
         }
      }
+    /**
+     * @OA\Post(
+     *      path="/api/contribution/import_create_or_update_contribution_payroll_period_senasir",
+     *      tags={"CONTRIBUCION-IMPORT-SENASIR"},
+     *      summary="PASO 3 IMPORTACIÓN REGISTRO O ACTUALIZACIÓN DE DATOS DE LA PLANILLA SENASIR",
+     *      operationId="import_create_or_update_contribution_payroll_period_senasir",
+     *      description="Creacion o actualizacion de aid_contributions y actualizacion de la tabla aid_contribution_copy_payroll_senasir por periodo",
+     *      @OA\RequestBody(
+     *          description= "Provide auth credentials",
+     *          required=true,
+     *          @OA\JsonContent(
+     *              type="object",
+     *              @OA\Property(property="period_contribution_senasir", type="string",description="fecha de planilla required",example= "2021-10-01")
+     *            )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     },
+     *      @OA\Response(
+     *          response=200,
+     *          description="Success",
+     *          @OA\JsonContent(
+     *            type="object"
+     *         )
+     *      )
+     * )
+     *
+     * Logs user into the system.
+     *
+     * @param Request $request
+     * @return void
+    */
+    public function import_create_or_update_contribution_payroll_period_senasir(Request $request){
+        $request->validate([
+        'period_contribution_senasir' => 'required|date_format:"Y-m-d"',
+        ]);
+        $user_id = Auth::user()->id;
+        $successfully = false;
+        $period_contribution_senasir = Carbon::parse($request->period_contribution_senasir);
+        $year = (int)$period_contribution_senasir->format("Y");
+        $month = (int)$period_contribution_senasir->format("m");
+        $count_registered = "select count(*) from aid_contribution_affiliate_payroll_senasirs where a_o = $year::INTEGER and mes = $month::INTEGER and state='registered'";
+        $count_registered = DB::select($count_registered)[0]->count;
+        if((int)$count_registered == 0){
+            return response()->json([
+                'message' => "Error al realizar la importacion, el periodo ya fue importado.",
+                'payload' => [
+                    'successfully' => $successfully
+                ],
+            ]);
+        }else{
+            $query ="select import_period_payroll_contribution_senasir('$request->period_contribution_senasir',$user_id,$year,$month)";
+            $query = DB::select($query);
+            $count_updated = "select count(*) from aid_contribution_affiliate_payroll_senasirs where a_o = $year::INTEGER and mes = $month::INTEGER and state='updated'";
+            $count_updated = DB::select($count_updated)[0]->count;
+            $count_created = "select count(*) from aid_contribution_affiliate_payroll_senasirs where a_o = $year::INTEGER and mes = $month::INTEGER and state='created'";
+            $count_created = DB::select($count_created)[0]->count;
+            $successfully = true;
+            return response()->json([
+                'message' => "Numero de registro creados iagual a ".$count_created." Numeros de registros actualizados igual a ".$count_updated,
+                'payload' => [
+                    'successfully' => $successfully
+                ],
+            ]);
+        }
+    }
 }

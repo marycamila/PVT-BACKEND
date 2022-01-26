@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateFunctionPeriodCreateOrUpdateSenasirAffiliate extends Migration
+class CreateFunctionContributionAffiliateSenasirCreateOrUpdate extends Migration
 {
     /**
      * Run the migrations.
@@ -13,7 +13,7 @@ class CreateFunctionPeriodCreateOrUpdateSenasirAffiliate extends Migration
      */
     public function up()
     {
-        DB::statement("CREATE OR REPLACE FUNCTION public.period_create_or_update_senasir_affiliate(affiliate bigint, year_copy varchar, user_reg integer,aid_contribution_affiliate_payroll_senasir_id integer)
+        DB::statement("CREATE OR REPLACE FUNCTION public.contribution_affiliate_senasir_create_or_update(affiliate bigint, year_copy varchar, user_reg integer,aid_contribution_affiliate_payroll_senasir_id integer)
         RETURNS varchar
         as $$
         declare
@@ -42,7 +42,7 @@ class CreateFunctionPeriodCreateOrUpdateSenasirAffiliate extends Migration
                     WHERE id=aid_contribution_affiliate_payroll_senasir_id;
 
                -- Actualizar datos de la tabla aid_contribution_affiliate_payroll_senasirs con state created
-                  UPDATE aid_contribution_affiliate_payroll_senasirs 
+                  UPDATE aid_contribution_affiliate_payroll_senasirs
                    SET state = type_acction WHERE id = aid_contribution_affiliate_payroll_senasir_id;
 
              RETURN type_acction ;
@@ -81,6 +81,6 @@ class CreateFunctionPeriodCreateOrUpdateSenasirAffiliate extends Migration
      */
     public function down()
     {
-        DB::statement("DROP FUNCTION function_period_create_or_update_senasir_affiliate");
+        DB::statement("DROP FUNCTION contribution_affiliate_senasir_create_or_update");
     }
 }

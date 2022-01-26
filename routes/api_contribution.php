@@ -22,6 +22,7 @@ Route::group([
         Route::post('/download_fail_validated_senasir', [App\Http\Controllers\Contribution\ImportPayrollSenasirController::class, 'download_fail_validated_senasir']);
         Route::get('/list_senasir_years', [App\Http\Controllers\Contribution\ImportPayrollSenasirController::class, 'list_senasir_years']);
         Route::post('/list_senasir_months', [App\Http\Controllers\Contribution\ImportPayrollSenasirController::class, 'list_senasir_months']);
+        Route::post('/rollback_copy_validate_senasir', [App\Http\Controllers\Contribution\ImportPayrollSenasirController::class, 'rollback_copy_validate_senasir']);
     });
 });
 

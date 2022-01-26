@@ -515,4 +515,76 @@ class ImportPayrollSenasirController extends Controller
             ],
         ]);
      }
+
+    /**
+     * @OA\Post(
+     *      path="/api/contribution/rollback_copy_validate_senasir",
+     *      tags={"CONTRIBUCION-IMPORT-SENASIR"},
+     *      summary="REHACER LOS PASOS DE PASO 1 Y 2 IMPORTACION SENASIR",
+     *      operationId="rollback_copy_validate_senasir",
+     *      description="Para rehacer paso 1 y paso 2 de la importacion senasir",
+     *      @OA\RequestBody(
+     *          description= "Provide auth credentials",
+     *          required=true,
+     *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
+     *             @OA\Property(property="date_payroll", type="string",description="fecha de planilla required",example= "2021-10-01")
+     *            )
+     *          ),
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     },
+     *      @OA\Response(
+     *          response=200,
+     *          description="Success",
+     *          @OA\JsonContent(
+     *            type="object"
+     *         )
+     *      )
+     * )
+     *
+     * Logs user into the system.
+     *
+     * @param Request $request
+     * @return void
+    */
+
+     public function rollback_copy_validate_senasir(Request $request)
+     {
+        $request->validate([
+            'date_payroll' => 'required|date_format:"Y-m-d"',
+          ]);
+        DB::beginTransaction();
+        try{
+            $validated_rollback = false;
+            $date_payroll = Carbon::parse($request->date_payroll);
+
+            $year = (int)$date_payroll->format("Y");
+            $month = (int)$date_payroll->format("m");
+
+            if($this->delete_aid_contribution_affiliate_payroll_senasirs($month,$year) && $this->delete_aid_contribution_copy_payroll_senasirs($month,$year)){
+                $validated_rollback = true;
+            }
+
+            if(!$validated_rollback){
+                $message = "No se puede rehacer no existe datos";
+
+            }else{
+                $message = "Realizado con exito!";
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => $message,
+                'payload' => [
+                    'validated_rollback' =>  $validated_rollback
+                ],
+            ]);
+        }catch (Exception $e)
+        {
+            DB::rollback();
+            return $e;
+        }
+     }
 }

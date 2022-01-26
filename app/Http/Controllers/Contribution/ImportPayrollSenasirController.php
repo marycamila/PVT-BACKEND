@@ -17,7 +17,7 @@ class ImportPayrollSenasirController extends Controller
     /**
      * @OA\Post(
      *      path="/api/contribution/upload_copy_payroll_senasir",
-     *      tags={"CONTRIBUCION"},
+     *      tags={"CONTRIBUCION-IMPORT-SENASIR"},
      *      summary="PASO 1 COPIADO DE DATOS PLANILLA SENASIR",
      *      operationId="upload_copy_payroll_senasir",
      *      description="Copiado de datos del archivo de planillas senasir a la tabla aid_contribution_copy_payroll_senasir",
@@ -174,7 +174,7 @@ class ImportPayrollSenasirController extends Controller
      /**
      * @OA\Post(
      *      path="/api/contribution/validation_aid_contribution_affiliate_payroll_senasir",
-     *      tags={"CONTRIBUCION"},
+     *      tags={"CONTRIBUCION-IMPORT-SENASIR"},
      *      summary="PASO 2 VALIDACION DE DATOS DE TITULARES SENASIR",
      *      operationId="validation_aid_contribution_affiliate_payroll_senasir",
      *      description="validacion de datos de titulares senasir a la tabla validation_aid_contribution_affiliate_payroll_senasir",
@@ -290,7 +290,7 @@ class ImportPayrollSenasirController extends Controller
          /**
      * @OA\Post(
      *      path="/api/contribution/download_fail_validated_senasir",
-     *      tags={"CONTRIBUCION"},
+     *      tags={"CONTRIBUCION-IMPORT-SENASIR"},
      *      summary="DESCARGA DE ARCHIVO DE FALLA DEL PASO 2 DE VALIDACION DE DATOS AFILIADO TITULAR ",
      *      operationId="download_fail_validated_senasir",
      *      description="Descarga el archivo de falla del paso 2 de validacion de datos del afiliado titular",
@@ -410,5 +410,109 @@ class ImportPayrollSenasirController extends Controller
              DB::rollback();
              return $e;
          }
+     }
+
+
+    /**
+     * @OA\Get(
+     *      path="/api/contribution/list_senasir_years",
+     *      tags={"CONTRIBUCION-IMPORT-SENASIR"},
+     *      summary="OBTIENE EL LISTADO DE AÑOS DE CONTRIBUCIONES DE SENASIR CONSECUTIVAMENTE ",
+     *      operationId="list_senasir_years",
+     *      description="Obtiene el listado de años de contribuciones de senasir de manera consecutiva hasta el año actual Ej 2022",
+     *     security={
+     *         {"bearerAuth": {}}
+     *     },
+     *      @OA\Response(
+     *          response=200,
+     *          description="Success",
+     *          @OA\JsonContent(
+     *            type="object"
+     *         )
+     *      )
+     * )
+     *
+     * Logs user into the system.
+     *
+     * @param Request $request
+     * @return void
+    */
+    public function list_senasir_years()
+     {
+            $start_year = 1980;
+            $end_year =Carbon::now()->format('Y');
+            $list_senasir_years =[];
+            while ($end_year >= $start_year) {
+                array_push($list_senasir_years, $start_year);
+                $start_year++;
+            }
+
+            return response()->json([
+                'message' => "Exito",
+                'payload' => [
+                    'list_senasir_years' =>  $list_senasir_years
+                ],
+            ]);
+     }
+          /**
+     * @OA\Post(
+     *      path="/api/contribution/list_senasir_months",
+     *      tags={"CONTRIBUCION-IMPORT-SENASIR"},
+     *      summary="LISTA LOS MESES QUE SE REALIZARON IMPORTACIONES DE TIPO SENASIR EN BASE A UN AÑO DADO EJ:2021",
+     *      operationId="list_senasir_months",
+     *      description="Lista los meses importados en la tabla aid_contributions enviando como parametro un año en especifico",
+     *      @OA\RequestBody(
+     *          description= "Provide auth credentials",
+     *          required=true,
+     *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
+     *             @OA\Property(property="period_year", type="integer",description="Año de contribucion a listar",example= "2021")
+     *            )
+     *          ),
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     },
+     *      @OA\Response(
+     *          response=200,
+     *          description="Success",
+     *          @OA\JsonContent(
+     *            type="object"
+     *         )
+     *      )
+     * )
+     *
+     * Logs user into the system.
+     *
+     * @param Request $request
+     * @return void
+    */
+    public function list_senasir_months(Request $request)
+     {
+        $request->validate([
+            'period_year' => 'required|date_format:"Y"',
+        ]);
+         $period_year = $request->get('period_year');
+         $list_senasir_months =[];
+
+         $query_origin_senasir = "SELECT id from contribution_origins where name like 'senasir'";
+         $query_origin_senasir = DB::select($query_origin_senasir);
+
+         if($query_origin_senasir != []) $id_origin_senasir =$query_origin_senasir[0]->id;
+         else $id_origin_senasir = 1;//en caso que cambie el nombre senasir de la tabla contribution origin
+
+         $query = "SELECT period_month, to_char(month_y, 'TMMonth') as period_month_name
+         from (select to_date(month_year, 'YYYY/MM/DD') as month_y,extract(year from periods.month_year::timestamp) as period_year, extract(month from periods.month_year::timestamp) as period_month
+         from (select month_year ,count(*) from  aid_contributions ac  where ac.deleted_at is null and ac.contribution_origin_id = $id_origin_senasir group by month_year ) as periods) as period_months
+         where period_months.period_year = $period_year
+         order by period_months.period_month";
+         $query = DB::select($query);
+
+         return response()->json([
+            'message' => "Exito",
+            'payload' => [
+                'list_senasir_months' =>  $query,
+                'count_senasir_months' =>  count($query)
+            ],
+        ]);
      }
 }

@@ -20,6 +20,8 @@ Route::group([
         Route::post('/upload_copy_payroll_senasir', [App\Http\Controllers\Contribution\ImportPayrollSenasirController::class, 'upload_copy_payroll_senasir']);
         Route::post('/validation_aid_contribution_affiliate_payroll_senasir', [App\Http\Controllers\Contribution\ImportPayrollSenasirController::class, 'validation_aid_contribution_affiliate_payroll_senasir']);
         Route::post('/download_fail_validated_senasir', [App\Http\Controllers\Contribution\ImportPayrollSenasirController::class, 'download_fail_validated_senasir']);
+        Route::get('/list_senasir_years', [App\Http\Controllers\Contribution\ImportPayrollSenasirController::class, 'list_senasir_years']);
+        Route::post('/list_senasir_months', [App\Http\Controllers\Contribution\ImportPayrollSenasirController::class, 'list_senasir_months']);
     });
 });
 

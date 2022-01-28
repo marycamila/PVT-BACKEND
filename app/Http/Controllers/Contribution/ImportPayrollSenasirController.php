@@ -529,10 +529,23 @@ class ImportPayrollSenasirController extends Controller
          order by period_months.period_month";
          $query = DB::select($query);
 
+         $query_months = "select id as period_month ,name  as period_month_name from months order by id asc";
+         $query_months = DB::select($query_months);
+
+         foreach ($query_months as $month) {
+            $month->state_importation = false;
+            foreach ($query as $month_contribution) {
+                if($month->period_month_name == $month_contribution->period_month_name){
+                    $month->state_importation = true;
+                    break;
+                }
+            }
+         }
+
          return response()->json([
             'message' => "Exito",
             'payload' => [
-                'list_senasir_months' =>  $query,
+                'list_senasir_months' =>  $query_months,
                 'count_senasir_months' =>  count($query)
             ],
         ]);

@@ -363,6 +363,28 @@ class ImportPayrollSenasirController extends Controller
 
         return $exists_data;
     }
+    //----------- verificar si existen datos importados senasir en tabla contribucion
+    public function exists_data_table_aid_contributions($mes,$a_o){
+        $month = $mes;
+        $year = $a_o;
+        $date_payroll = Carbon::create($year, $month, 1);
+        $date_payroll = Carbon::parse($date_payroll)->format('Y-m-d');
+
+        $exists_data = true;
+        $query_origin_senasir = "SELECT id from contribution_origins where name like 'senasir'";
+        $query_origin_senasir = DB::select($query_origin_senasir);
+
+        if($query_origin_senasir != []) $id_origin_senasir =$query_origin_senasir[0]->id;
+        else $id_origin_senasir = 1;//en caso que cambie el nombre senasir de la tabla contribution origin
+
+        $query = " SELECT id from aid_contributions ac
+        where month_year = '$date_payroll' and ac.contribution_origin_id = $id_origin_senasir and ac.deleted_at is null";
+        $verify_data = DB::select($query);
+
+        if($verify_data == []) $exists_data = false;
+
+        return $exists_data;
+    }
 
      //-----------borrado de datos de la tabla aid_contribution_affiliate_payroll_senasirs paso 2
      public function delete_aid_contribution_affiliate_payroll_senasirs($month, $year)
@@ -652,5 +674,120 @@ class ImportPayrollSenasirController extends Controller
                 ],
             ]);
         }
+    }
+     /**
+     * @OA\Post(
+     *      path="/api/contribution/import_progress_bar",
+     *      tags={"CONTRIBUCION-IMPORT-SENASIR"},
+     *      summary="INFORMACION DE PROGRESO DE IMPORTACION SENASIR",
+     *      operationId="import_progress_bar",
+     *      description="Muestra la informacion de la importación de senasir  (-1)Si exixtio al gun error en algun paso, (100)Si todo fue exitoso, (30-60)Paso 1 y 2 (0)si esta iniciando la importación",
+     *      @OA\RequestBody(
+     *          description= "Provide auth credentials",
+     *          required=true,
+     *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
+     *             @OA\Property(property="date_payroll", type="string",description="fecha de planilla required",example= "2021-10-01")
+     *            )
+     *          ),
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     },
+     *      @OA\Response(
+     *          response=200,
+     *          description="Success",
+     *          @OA\JsonContent(
+     *            type="object"
+     *         )
+     *      )
+     * )
+     *
+     * Logs user into the system.
+     *
+     * @param Request $request
+     * @return void
+    */
+
+    public function  import_progress_bar(Request $request){
+
+        $request->validate([
+            'date_payroll' => 'required|date_format:"Y-m-d"',
+          ]);
+
+        $date_payroll = Carbon::parse($request->date_payroll);
+        $year = (int)$date_payroll->format("Y");
+        $month = (int)$date_payroll->format("m");
+        $message = "Exito";
+
+        //---id---origen contribution----//
+        $query_origin_senasir = "SELECT id from contribution_origins where name like 'senasir'";
+        $query_origin_senasir = DB::select($query_origin_senasir);
+        if($query_origin_senasir != []) $id_origin_senasir =$query_origin_senasir[0]->id;
+        else $id_origin_senasir = 1;//en caso que cambie el nombre senasir de la tabla contribution origin
+
+        $result['file_exists'] = false;
+        $result['file_name'] = "";
+        $result['percentage'] = 0;
+        $result['query_step_1'] = false;
+        $result['query_step_2'] = false;
+        $result['query_step_3'] = false;
+        $result['reg_copy'] = 0;
+        $result['reg_validation'] = 0;
+        $result['reg_contribution'] = 0;
+
+        //paso1
+        $result['query_step_1'] = $this->exists_data_table_aid_contribution_copy_payroll_senasirs($month,$year);
+        $query = "select * from aid_contribution_copy_payroll_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER;";
+        $verify_data = DB::select($query);
+        $result['reg_copy'] = count($verify_data);
+
+        //paso 2
+        $result['query_step_2'] = $this->exists_data_table_aid_contribution_affiliate_payrroll($month,$year);
+        $query = "select * from aid_contribution_affiliate_payroll_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER;";
+        $verify_data = DB::select($query);
+        $result['reg_validation'] = count($verify_data);
+
+        //paso3
+        $date_payroll_format = $request->date_payroll;
+        $result['query_step_3'] = $this->exists_data_table_aid_contributions($month,$year);
+        $query = " SELECT id from aid_contributions ac
+        where month_year = '$date_payroll_format' and ac.contribution_origin_id = $id_origin_senasir and ac.deleted_at is null";
+        $verify_data = DB::select($query);
+        $result['reg_contribution'] = count($verify_data);
+
+        //verificamos si existe el el archivo de importación 
+        $origin_name = 'senasir-';
+        $new_file_name = "senasir-".$month."-".$year.'.csv';
+        $base_path = 'contribucion/planilla_senasir'.'/'.$new_file_name;
+        if (Storage::disk('ftp')->has($base_path)) {
+            $result['file_name'] = $new_file_name;
+            $result['file_exists'] = true;
+        }
+
+        if($result['file_exists'] == true && $result['query_step_1'] == true && $result['query_step_2'] == true && $result['query_step_3'] == true){
+            $result['percentage'] = 100;
+        }else{
+            if($result['file_exists'] == true && $result['query_step_1'] == true && $result['query_step_2'] == true && $result['query_step_3'] == false){
+                $result['percentage'] = 60;
+            }else{
+                if ($result['file_exists'] == true && $result['query_step_1'] == true && $result['query_step_2'] == false && $result['query_step_3'] == false) {
+                    $result['percentage'] = 30;
+                } else {
+                    if ($result['query_step_1'] == false && $result['query_step_2'] == false && $result['query_step_3'] == false) {
+                        $result['percentage'] = 0;
+                    } else {
+                        $result['percentage'] = -1;
+                        $message = "Error! Algo salio mal en algun paso, favor vuelva a iniciar la importación.";
+                    }
+                }
+            }
+        }
+
+        return response()->json([
+            'message' => $message,
+            'payload' => [
+                'import_progress_bar' =>  $result
+            ],
+        ]);
     }
 }

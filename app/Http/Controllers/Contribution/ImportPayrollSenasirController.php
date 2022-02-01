@@ -244,14 +244,11 @@ class ImportPayrollSenasirController extends Controller
                     $file_name = 'error-senasir'.'-'.$last_date.'.xls';
                     $base_path = 'contribucion/Error-Import-Contribution-Senasir/'.'error-senasir-'.$last_date;
                     Excel::store($export,$base_path.'/'.$file_name, 'ftp');
+                    $drop = "drop table if exists aid_contribution_copy_payroll_senasirs_aux_no_exist";
+                    $drop = DB::select($drop);
+                    $this->delete_aid_contribution_affiliate_payroll_senasirs($month,$year);
+                    $this->delete_aid_contribution_copy_payroll_senasirs($month,$year);
                 }
-
-                $drop = "drop table if exists aid_contribution_copy_payroll_senasirs_aux_no_exist";
-                $drop = DB::select($drop);
-
-                $this->delete_aid_contribution_affiliate_payroll_senasirs($month,$year);
-                $this->delete_aid_contribution_copy_payroll_senasirs($month,$year);
-
                 DB::commit();
                 return response()->json([
                     'message' => $message,
@@ -591,18 +588,25 @@ class ImportPayrollSenasirController extends Controller
           ]);
         DB::beginTransaction();
         try{
+            $result['delete_step_1'] = false;
+            $result['delete_step_2'] = false;
             $validated_rollback = false;
             $date_payroll = Carbon::parse($request->date_payroll);
 
             $year = (int)$date_payroll->format("Y");
             $month = (int)$date_payroll->format("m");
 
-            if($this->delete_aid_contribution_affiliate_payroll_senasirs($month,$year) && $this->delete_aid_contribution_copy_payroll_senasirs($month,$year)){
-                $validated_rollback = true;
+            if($this->exists_data_table_aid_contribution_copy_payroll_senasirs($month,$year) || $this->exists_data_table_aid_contribution_affiliate_payrroll($month,$year)){
+                $result['delete_step_1'] = $this->delete_aid_contribution_affiliate_payroll_senasirs($month,$year);
+                $result['delete_step_2'] = $this->delete_aid_contribution_copy_payroll_senasirs($month,$year);
+
+                if($result['delete_step_1'] == true || $result['delete_step_2'] == true){
+                    $validated_rollback = true;
+                }
             }
 
             if(!$validated_rollback){
-                $message = "No se puede rehacer no existe datos";
+                $message = "No se rehizó, no existe datos en ningun paso";
 
             }else{
                 $message = "Realizado con exito!";
@@ -613,7 +617,8 @@ class ImportPayrollSenasirController extends Controller
             return response()->json([
                 'message' => $message,
                 'payload' => [
-                    'validated_rollback' =>  $validated_rollback
+                    'validated_rollback' =>  $validated_rollback,
+                    'delete_step' =>  $result
                 ],
             ]);
         }catch (Exception $e)

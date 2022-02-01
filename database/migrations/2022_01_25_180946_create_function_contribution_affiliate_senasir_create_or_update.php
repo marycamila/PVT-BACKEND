@@ -48,15 +48,19 @@ class CreateFunctionContributionAffiliateSenasirCreateOrUpdate extends Migration
              RETURN type_acction ;
             ELSE
                 type_acction:= 'updated';
+            -- Creacion de copia para respaldo de la tabla aid_contribution antes de actualizar
+               INSERT INTO public.temporary_registration_aid_contributions (contribution_aid_id,user_id, affiliate_id, month_year, type, quotable, rent, dignity_rent, interest, total,affiliate_contribution,mortuary_aid,valid,created_at,updated_at,deleted_at)
+               SELECT id as contribution_aid_id ,user_id, affiliate_id, month_year, type, quotable, rent, dignity_rent, interest,total,affiliate_contribution,mortuary_aid,valid,created_at,updated_at,deleted_at FROM aid_contributions  WHERE id= id_aid_contribution;
             -- Actualizar datos en la contribucion
                UPDATE aid_contributions
                SET user_id = user_reg,
                type = 'PLANILLA'::character varying,
-               quotable = acaps.liquido_pagable-acaps.renta_dignidad, 
+               quotable = acaps.liquido_pagable-acaps.renta_dignidad,
                rent = acaps.liquido_pagable,
                dignity_rent= acaps.renta_dignidad,
                total= acaps.descuento_muserpol,
                contribution_origin_id = id_contribution_origin,
+               updated_at = (select current_timestamp),
                affiliate_rent_class = CASE acaps.clase_renta
                  when 'VIUDEDAD' then 'VIUDEDAD'
                  else 'VEJEZ'

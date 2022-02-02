@@ -774,8 +774,9 @@ class ImportPayrollSenasirController extends Controller
         $result['reg_contribution'] = count($verify_data);
 
         //verificamos si existe el el archivo de importación 
+        $date_month= strlen($month)==1?'0'.$month:$month;
         $origin_name = 'senasir-';
-        $new_file_name = "senasir-".$month."-".$year.'.csv';
+        $new_file_name = "senasir-".$date_month."-".$year.'.csv';
         $base_path = 'contribucion/planilla_senasir'.'/'.$new_file_name;
         if (Storage::disk('ftp')->has($base_path)) {
             $result['file_name'] = $new_file_name;

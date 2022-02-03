@@ -69,8 +69,8 @@ class ImportPayrollSenasirController extends Controller
 
                  $existing_period = "select  count(*) from  aid_contribution_copy_payroll_senasirs  where mes ='$month' and a_o='$year'";
                  $existing_period = DB::select($existing_period)[0]->count;
-                 //return $existing_period;
-                 if($existing_period == 0){
+                 //if($existing_period == 0){
+                    $this->delete_aid_contribution_copy_payroll_senasirs($month,$year);
                      $file_name = "senasir-".$month."-".$year.'.'.$extencion;
                      if($file_name_entry == $file_name){
                          $base_path = 'contribucion/planilla_senasir';
@@ -132,7 +132,7 @@ class ImportPayrollSenasirController extends Controller
                                  'copied_record' => $consult
                              ],
                          ]);
-                     } else {  
+                  /*   } else {  
                             return response()->json([
                              'message' => 'Error en el copiado del archivo',
                              'payload' => [
@@ -140,7 +140,7 @@ class ImportPayrollSenasirController extends Controller
                                  'error' => 'El nombre del archivo no coincide con en nombre requerido'
                              ],
                          ]);
-                     }
+                     }*/
                  } else {
                      return response()->json([
                          'message' => 'Error en el copiado del archivo',
@@ -224,7 +224,8 @@ class ImportPayrollSenasirController extends Controller
             carnet varchar, num_com varchar, paterno varchar, materno varchar, p_nombre varchar, s_nombre varchar);";
             $temporary_payroll = DB::select($temporary_payroll);
 
-        if(!$this->exists_data_table_aid_contribution_affiliate_payrroll($month,$year)){
+        //if(!$this->exists_data_table_aid_contribution_affiliate_payrroll($month,$year)){
+            $this->delete_aid_contribution_affiliate_payroll_senasirs($month,$year);
             if($this->exists_data_table_aid_contribution_copy_payroll_senasirs($month,$year)){
                 $query = "select * from registration_aid_contribution_affiliate_payroll_senasir($month,$year);";
                 $data_format = DB::select($query);
@@ -233,7 +234,7 @@ class ImportPayrollSenasirController extends Controller
                     $message = "Realizado con exito";
                     $successfully = true;
                 }else{
-                    $message = "Error! Las matriculas de los siguientes titulare no fueron encontradas";
+                    $message = "Excel";
                     foreach ($data_format as $row){
                         array_push($data_cabeceraS, array($row->a_o_retorno,$row->mes_retorno,$row->matricula_titular_retorno, $row->mat_dh_retorno,$row->departamento_retorno,
                         $row->carnet_retorno,$row->num_com_retorno,
@@ -265,14 +266,14 @@ class ImportPayrollSenasirController extends Controller
                     ],
                 ]);
             }
-            }else{
+            /*}else{
                 return response()->json([
                     'message' => "Ya existen datos, no se puede volver a realizar esta acción.",
                     'payload' => [
                         'successfully' => $successfully,
                     ],
                 ]);
-            }
+            }*/
             }catch(Exception $e){
             DB::rollBack();
             return response()->json([
@@ -386,8 +387,6 @@ class ImportPayrollSenasirController extends Controller
      //-----------borrado de datos de la tabla aid_contribution_affiliate_payroll_senasirs paso 2
      public function delete_aid_contribution_affiliate_payroll_senasirs($month, $year)
      {
-         DB::beginTransaction();
-         try{
              if($this->exists_data_table_aid_contribution_affiliate_payrroll($month,$year))
              {
                 $query = "delete
@@ -399,19 +398,11 @@ class ImportPayrollSenasirController extends Controller
              }
              else
                  return false;
-         }
-         catch (Exception $e)
-         {
-             DB::rollback();
-             return $e;
-         }
      }
 
      //------------borrado de datos de la tabla aid_contribution_copy_payroll_senasirs paso 1
      public function delete_aid_contribution_copy_payroll_senasirs($month, $year)
      {
-         DB::beginTransaction();
-         try{
              if($this->exists_data_table_aid_contribution_copy_payroll_senasirs($month,$year))
              {
                 $query = "delete
@@ -423,12 +414,6 @@ class ImportPayrollSenasirController extends Controller
              }
              else
                  return false;
-         }
-         catch (Exception $e)
-         {
-             DB::rollback();
-             return $e;
-         }
      }
 
 
@@ -597,8 +582,8 @@ class ImportPayrollSenasirController extends Controller
             $month = (int)$date_payroll->format("m");
 
             if($this->exists_data_table_aid_contribution_copy_payroll_senasirs($month,$year) || $this->exists_data_table_aid_contribution_affiliate_payrroll($month,$year)){
-                $result['delete_step_1'] = $this->delete_aid_contribution_affiliate_payroll_senasirs($month,$year);
-                $result['delete_step_2'] = $this->delete_aid_contribution_copy_payroll_senasirs($month,$year);
+                $result['delete_step_1'] = $this->delete_aid_contribution_copy_payroll_senasirs($month,$year);
+                $result['delete_step_2'] = $this->delete_aid_contribution_affiliate_payroll_senasirs($month,$year);
 
                 if($result['delete_step_1'] == true || $result['delete_step_2'] == true){
                     $validated_rollback = true;

@@ -200,6 +200,13 @@ class UserController extends Controller
     {
         try{
             DB::beginTransaction();
+            //if(User::where('first_name',$request->username)->where('last_name',$request->last_name)->first())
+            if(User::where('username',$request->username)->first())
+            {
+                $user = User::where('username', $request->username)->first();
+                $user->username = $user->username.'_'.$user->id;
+                $user->save();
+            }
             $user = new User();
             $user->username = $request->username;
             $user->first_name = $request->first_name;
@@ -209,7 +216,7 @@ class UserController extends Controller
             $user->city_id = $request->city_id;
             $user->password = Hash::make($request->identity_card);
             $user->active = true;
-            $user->status = 'active';
+            $user->status = "active";
             $user->save();
             DB::commit();
             return response()->json([
@@ -540,8 +547,22 @@ class UserController extends Controller
             $ldap_entries = $ldap->list_entries();
             $users_ldap = array();
             foreach($ldap_entries as $ldap_entry){
-                $user = User::where('username', trim($ldap_entry->uid))->where('first_name', trim($ldap_entry->givenName))->where('last_name', trim($ldap_entry->sn))->first();
+                //$user = User::where('username', $ldap_entry->uid)->where('first_name', $ldap_entry->givenName)->where('last_name', $ldap_entry->sn)->first();
+                $user = User::where('username', $ldap_entry->uid)->first();
                 if(!$user)
+                {
+                    $entry = Http::get(env('MIX_RRHH_URL').'employee/'.$ldap_entry->employeeNumber)->json();
+                    $user = array(
+                        "username" => trim($ldap_entry->uid),
+                        "first_name" => trim($ldap_entry->givenName),
+                        "last_name" => trim($ldap_entry->sn),
+                        "position" => trim($ldap_entry->title),
+                        "identity_card" => trim($entry['identity_card']),
+                        "phone" => trim($entry['phone_number'])
+                    );
+                    array_push($users_ldap,$user);
+                }
+                elseif(!strcmp($user->first_name,$ldap_entry->givenName) && !strcmp($user->last_name,$ldap_entry->sn))
                 {
                     $entry = Http::get(env('MIX_RRHH_URL').'employee/'.$ldap_entry->employeeNumber)->json();
                     $user = array(

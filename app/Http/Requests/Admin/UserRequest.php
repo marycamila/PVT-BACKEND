@@ -34,7 +34,7 @@ class UserRequest extends FormRequest
         ];
         switch ($this->method()) {
             case 'POST': {
-                $rules['username'] = 'alpha_num|min:3|unique:users,username';
+                $rules['username'] = 'alpha_num|min:3';
                 foreach (array_slice($rules, 0, 7) as $key => $rule) {
                     $rules[$key] = implode('|', ['required', $rule]);
                 }

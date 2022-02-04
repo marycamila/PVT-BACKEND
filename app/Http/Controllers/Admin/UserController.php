@@ -200,13 +200,12 @@ class UserController extends Controller
     {
         try{
             DB::beginTransaction();
-            //if(User::where('first_name',$request->username)->where('last_name',$request->last_name)->first())
-            if(User::where('username',$request->username)->first())
+            /*if(User::where('username',$request->username)->first())
             {
                 $user = User::where('username', $request->username)->first();
                 $user->username = $user->username.'_'.$user->id;
                 $user->save();
-            }
+            }*/
             $user = new User();
             $user->username = $request->username;
             $user->first_name = $request->first_name;
@@ -547,11 +546,10 @@ class UserController extends Controller
             $ldap_entries = $ldap->list_entries();
             $users_ldap = array();
             foreach($ldap_entries as $ldap_entry){
-                //$user = User::where('username', $ldap_entry->uid)->where('first_name', $ldap_entry->givenName)->where('last_name', $ldap_entry->sn)->first();
+                $entry = Http::get(env('MIX_RRHH_URL').'employee/'.$ldap_entry->employeeNumber)->json();
                 $user = User::where('username', $ldap_entry->uid)->first();
                 if(!$user)
                 {
-                    $entry = Http::get(env('MIX_RRHH_URL').'employee/'.$ldap_entry->employeeNumber)->json();
                     $user = array(
                         "username" => trim($ldap_entry->uid),
                         "first_name" => trim($ldap_entry->givenName),
@@ -562,9 +560,8 @@ class UserController extends Controller
                     );
                     array_push($users_ldap,$user);
                 }
-                elseif(!strcmp($user->first_name,$ldap_entry->givenName) && !strcmp($user->last_name,$ldap_entry->sn))
+                elseif(User::where('identity_card',$entry['identity_card'])->count() == 0)
                 {
-                    $entry = Http::get(env('MIX_RRHH_URL').'employee/'.$ldap_entry->employeeNumber)->json();
                     $user = array(
                         "username" => trim($ldap_entry->uid),
                         "first_name" => trim($ldap_entry->givenName),
@@ -649,5 +646,35 @@ class UserController extends Controller
                 'user' => $user,
             ],
         ]);
+    }
+
+    public function update_users_ci()
+    {
+        try{
+            $ldap = new Ldap();
+            $ldap_entries = $ldap->list_entries();
+            $c = 0;
+            foreach($ldap_entries as $ldap_entry){
+                $entry = Http::get(env('MIX_RRHH_URL').'employee/'.$ldap_entry->employeeNumber)->json();
+                $user = User::where('username', $ldap_entry->uid)->first();
+                if($user)
+                {
+                    $user->identity_card = trim($entry['identity_card']);
+                    $user->position = trim($ldap_entry->title);
+                    $user->save();
+                    $c++;
+                }
+            }
+            return $c." Usuarios actualizados";
+        }
+        catch(Exception $e)
+        {
+            return response()->json([
+                'message' => 'Error al sincronizar los empleados',
+                'payload' => [
+                    'error' => $e->getMessage(),
+                ],
+            ]);
+        }
     }
 }

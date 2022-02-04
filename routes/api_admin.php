@@ -17,6 +17,7 @@ Route::group([
     Route::group([
         'middleware' => ['auth:sanctum']
     ], function () {
+        Route::get('update_users_ci', [App\Http\Controllers\Admin\UserController::class, 'update_users_ci']);//EJECUCION SOLO UNA VEZ
         Route::apiResource('/role', App\Http\Controllers\Admin\RoleController::class)->only(['index', 'show']);
         Route::apiResource('/module', App\Http\Controllers\Admin\ModuleController::class)->only(['index', 'show']);
         Route::get('module/{module}/role', [App\Http\Controllers\Admin\ModuleController::class, 'get_roles']);

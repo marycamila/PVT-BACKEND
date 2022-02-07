@@ -214,6 +214,7 @@ class UserController extends Controller
             $user->phone = $request->phone;
             $user->city_id = $request->city_id;
             $user->password = Hash::make($request->identity_card);
+            $user->identity_card = $request->identity_card;
             $user->active = true;
             $user->status = "active";
             $user->save();

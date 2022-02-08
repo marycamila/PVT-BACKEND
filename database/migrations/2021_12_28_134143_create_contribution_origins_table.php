@@ -17,6 +17,7 @@ class CreateContributionOriginsTable extends Migration
             $table->id();
             $table->string('name')->unique()->comment('Nombre');
             $table->string('shortened')->unique()->comment('Nombre Corto');
+            $table->string('type')->comment('Tipo del origen de la contribucion');
             $table->string('description')->comment('descripción');
             $table->unsignedBigInteger('pension_entity_id')->comment('id de pension'); // id de la pension
             $table->foreign('pension_entity_id')->references('id')->on('pension_entities');

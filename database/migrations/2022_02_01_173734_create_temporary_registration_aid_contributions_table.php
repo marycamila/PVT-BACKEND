@@ -19,14 +19,11 @@ class CreateTemporaryRegistrationAidContributionsTable extends Migration
             $table->integer('user_id')->comment('Usuario');
             $table->integer('affiliate_id')->comment('Afiliado');
             $table->string('month_year')->comment('Perido');
-            $table->string('type')->comment('Tipo');
             $table->decimal('quotable', 13, 2)->comment('cotizable');
             $table->decimal('rent', 13, 2)->comment('Liquido Pagable');
             $table->decimal('dignity_rent', 13, 2)->comment('Renta Digniodad');
             $table->decimal('interest', 13, 2)->comment('Interes');
             $table->decimal('total', 13, 2)->comment('Descuento Muserpol');
-            $table->boolean('affiliate_contribution')->nullable()->comment('affiliate_contribution');
-            $table->decimal('mortuary_aid', 13, 2)->nullable()->comment('Descuento en caso de viuda');
             $table->boolean('valid')->nullable();
             $table->timestamps();
             $table->softDeletes();

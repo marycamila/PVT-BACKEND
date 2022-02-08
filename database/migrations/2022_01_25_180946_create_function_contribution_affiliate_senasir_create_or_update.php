@@ -33,12 +33,12 @@ class CreateFunctionContributionAffiliateSenasirCreateOrUpdate extends Migration
 
                -- Creacion de un nuevo registro
 
-                   INSERT INTO public.aid_contributions (user_id, affiliate_id, month_year, type, quotable, rent, dignity_rent, interest, total, created_at, mortuary_aid,contribution_origin_id,affiliate_rent_class,valid)
-                   SELECT user_reg as user_id, acasps.affiliate_id,year_copy as month_year ,'PLANILLA'::character varying as type, (acasps.liquido_pagable-acasps.renta_dignidad) as quotable, acasps.liquido_pagable as rent,acasps.renta_dignidad as dignity_rent, 0 as interest, acasps.descuento_muserpol as total,(select current_timestamp as created_at), 0 as mortuary_aid, id_contribution_origin as contribution_origin_id, CASE clase_renta
+                   INSERT INTO public.aid_contributions (user_id, affiliate_id, month_year, quotable, rent, dignity_rent, interest, total, created_at, contribution_origin_id,affiliate_rent_class,valid, aid_contributionsable_type, aid_contributionsable_id)
+                   SELECT user_reg as user_id, acasps.affiliate_id,year_copy as month_year, (acasps.liquido_pagable-acasps.renta_dignidad) as quotable, acasps.liquido_pagable as rent,acasps.renta_dignidad as dignity_rent, 0 as interest, acasps.descuento_muserpol as total,(select current_timestamp as created_at), id_contribution_origin as contribution_origin_id, CASE clase_renta
                         when 'VIUDEDAD' then 'VIUDEDAD'
                         else 'VEJEZ'
                         end
-                    as affiliate_rent_class,true as valid from aid_contribution_affiliate_payroll_senasirs acasps 
+                    as affiliate_rent_class,true as valid,'aid_contribution_affiliate_payroll_senasirs'::character varying as aid_contributionsable_type, aid_contribution_affiliate_payroll_senasir_id as aid_contributionsable_id from aid_contribution_affiliate_payroll_senasirs acasps
                     WHERE id=aid_contribution_affiliate_payroll_senasir_id;
 
                -- Actualizar datos de la tabla aid_contribution_affiliate_payroll_senasirs con state created
@@ -49,22 +49,24 @@ class CreateFunctionContributionAffiliateSenasirCreateOrUpdate extends Migration
             ELSE
                 type_acction:= 'updated';
             -- Creacion de copia para respaldo de la tabla aid_contribution antes de actualizar
-               INSERT INTO public.temporary_registration_aid_contributions (contribution_aid_id,user_id, affiliate_id, month_year, type, quotable, rent, dignity_rent, interest, total,affiliate_contribution,mortuary_aid,valid,created_at,updated_at,deleted_at)
-               SELECT id as contribution_aid_id ,user_id, affiliate_id, month_year, type, quotable, rent, dignity_rent, interest,total,affiliate_contribution,mortuary_aid,valid,created_at,updated_at,deleted_at FROM aid_contributions  WHERE id= id_aid_contribution;
+               INSERT INTO public.temporary_registration_aid_contributions (contribution_aid_id,user_id, affiliate_id, month_year, quotable, rent, dignity_rent, interest, total,valid,created_at,updated_at,deleted_at)
+               SELECT id as contribution_aid_id ,user_id, affiliate_id, month_year, quotable, rent, dignity_rent, interest,total,valid,created_at,updated_at,deleted_at FROM aid_contributions  WHERE id= id_aid_contribution;
             -- Actualizar datos en la contribucion
                UPDATE aid_contributions
                SET user_id = user_reg,
-               type = 'PLANILLA'::character varying,
                quotable = acaps.liquido_pagable-acaps.renta_dignidad,
                rent = acaps.liquido_pagable,
                dignity_rent= acaps.renta_dignidad,
-               total= acaps.descuento_muserpol,
+               total = acaps.descuento_muserpol,
                contribution_origin_id = id_contribution_origin,
                updated_at = (select current_timestamp),
                affiliate_rent_class = CASE acaps.clase_renta
                  when 'VIUDEDAD' then 'VIUDEDAD'
                  else 'VEJEZ'
-                 end
+                 end,
+               valid = true,
+               aid_contributionsable_type = 'aid_contribution_affiliate_payroll_senasirs'::character varying,
+               aid_contributionsable_id = aid_contribution_affiliate_payroll_senasir_id
                   FROM (SELECT * FROM aid_contribution_affiliate_payroll_senasirs WHERE id = aid_contribution_affiliate_payroll_senasir_id) AS acaps
                   WHERE aid_contributions.id= id_aid_contribution;
 

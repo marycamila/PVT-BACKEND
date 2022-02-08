@@ -119,8 +119,8 @@ class ImportPayrollSenasirController extends Controller
                        //  return $insert;
                     DB::commit();
  
-                         $drop = "drop table if exists aid_contribution_copy_payroll_senasirs_aux";
-                         $drop = DB::select($drop);
+                        $drop = "drop table if exists aid_contribution_copy_payroll_senasirs_aux";
+                        $drop = DB::select($drop);
  
                          $consult = "select  count(*) from  aid_contribution_copy_payroll_senasirs where mes ='$month' and a_o='$year'";
                          $consult = DB::select($consult)[0]->count;
@@ -211,7 +211,9 @@ class ImportPayrollSenasirController extends Controller
             DB::beginTransaction();
             $message = "No hay datos";
             $successfully =false;
-            $data_cabeceraS=array(array("AÑO","MES","MATRÍCULA TITULAR", "MATRÍCULA D_H","DEPARTAMENTO","CARNET","NUM_COM", "APELLIDO PATERNO","APELLIDO MATERNO", "PRIMER NOMBRE","SEGUNDO NOMBRE"));
+            $data_cabeceraS=array(array("AÑO","MES","MATRÍCULA TITULAR", "MATRÍCULA D_H","DEPARTAMENTO","CARNET", "APELLIDO PATERNO","APELLIDO MATERNO", "PRIMER NOMBRE","SEGUNDO NOMBRE",
+        "FECHA DE NACIMIENTO","CLASE DE RENTA","TOTAL GANADO","LIQUIDO PAGABLE","RENTA DIGNIDAD","DESCUENTO MUSERPOL","PATERNO TITULAR","MATERNO TITULAR"," PRIMER NOMBRE TITULAR",
+        "SEGUNDO NOMBRE TITULAR","CARNET TITULAR","FECHA DE FALLECIMIENTO TITULAR"));
 
             $date_payroll = Carbon::parse($request->date_payroll);
             $year = (int)$date_payroll->format("Y");
@@ -220,8 +222,12 @@ class ImportPayrollSenasirController extends Controller
 
             //tabla temporal
             $temporary_payroll = "CREATE temporary table aid_contribution_copy_payroll_senasirs_aux_no_exist(
-            a_o integer, mes integer, matricula_titular varchar, mat_dh varchar, departamento varchar, clase_renta varchar,
-            carnet varchar, num_com varchar, paterno varchar, materno varchar, p_nombre varchar, s_nombre varchar);";
+                a_o integer,mes integer,matricula_titular varchar,mat_dh varchar,departamento varchar,
+                carnet_num_com varchar,paterno varchar,materno varchar,p_nombre varchar,s_nombre varchar,
+                fecha_nacimiento  date,clase_renta varchar,total_ganado NUMERIC(13,2) ,liquido_pagable NUMERIC(13,2),
+                renta_dignidad NUMERIC(13,2),descuento_muserpol NUMERIC(13,2),pat_titular varchar,mat_titular varchar,
+                p_nom_titular varchar,s_nombre_titular varchar,carnet_num_com_tit varchar,fec_fail_tit date
+               );";
             $temporary_payroll = DB::select($temporary_payroll);
 
         //if(!$this->exists_data_table_aid_contribution_affiliate_payrroll($month,$year)){
@@ -236,9 +242,10 @@ class ImportPayrollSenasirController extends Controller
                 }else{
                     $message = "Excel";
                     foreach ($data_format as $row){
-                        array_push($data_cabeceraS, array($row->a_o_retorno,$row->mes_retorno,$row->matricula_titular_retorno, $row->mat_dh_retorno,$row->departamento_retorno,
-                        $row->carnet_retorno,$row->num_com_retorno,
-                        $row->paterno_retorno,$row->materno_retorno,$row->p_nombre_retorno,$row->s_nombre_retorno
+                        array_push($data_cabeceraS, array($row->a_o_retorno,$row->mes_retorno,$row->matricula_titular_retorno,$row->mat_dh_retorno,
+                        $row->departamento_retorno,$row->carnet_num_com_retorno,$row->paterno_retorno, $row->materno_retorno, $row->p_nombre_retorno,$row->s_nombre_retorno,
+                        $row->fecha_nacimiento_retorno, $row->clase_renta_retorno, $row->total_ganado_retorno, $row->liquido_pagable_retorno, $row->renta_dignidad_retorno, $row->descuento_muserpol_retorno,
+                        $row->pat_titular_retorno, $row->mat_titular_retorno, $row->p_nom_titular_retorno, $row->s_nombre_titular_retorno, $row->carnet_num_com_tit_retorno, $row->fec_fail_tit_retorno
                        ));
                     }
                     $export = new ArchivoPrimarioExport($data_cabeceraS);

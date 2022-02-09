@@ -257,12 +257,14 @@ class ImportPayrollSenasirController extends Controller
                     $this->delete_aid_contribution_affiliate_payroll_senasirs($month,$year);
                     $this->delete_aid_contribution_copy_payroll_senasirs($month,$year);
                 }
+                $consult = "select  count(*) from  aid_contribution_affiliate_payroll_senasirs where mes ='$month' and a_o='$year'";
+                $consult = DB::select($consult)[0]->count;
                 DB::commit();
                 return response()->json([
                     'message' => $message,
                     'payload' => [
                         'successfully' => $successfully,
-                        'error' => $message
+                        'validated_record' => $consult
                     ],
                 ]);
 

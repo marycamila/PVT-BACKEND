@@ -678,9 +678,12 @@ class ImportPayrollSenasirController extends Controller
             $count_created = DB::select($count_created)[0]->count;
             $successfully = true;
             return response()->json([
-                'message' => "Numero de registro creados iagual a ".$count_created." Numeros de registros actualizados igual a ".$count_updated,
+                'message' => "Realizado con exito!",
                 'payload' => [
-                    'successfully' => $successfully
+                    'successfully' => $successfully,
+                    'num_created' => $count_created,
+                    'num_updated' => $count_updated,
+                    'num_total' => $count_created + $count_updated
                 ],
             ]);
         }

@@ -69,7 +69,7 @@ class ImportPayrollSenasirController extends Controller
 
                  $existing_period = "select  count(*) from  aid_contribution_copy_payroll_senasirs  where mes ='$month' and a_o='$year'";
                  $existing_period = DB::select($existing_period)[0]->count;
-                 //if($existing_period == 0){
+                 if(!$this->exists_data_table_aid_contributions($month,$year)){
                     $this->delete_aid_contribution_copy_payroll_senasirs($month,$year);
                      $file_name = "senasir-".$month."-".$year.'.'.$extencion;
                      if($file_name_entry == $file_name){
@@ -132,7 +132,7 @@ class ImportPayrollSenasirController extends Controller
                                  'copied_record' => $consult
                              ],
                          ]);
-                  /*   } else {  
+                     } else {
                             return response()->json([
                              'message' => 'Error en el copiado del archivo',
                              'payload' => [
@@ -140,8 +140,8 @@ class ImportPayrollSenasirController extends Controller
                                  'error' => 'El nombre del archivo no coincide con en nombre requerido'
                              ],
                          ]);
-                     }*/
-                 } else {
+                     }
+                  } else {
                      return response()->json([
                          'message' => 'Error en el copiado del archivo',
                          'payload' => [
@@ -150,7 +150,7 @@ class ImportPayrollSenasirController extends Controller
                          ],
                      ]);
                  }
-             } else {   
+             } else {
                      return response()->json([
                          'message' => 'Error en el copiado del archivo',
                          'payload' => [
@@ -230,7 +230,7 @@ class ImportPayrollSenasirController extends Controller
                );";
             $temporary_payroll = DB::select($temporary_payroll);
 
-        //if(!$this->exists_data_table_aid_contribution_affiliate_payrroll($month,$year)){
+            if(!$this->exists_data_table_aid_contributions($month,$year)){
             $this->delete_aid_contribution_affiliate_payroll_senasirs($month,$year);
             if($this->exists_data_table_aid_contribution_copy_payroll_senasirs($month,$year)){
                 $query = "select * from registration_aid_contribution_affiliate_payroll_senasir($month,$year);";
@@ -262,6 +262,7 @@ class ImportPayrollSenasirController extends Controller
                     'message' => $message,
                     'payload' => [
                         'successfully' => $successfully,
+                        'error' => $message
                     ],
                 ]);
 
@@ -270,17 +271,19 @@ class ImportPayrollSenasirController extends Controller
                     'message' => "Error el primer paso no esta concluido.",
                     'payload' => [
                         'successfully' => $successfully,
+                        'error' => 'Error el primer paso no esta concluido.'
                     ],
                 ]);
             }
-            /*}else{
+            }else{
                 return response()->json([
-                    'message' => "Ya existen datos, no se puede volver a realizar esta acción.",
+                    'message' => "El periodo ya existe",
                     'payload' => [
                         'successfully' => $successfully,
+                        'error' => 'El periodo ya existe'
                     ],
                 ]);
-            }*/
+            }
             }catch(Exception $e){
             DB::rollBack();
             return response()->json([

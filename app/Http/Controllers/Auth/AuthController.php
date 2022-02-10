@@ -72,7 +72,7 @@ class AuthController extends Controller
     */
     public function login(AuthRequest $request)
     {
-        $user = User::whereUsername($request->username)->first();
+        $user = User::whereUsername($request->username)->where('active',true)->first();
         if ($user) {
             if (env('APP_ENV') == 'production') {
                 $ldap = new Ldap();

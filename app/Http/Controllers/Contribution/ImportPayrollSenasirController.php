@@ -760,29 +760,11 @@ class ImportPayrollSenasirController extends Controller
         $result['query_step_1'] = false;
         $result['query_step_2'] = false;
         $result['query_step_3'] = false;
-        $result['reg_copy'] = 0;
-        $result['reg_validation'] = 0;
-        $result['reg_contribution'] = 0;
 
-        //paso1
         $result['query_step_1'] = $this->exists_data_table_aid_contribution_copy_payroll_senasirs($month,$year);
-        $query = "select * from aid_contribution_copy_payroll_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER;";
-        $verify_data = DB::select($query);
-        $result['reg_copy'] = count($verify_data);
-
-        //paso 2
         $result['query_step_2'] = $this->exists_data_table_aid_contribution_affiliate_payrroll($month,$year);
-        $query = "select * from aid_contribution_affiliate_payroll_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER;";
-        $verify_data = DB::select($query);
-        $result['reg_validation'] = count($verify_data);
-
-        //paso3
         $date_payroll_format = $request->date_payroll;
         $result['query_step_3'] = $this->exists_data_table_aid_contributions($month,$year);
-        $query = " SELECT id from aid_contributions ac
-        where month_year = '$date_payroll_format' and ac.contribution_origin_id = $id_origin_senasir and ac.deleted_at is null";
-        $verify_data = DB::select($query);
-        $result['reg_contribution'] = count($verify_data);
 
         //verificamos si existe el el archivo de importación 
         $date_month= strlen($month)==1?'0'.$month:$month;

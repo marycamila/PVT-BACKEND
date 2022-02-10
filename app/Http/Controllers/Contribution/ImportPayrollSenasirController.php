@@ -543,13 +543,16 @@ class ImportPayrollSenasirController extends Controller
                     break;
                 }
             }
+            $date_payroll_format = Carbon::parse($period_year.'-'.$month->period_month.'-'.'01')->toDateString();
+            $month->data_count = $this->data_count($month->period_month,$period_year,$date_payroll_format);
          }
 
          return response()->json([
             'message' => "Exito",
             'payload' => [
                 'list_senasir_months' =>  $query_months,
-                'count_senasir_months' =>  count($query)
+                'count_senasir_months' =>  count($query),
+                'fgfdg'=>'bcv'
             ],
         ]);
      }
@@ -829,6 +832,7 @@ class ImportPayrollSenasirController extends Controller
         $data_count['num_data_validated'] = 0;
         $data_count['num_data_not_validated'] = 0;
         $data_count['num_total_data_aid_contributions'] = 0;
+        $data_count['sum_amount_total_aid_contribution'] = 0;
 
         $query_origin_senasir = "SELECT id from contribution_origins where name like 'senasir'";
         $query_origin_senasir = DB::select($query_origin_senasir);
@@ -863,6 +867,12 @@ class ImportPayrollSenasirController extends Controller
         where month_year = '$date_payroll_format' and ac.contribution_origin_id = $id_origin_senasir and ac.deleted_at is null";
         $query_data_aid_contributions = DB::select($query_data_aid_contributions);
         $data_count['num_total_data_aid_contributions'] = count($query_data_aid_contributions);
+
+        //---suma monto total contribucion
+        $query_sum_amount = "SELECT sum(ac.total) as amount_total from aid_contributions ac
+        where month_year = '$date_payroll_format' and ac.contribution_origin_id = $id_origin_senasir and ac.deleted_at is null";
+        $query_sum_amount = DB::select($query_sum_amount);
+        $data_count['sum_amount_total_aid_contribution'] = isset($query_sum_amount[0]->amount_total) ? floatval($query_sum_amount[0]->amount_total):0;
 
         return  $data_count;
     }

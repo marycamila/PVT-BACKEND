@@ -551,8 +551,7 @@ class ImportPayrollSenasirController extends Controller
             'message' => "Exito",
             'payload' => [
                 'list_senasir_months' =>  $query_months,
-                'count_senasir_months' =>  count($query),
-                'fgfdg'=>'bcv'
+                'count_senasir_months' =>  count($query)
             ],
         ]);
      }

@@ -66,6 +66,7 @@ class ImportPayrollSenasirController extends Controller
                  $date_payroll = Carbon::parse($request->date_payroll);
                  $year = $date_payroll->format("Y");
                  $month = $date_payroll->format("m");
+                 $date_payroll_format = $request->date_payroll;
 
                  $existing_period = "select  count(*) from  aid_contribution_copy_payroll_senasirs  where mes ='$month' and a_o='$year'";
                  $existing_period = DB::select($existing_period)[0]->count;
@@ -129,7 +130,8 @@ class ImportPayrollSenasirController extends Controller
                              'message' => 'Realizado con exito',
                              'payload' => [
                                  'successfully' => true,
-                                 'copied_record' => $consult
+                                // 'copied_record' => $consult
+                                'data_count' =>  $this->data_count($month,$year,$date_payroll_format)
                              ],
                          ]);
                      } else {
@@ -211,6 +213,7 @@ class ImportPayrollSenasirController extends Controller
             DB::beginTransaction();
             $message = "No hay datos";
             $successfully =false;
+            $date_payroll_format = $request->date_payroll;
             $data_cabeceraS=array(array("AÑO","MES","MATRÍCULA TITULAR", "MATRÍCULA D_H","DEPARTAMENTO","CARNET", "APELLIDO PATERNO","APELLIDO MATERNO", "PRIMER NOMBRE","SEGUNDO NOMBRE",
         "FECHA DE NACIMIENTO","CLASE DE RENTA","TOTAL GANADO","LIQUIDO PAGABLE","RENTA DIGNIDAD","DESCUENTO MUSERPOL","PATERNO TITULAR","MATERNO TITULAR"," PRIMER NOMBRE TITULAR",
         "SEGUNDO NOMBRE TITULAR","CARNET TITULAR","FECHA DE FALLECIMIENTO TITULAR"));
@@ -219,6 +222,7 @@ class ImportPayrollSenasirController extends Controller
             $year = (int)$date_payroll->format("Y");
             $month = (int)$date_payroll->format("m");
             $last_date = Carbon::parse($year.'-'.$month)->toDateString();
+            $num_data_no_validated = 0;
 
             //tabla temporal
             $temporary_payroll = "CREATE temporary table aid_contribution_copy_payroll_senasirs_aux_no_exist(
@@ -234,19 +238,20 @@ class ImportPayrollSenasirController extends Controller
             $this->delete_aid_contribution_affiliate_payroll_senasirs($month,$year);
             if($this->exists_data_table_aid_contribution_copy_payroll_senasirs($month,$year)){
                 $query = "select * from registration_aid_contribution_affiliate_payroll_senasir($month,$year);";
-                $data_format = DB::select($query);
+                $data_validated = DB::select($query);
 
-                if($data_format == []){
+                if($data_validated == []){
                     $message = "Realizado con exito";
                     $successfully = true;
                 }else{
                     $message = "Excel";
-                    foreach ($data_format as $row){
+                    foreach ($data_validated as $row){
                         array_push($data_cabeceraS, array($row->a_o_retorno,$row->mes_retorno,$row->matricula_titular_retorno,$row->mat_dh_retorno,
                         $row->departamento_retorno,$row->carnet_num_com_retorno,$row->paterno_retorno, $row->materno_retorno, $row->p_nombre_retorno,$row->s_nombre_retorno,
                         $row->fecha_nacimiento_retorno, $row->clase_renta_retorno, $row->total_ganado_retorno, $row->liquido_pagable_retorno, $row->renta_dignidad_retorno, $row->descuento_muserpol_retorno,
                         $row->pat_titular_retorno, $row->mat_titular_retorno, $row->p_nom_titular_retorno, $row->s_nombre_titular_retorno, $row->carnet_num_com_tit_retorno, $row->fec_fail_tit_retorno
                        ));
+                       $num_data_no_validated++;
                     }
                     $export = new ArchivoPrimarioExport($data_cabeceraS);
                     $file_name = 'error-senasir'.'-'.$last_date.'.xls';
@@ -260,11 +265,15 @@ class ImportPayrollSenasirController extends Controller
                 $consult = "select  count(*) from  aid_contribution_affiliate_payroll_senasirs where mes ='$month' and a_o='$year'";
                 $consult = DB::select($consult)[0]->count;
                 DB::commit();
+                $data_count= $this->data_count($month,$year,$date_payroll_format);
+                $data_count['num_data_not_validated'] = $num_data_no_validated;
+                $data_count['num_data_validated'] =$consult;
                 return response()->json([
                     'message' => $message,
                     'payload' => [
                         'successfully' => $successfully,
-                        'validated_record' => $consult
+                        //'validated_record' => $consult,
+                        'data_count' =>  $data_count
                     ],
                 ]);
 
@@ -805,8 +814,56 @@ class ImportPayrollSenasirController extends Controller
         return response()->json([
             'message' => $message,
             'payload' => [
-                'import_progress_bar' =>  $result
+                'import_progress_bar' =>  $result,
+                'data_count' =>  $this->data_count($month,$year,$date_payroll_format)
             ],
         ]);
+    }
+
+    public function data_count($mes,$a_o,$date_payroll_format){
+        $month = $mes;
+        $year = $a_o;
+        $data_count['num_total_data_copy'] = 0;
+        $data_count['num_data_not_considered'] = 0;
+        $data_count['num_data_considered'] = 0;
+        $data_count['num_data_validated'] = 0;
+        $data_count['num_data_not_validated'] = 0;
+        $data_count['num_total_data_aid_contributions'] = 0;
+
+        $query_origin_senasir = "SELECT id from contribution_origins where name like 'senasir'";
+        $query_origin_senasir = DB::select($query_origin_senasir);
+        if($query_origin_senasir != []) $id_origin_senasir =$query_origin_senasir[0]->id;
+        else $id_origin_senasir = 1;//en caso que cambie el nombre senasir de la tabla contribution origin
+
+        //---TOTAL DE DATOS DEL ARCHIVO
+        $query_total_data = "SELECT * FROM aid_contribution_copy_payroll_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER;";
+        $query_total_data = DB::select($query_total_data);
+        $data_count['num_total_data_copy'] = count($query_total_data);
+
+        //---NUMERO DE DATOS NO CONSIDERADOs
+        $query_data_not_considered = "SELECT * FROM aid_contribution_copy_payroll_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER and clase_renta like 'ORFANDAD%';";
+        $query_data_not_considered = DB::select($query_data_not_considered);
+        $data_count['num_data_not_considered'] = count($query_data_not_considered);
+
+        //---NUMERO DE DATOS CONSIDERADOS
+        $query_data_considered = "SELECT * FROM aid_contribution_copy_payroll_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER and clase_renta not like 'ORFANDAD%';";
+        $query_data_considered = DB::select($query_data_considered);
+        $data_count['num_data_considered'] = count($query_data_considered);
+
+        //---NUMERO DE DATOS VALIDADOS
+        $query_data_validated = "SELECT * FROM aid_contribution_affiliate_payroll_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER;";
+        $query_data_validated = DB::select($query_data_validated);
+        $data_count['num_data_validated'] = count($query_data_validated);
+
+        //---NUMERO DE DATOS NO VALIDADOS
+        $data_count['num_data_not_validated'] = $data_count['num_data_considered'] - $data_count['num_data_validated'];
+
+        //---TOTAL DE REGISTROS AID_CONTRIBUTIONS
+        $query_data_aid_contributions = "SELECT id from aid_contributions ac
+        where month_year = '$date_payroll_format' and ac.contribution_origin_id = $id_origin_senasir and ac.deleted_at is null";
+        $query_data_aid_contributions = DB::select($query_data_aid_contributions);
+        $data_count['num_total_data_aid_contributions'] = count($query_data_aid_contributions);
+
+        return  $data_count;
     }
 }

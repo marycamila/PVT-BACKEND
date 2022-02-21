@@ -39,6 +39,7 @@ class CreateTmpCopyDataSenasirsTable extends Migration
             $table->string('concat_carnet_num_com_tit')->nullable()->comment('carnet y complemento de carnet concat');
             $table->date('fec_fail_tit')->nullable()->comment('Fecha de fallecimiento titular');
             $table->string('lugar_nacimiento_tit')->nullable()->comment('Lugar de nacimiento titular');
+            $table->enum('state', ['accomplished','unrealized'])->default('unrealized')->comment('Estadosi fue encontrado o no encontrado');
             $table->timestamps();
             $table->softDeletes();
         });

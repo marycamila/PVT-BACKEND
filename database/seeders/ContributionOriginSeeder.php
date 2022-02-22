@@ -4,8 +4,8 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-
-
+use App\Models\Contribution\ContributionOrigin;
+use App\Models\Affiliate\PensionEntity;
 class ContributionOriginSeeder extends Seeder
 {
     /**
@@ -14,8 +14,8 @@ class ContributionOriginSeeder extends Seeder
      * @return void
      */
     public function run()
-    {   $pension_entities = "select * from pension_entities";
-        $pension_entities = DB::select($pension_entities);
+    {
+        $pension_entities = PensionEntity::get();
         foreach($pension_entities as $pension_entity){
             if($pension_entity->name == "AFP FUTURO"){
                     $contribution_origins = [ [
@@ -91,7 +91,9 @@ class ContributionOriginSeeder extends Seeder
                      ]
                     ];
             }
-            DB::table('contribution_origins')->insert($contribution_origins);
+            foreach ($contribution_origins as $contribution_origin) {
+                ContributionOrigin::firstOrCreate($contribution_origin);
+            }
         }
     }
 }

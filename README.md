@@ -80,3 +80,8 @@ Actualizamos dependencias
 Y verificamos el php del contenedor
 
 `php --version`
+
+## Generar la documentación
+Para generar la documentación, utilizamos:
+
+`php artisan l5-swagger:generate`

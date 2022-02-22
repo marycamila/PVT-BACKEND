@@ -1,74 +1,82 @@
 # PLATAFORMA VIRTUAL DE TRÁMITES
 
-## Requirements
+## Requerimientos
 
-* (Optional) LDAP server to authenticate users
-* PostgreSQL 10.4
-* Platform Database based [on this project](https://github.com/MUTUAL-DE-SERVICIOS-AL-POLICIA/PVT)
-* Composer
+- Docker version 20.10.12
+- PostgreSQL 12
+- PHP version 8.1
+- composer
 
-## Install
+## Configuración e instalación
 
-* Clone the project
+- Clonar el proyecto *PVT-BACKEND*
 
-```sh
-    git clone https://github.com/MUTUAL-DE-SERVICIOS-AL-POLICIA/PVT-BACKEND.git
-    cd PVT-BACKEND
+```bash
+git clone https://github.com/MUTUAL-DE-SERVICIOS-AL-POLICIA/PVT-BACKEND
+cd PVT-BACKEND
 ```
 
-* Install Composer Dependences
+- Configurar el archivo ***docker-compose.yml***. Especificamente las siguientes lineas:
 
-You may install the application's dependencies by navigating to the application's directory and executing the following command. This command uses a small Docker container containing PHP and Composer to install the application's dependencies:
+```docker
+-   context:./vendor/laravel/sail/runtimes/8.0
++   context:./vendor/laravel/sail/runtimes/8.1
 
-```sh
+-   image: sail-8.0/app
++   image: sail-8.1/app
+```
+
+- Configurar el archivo ***composer.json***. La linea:
+
+```txt
+-   "php": "^7.3|^8.0",
++   "php": "^7.3|^8.1",
+```
+
+- Instalar dependencias del proyecto con *Composer*
+    Instalando dependencias del proyecto, navegando al directorio de la aplicación y ejecutando el siguiente comando. Dicho comando usa un pequeño contenedor Docker que contiene PHP y Composer para instalar las dependencias necesarias de la aplicación.
+
+```docker
 docker run --rm \
-    -u "$(id -u):$(id -g)" \
-    -v $(pwd):/var/www/html \
-    -w /var/www/html \
-    laravelsail/php80-composer:latest \
-    composer install --ignore-platform-reqs
-```
-    
-
-* Install laravel lenguage Spanish
-
-```sh
-    composer require laraveles/spanish
-    
-    php artisan vendor:publish --tag=lang
-    or
-    php artisan laraveles:install-lang
+-u "$(id -u)":$(id -g)" \
+-v $(pwd):/var/www/html \
+-w /var/www/html \
+laravelsail/php80-composer:latest \
+composer install --ignore-plataform-reqs
 ```
 
-* Install swagger documentation
+- Edite el archivo *`.env`* con las credenciales de la base de datos y variables de entorno.
+    - Si necesita cambiar el puerto, agregue en el archivo *`.env`* el puerto que necesite. *Por ejemplo:*
+        `APP_PORT=8080`
+    - Configure la ip de la base de datos. *Por ejemplo:*
+        `DB_HOST=192.168.2.68`
+    - Configure el puerto de la base de datos. *Por ejemplo:*
+        `DB_PORT=5432`
 
-```sh
-composer require "darkaonline/l5-swagger"
+## Levantar los contenedores en Docker
 
-copy in app/Providers/AppServiceProvider.php
-    public function register()
-    {
-        $this->app->register(\L5Swagger\L5SwaggerServiceProvider::class);
-    }
-```
+Para poder empezar a levantar el proyecto ***PVT-BACKEND***, debemos ejecutar el siguiente comando, ubicados primeramente en la carpeta del proyecto.
 
-* Edit `.env` file with database credentials and established manteinance modes
-* If need change port add in .env file 
+`./vendor/bin/sail up`
 
-```sh
-    APP_PORT=8080
-```
+Verificamos si se levantaron los contenedores:
 
-* Generate keys and compile JS files
+`docker ps -a`
 
-```sh
-    ./vendor/bin/sail up
-```
+### Ejecutamos el siguiente comando:
 
-* To generate the documentation
+`composer install`
 
-```sh
-    php artisan l5-swagger:generate
-```
+Para verificar los cambios realizados en los archivos ***docker-compose.yml*** y ***composer.json***
 
-* To view the documentation unput in your web browser URL: [http://server:port/api/documentation](http://localhost/api/documentation/)
+Entramos al bash de linux, (en nuestro caso)
+
+`docker exec -it <id-contenedor-sail> /bin/bash`
+
+Actualizamos dependencias
+
+`composer install`
+
+Y verificamos el php del contenedor
+
+`php --version`

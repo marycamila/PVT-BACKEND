@@ -2,13 +2,14 @@
 
 ## Requerimientos
 
-- Docker engine version 20.10.12 o más reciente.
-- Docker compose version 1.29.2 o más reciente.
-- PostgreSQL 12
-- Git
+-   Docker engine version 20.10.12 o más reciente.
+-   Docker compose version 1.29.2 o más reciente.
+-   PostgreSQL 12
+-   Git
 
-* * *
-***NOTA:*** *Este procedimiento se realizó con el sistema operativo *Linux* en su distribución *Ubuntu 20.04.4 LTS*, pero bien puede funcionar en otras distribuciones, se sugiere consultar la documentación oficial.*
+---
+
+**_NOTA:_** *Este procedimiento se realizó con el sistema operativo *Linux* en su distribución *Ubuntu 20.04.4 LTS*, pero bien puede funcionar en otras distribuciones, se sugiere consultar la documentación oficial.*
 
 ## Instalación de Docker Engine
 
@@ -58,7 +59,7 @@ $ sudo apt-get install docker-ce docker-ce-cli containerd.io
 
 `$ docker --version`
 
-* * *
+---
 
 ## Instalación de Docker Compose
 
@@ -78,18 +79,18 @@ Verificamos la instalación:
 
 `$ docker-compose --version`
 
-* * *
+---
 
 ## Configuración e instalación del proyecto
 
-- Clonar el proyecto *PVT-BACKEND*
+-   Clonar el proyecto _PVT-BACKEND_
 
 ```bash
 git clone https://github.com/MUTUAL-DE-SERVICIOS-AL-POLICIA/PVT-BACKEND
 cd PVT-BACKEND
 ```
 
-- Configurar el archivo ***docker-compose.yml***. Especificamente las siguientes lineas:
+-   Configurar el archivo **_docker-compose.yml_**. Especificamente las siguientes lineas:
 
 ```docker
 -   context:./vendor/laravel/sail/runtimes/8.0
@@ -99,14 +100,14 @@ cd PVT-BACKEND
 +   image: sail-8.1/app
 ```
 
-- Configurar el archivo ***composer.json***. La linea:
+-   Configurar el archivo **_composer.json_**. La linea:
 
 ```txt
 -   "php": "^7.3|^8.0",
 +   "php": "^7.3|^8.1",
 ```
 
-- Descargar dependencias del proyecto con *Composer*
+-   Descargar dependencias del proyecto con _Composer_
     Descargando dependencias del proyecto, navegando al directorio de la aplicación y ejecutando el siguiente comando. Dicho comando usa un pequeño contenedor Docker que contiene PHP y Composer para instalar las dependencias necesarias de la aplicación.
 
 ```docker
@@ -118,26 +119,20 @@ docker run --rm \
    composer install --ignore-plataform-reqs
 ```
 
-- Edite el archivo *`.env`* con las credenciales de la base de datos y variables de entorno.
-    - Si necesita cambiar el puerto, agregue en el archivo *`.env`* el puerto que necesite.
-        Por ejemplo: *
-        
+-   Edite el archivo _`.env`_ con las credenciales de la base de datos y variables de entorno.
+    -   Si necesita cambiar el puerto, agregue en el archivo _`.env`_ el puerto que necesite.
+        _Por ejemplo:_
         `APP_PORT=8080`
-        
-    - Configure la ip de la base de datos.
-        *Por ejemplo:*
-        
+    -   Configure la ip de la base de datos.
+        _Por ejemplo:_
         `DB_HOST=192.168.2.68`
-        
-    - Configure el puerto de la base de datos.
-        *Por ejemplo:*
-        
+    -   Configure el puerto de la base de datos.
+        _Por ejemplo:_
         `DB_PORT=5432`
-        
 
 ## Levantar los contenedores en Docker
 
-Para poder empezar a levantar el proyecto ***PVT-BACKEND***, debemos ejecutar el siguiente comando, ubicados primeramente en la carpeta del proyecto.
+Para poder empezar a levantar el proyecto **_PVT-BACKEND_**, debemos ejecutar el siguiente comando, ubicados primeramente en la carpeta del proyecto.
 
 `./vendor/bin/sail up`
 
@@ -147,9 +142,9 @@ Verificamos si se levantaron los contenedores:
 
 ### Ejecutamos el siguiente comando:
 
-Para verificar los cambios realizados en los archivos ***docker-compose.yml*** y ***composer.json***
+Para verificar los cambios realizados en los archivos **_docker-compose.yml_** y **_composer.json_**
 
-Entramos al bash de la Imagen *Sail* , (en nuestro caso)
+Entramos al bash de la Imagen _Sail_ , (en nuestro caso)
 
 `docker exec -it <id-contenedor-sail> /bin/bash`
 

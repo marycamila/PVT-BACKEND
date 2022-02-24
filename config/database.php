@@ -47,7 +47,17 @@ return [
             'schema' => 'public',
             'sslmode' => 'prefer',
         ],
-
+        'db_aux' => [
+            'driver' => 'pgsql',
+            'url' => env('DATABASE_URL'),
+            'host' => env('DB_HOST_AUX', '127.0.0.1'),
+            'port' => env('DB_PORT_AUX', '5432'),
+            'database' => env('DB_DATABASE_AUX', 'db'),
+            'username' => env('DB_USERNAME_AUX', 'admin'),
+            'password' => env('DB_PASSWORD_AUX', 'admin'),
+            'charset' => 'utf8',
+            'prefix' => '',
+        ],
         'pgsql' => [
             'driver' => 'pgsql',
             'url' => env('DATABASE_URL'),

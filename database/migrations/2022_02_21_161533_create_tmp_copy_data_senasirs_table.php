@@ -13,7 +13,7 @@ class CreateTmpCopyDataSenasirsTable extends Migration
      */
     public function up()
     {
-        Schema::create('tmp_copy_data_senasirs', function (Blueprint $table) {
+        Schema::connection('db_aux')->create('tmp_copy_data_senasirs', function (Blueprint $table) {
             $table->id();
             $table->integer('id_person_senasir')->unique();
             $table->string('matricula_titular')->comment('Matricula titular');

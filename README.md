@@ -6,8 +6,12 @@
 - Docker compose version 1.29.2 o más reciente.
 - PostgreSQL 12
 - Git
+
 * * *
+***NOTA:*** *Este procedimiento se realizó con el sistema operativo *Linux* en su distribución *Ubuntu 20.04.4 LTS*, pero bien puede funcionar en otras distribuciones, se sugiere consultar la documentación oficial.*
+
 ## Instalación de Docker Engine
+
 Si ya tiene instalados versiones anteriores de Docker, Puede eliminarlos con el siguiente comando:
 
 ```bash
@@ -15,9 +19,11 @@ $ sudo apt-get remove docker docker-engine docker.io containerd runc
 ```
 
 ### Instalando usando el repositorio
+
 Configurando el repositorio Docker, para luego instalar y actualizar Docker desde el repositorio.
 
-**1. Configurar el repositorio**
+**1\. Configurar el repositorio**
+
 ```bash
 $ sudo apt-get update
 $ sudo apt-get install \
@@ -27,28 +33,35 @@ gnupg \
 lsb-release
 ```
 
-**2. Agregue la clave GPG oficial de Docker**
+**2\. Agregue la clave GPG oficial de Docker**
+
 ```bash
 $ url -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 ```
 
-**3. Configurar el repositorio**
+**3\. Configurar el repositorio**
+
 ```bash
 $ echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
   $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-  ```
-  
-  ### Instalando Docker engine
+```
+
+### Instalando Docker engine
+
 ```bash
 $ sudo apt-get update
 $ sudo apt-get install docker-ce docker-ce-cli containerd.io
 ```
 
 ### Verificar la instalación
+
 `$ docker --version`
+
 * * *
+
 ## Instalación de Docker Compose
+
 Ejecute este comando para descargar la versión estable de Docker Compose:
 
 ```bash
@@ -106,12 +119,21 @@ docker run --rm \
 ```
 
 - Edite el archivo *`.env`* con las credenciales de la base de datos y variables de entorno.
-    - Si necesita cambiar el puerto, agregue en el archivo *`.env`* el puerto que necesite. *Por ejemplo:*
+    - Si necesita cambiar el puerto, agregue en el archivo *`.env`* el puerto que necesite.
+        Por ejemplo: *
+        
         `APP_PORT=8080`
-    - Configure la ip de la base de datos. *Por ejemplo:*
+        
+    - Configure la ip de la base de datos.
+        *Por ejemplo:*
+        
         `DB_HOST=192.168.2.68`
-    - Configure el puerto de la base de datos. *Por ejemplo:*
+        
+    - Configure el puerto de la base de datos.
+        *Por ejemplo:*
+        
         `DB_PORT=5432`
+        
 
 ## Levantar los contenedores en Docker
 
@@ -140,6 +162,7 @@ Y verificamos el php del contenedor
 `php --version`
 
 ## Generar la documentación
+
 Para generar la documentación, utilizamos:
 
 `php artisan l5-swagger:generate`

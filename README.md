@@ -2,12 +2,72 @@
 
 ## Requerimientos
 
-- Docker version 20.10.12
+- Docker engine version 20.10.12 o más reciente.
+- Docker compose version 1.29.2 o más reciente.
 - PostgreSQL 12
-- PHP version 8.1
-- composer
+- Git
+* * *
+## Instalación de Docker Engine
+Si ya tiene instalados versiones anteriores de Docker, Puede eliminarlos con el siguiente comando:
 
-## Configuración e instalación
+```bash
+$ sudo apt-get remove docker docker-engine docker.io containerd runc
+```
+
+### Instalando usando el repositorio
+Configurando el repositorio Docker, para luego instalar y actualizar Docker desde el repositorio.
+
+**1. Configurar el repositorio**
+```bash
+$ sudo apt-get update
+$ sudo apt-get install \
+ca-certificates \
+curl \
+gnupg \
+lsb-release
+```
+
+**2. Agregue la clave GPG oficial de Docker**
+```bash
+$ url -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+```
+
+**3. Configurar el repositorio**
+```bash
+$ echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+  ```
+  
+  ### Instalando Docker engine
+```bash
+$ sudo apt-get update
+$ sudo apt-get install docker-ce docker-ce-cli containerd.io
+```
+
+### Verificar la instalación
+`$ docker --version`
+* * *
+## Instalación de Docker Compose
+Ejecute este comando para descargar la versión estable de Docker Compose:
+
+```bash
+$ sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+```
+
+Aplicar permisos ejecutables al binario:
+
+```bash
+$ sudo chmod +x /usr/local/bin/docker-compose
+```
+
+Verificamos la instalación:
+
+`$ docker-compose --version`
+
+* * *
+
+## Configuración e instalación del proyecto
 
 - Clonar el proyecto *PVT-BACKEND*
 
@@ -33,16 +93,16 @@ cd PVT-BACKEND
 +   "php": "^7.3|^8.1",
 ```
 
-- Instalar dependencias del proyecto con *Composer*
-    Instalando dependencias del proyecto, navegando al directorio de la aplicación y ejecutando el siguiente comando. Dicho comando usa un pequeño contenedor Docker que contiene PHP y Composer para instalar las dependencias necesarias de la aplicación.
+- Descargar dependencias del proyecto con *Composer*
+    Descargando dependencias del proyecto, navegando al directorio de la aplicación y ejecutando el siguiente comando. Dicho comando usa un pequeño contenedor Docker que contiene PHP y Composer para instalar las dependencias necesarias de la aplicación.
 
 ```docker
 docker run --rm \
--u "$(id -u)":$(id -g)" \
--v $(pwd):/var/www/html \
--w /var/www/html \
-laravelsail/php80-composer:latest \
-composer install --ignore-plataform-reqs
+  -u "$(id -u)":$(id -g)" \
+  -v $(pwd):/var/www/html \
+  -w /var/www/html \
+   laravelsail/php80-composer:latest \
+   composer install --ignore-plataform-reqs
 ```
 
 - Edite el archivo *`.env`* con las credenciales de la base de datos y variables de entorno.
@@ -65,11 +125,9 @@ Verificamos si se levantaron los contenedores:
 
 ### Ejecutamos el siguiente comando:
 
-`composer install`
-
 Para verificar los cambios realizados en los archivos ***docker-compose.yml*** y ***composer.json***
 
-Entramos al bash de linux, (en nuestro caso)
+Entramos al bash de la Imagen *Sail* , (en nuestro caso)
 
 `docker exec -it <id-contenedor-sail> /bin/bash`
 

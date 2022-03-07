@@ -170,4 +170,57 @@ class TmpCopyDataSenasirController extends Controller
         ]);
         }
     }
+    /**
+    * @OA\Post(
+    *      path="/api/temporary/data_senasir_type_affiliate",
+    *      tags={"AFFILIATE-IMPORT-SENASIR"},
+    *      summary="PASO 2 COPIADO DE ID DE PERSONAS SENASIR DE TIPO VEJEZ Y CREACION DE AFILIADOS",
+    *      operationId="data_senasir_type_affiliate",
+    *      description="Importacion de afiliados y data de senasir ",
+    *     security={
+    *         {"bearerAuth": {}}
+    *     },
+    *      @OA\Response(
+    *          response=200,
+    *          description="Success",
+    *          @OA\JsonContent(
+    *            type="object"
+    *         )
+    *      )
+    * )
+    *
+    * Logs user into the system.
+    *
+    * @param Request $request
+    * @return void
+   */
+    public function data_senasir_type_affiliate(){
+        DB::beginTransaction();
+        try{
+            $db_host_aux= env("DB_HOST_AUX");
+            $db_port_aux = env("DB_PORT_AUX");
+            $db_database_aux = env("DB_DATABASE_AUX");
+            $db_username_aux= env("DB_USERNAME_AUX");
+            $db_password_aux = env("DB_PASSWORD_AUX");
+            $insert = "select tmp_update_affiliate_ids_senasir('hostaddr=$db_host_aux port=$db_port_aux dbname=$db_database_aux user=$db_username_aux password=$db_password_aux');";
+            $insert = DB::select($insert);
+           DB::commit();
+          return response()->json([
+          'message' => 'Realizado con exito',
+          'payload' => [
+              'successfully' => true,
+          ],
+      ]);
+        } catch(Exception $e){
+        DB::rollBack();
+        return response()->json([
+            'message' => 'Error en la importación',
+            'payload' => [
+                'successfully' => false,
+                'error' => $e->getMessage(),
+            ],
+        ]);
+      }
+    }
+
 }

@@ -110,4 +110,64 @@ class TmpCopyDataSenasirController extends Controller
         ]);
         }
     }
+    /**
+    * @OA\Post(
+    *      path="/api/temporary/data_senasir_type_spouses",
+    *      tags={"AFFILIATE-IMPORT-SENASIR"},
+    *      summary="PASO 2 COPIADO DE ID DE PERSONAS SENASIR DE TIPO VIUDEDAD Y CREACION DE AFILIADOS",
+    *      operationId="data_senasir_type_spouses",
+    *      description="Importacion de afiliados y data de senasir ",
+    *     security={
+    *         {"bearerAuth": {}}
+    *     },
+    *      @OA\Response(
+    *          response=200,
+    *          description="Success",
+    *          @OA\JsonContent(
+    *            type="object"
+    *         )
+    *      )
+    * )
+    *
+    * Logs user into the system.
+    *
+    * @param Request $request
+    * @return void
+   */
+
+    public function data_senasir_type_spouses(Request $request){
+    DB::beginTransaction();
+    try{
+        $dbname_input = ENV('DB_DATABASE_AUX');
+        $port_input = ENV('DB_PORT_AUX');
+        $host_input = ENV('DB_HOST_AUX');
+        $user_input = ENV('DB_USERNAME_AUX');
+        $password_input = ENV('DB_PASSWORD_AUX');
+
+        $update_by_registration = DB::select("select tmp_senasir_update_by_registration('dbname=$dbname_input port=$port_input host=$host_input user=$user_input password=$password_input')");
+        $update_by_identity = DB::select("select tmp_senasir_update_by_identity('dbname=$dbname_input port=$port_input host=$host_input user=$user_input password=$password_input')");
+        $update_by_full_name_fail = DB::select("select tmp_senasir_update_by_full_name_fail('dbname=$dbname_input port=$port_input host=$host_input user=$user_input password=$password_input')");
+        $create_affiliates_senasir = DB::select("select tmp_senasir_create_affiliates_senasir('dbname=$dbname_input port=$port_input host=$host_input user=$user_input password=$password_input')");
+        DB::commit();
+        return response()->json([
+            'message' => 'Realizado con exito',
+            'payload' => [
+                'successfully' => true,
+                'update_by_registration' => $update_by_registration[0]->tmp_senasir_update_by_registration,
+                'update_by_identity' => $update_by_identity[0]->tmp_senasir_update_by_identity,
+                'update_by_full_name_fail' => $update_by_full_name_fail[0]->tmp_senasir_update_by_full_name_fail,
+                'create_affiliates_senasir' => $create_affiliates_senasir[0]->tmp_senasir_create_affiliates_senasir
+            ],
+        ]);
+    } catch(Exception $e){
+        DB::rollBack();
+        return response()->json([
+            'message' => 'Error en la importación',
+            'payload' => [
+                'successfully' => false,
+                'error' => $e->getMessage(),
+            ],
+        ]);
+        }
+    }
 }

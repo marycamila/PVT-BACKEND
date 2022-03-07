@@ -14,6 +14,7 @@ Route::group([
     ], function () {
         Route::post('upload_copy_affiliate_spouse_senasir', [App\Http\Controllers\Temporary\TmpCopyDataSenasirController::class, 'upload_copy_affiliate_spouse_senasir']);
         Route::post('data_senasir_type_spouses', [App\Http\Controllers\Temporary\TmpCopyDataSenasirController::class, 'data_senasir_type_spouses']);
+        Route::post('data_senasir_type_affiliate', [App\Http\Controllers\Temporary\TmpCopyDataSenasirController::class, 'data_senasir_type_affiliate']);
     });
 });
 

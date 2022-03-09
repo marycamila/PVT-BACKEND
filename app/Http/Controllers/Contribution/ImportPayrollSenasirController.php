@@ -810,4 +810,101 @@ class ImportPayrollSenasirController extends Controller
 
         return  $data_count;
     }
+
+            /**
+     * @OA\Post(
+     *      path="/api/contribution/list_months_validate_senasir",
+     *      tags={"CONTRIBUCION-IMPORT-SENASIR"},
+     *      summary="LISTA LOS MESES QUE SE REALIZARON IMPORTACIONES DE TIPO SENASIR EN BASE A UN AÑO DADO EJ:2021",
+     *      operationId="list_months_validate_senasir",
+     *      description="Lista los meses importados en la tabla payroll_copy_senasirs enviando como parametro un año en especifico",
+     *      @OA\RequestBody(
+     *          description= "Provide auth credentials",
+     *          required=true,
+     *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
+     *             @OA\Property(property="period_year", type="integer",description="Año de contribucion a listar",example= "2021")
+     *            )
+     *          ),
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     },
+     *      @OA\Response(
+     *          response=200,
+     *          description="Success",
+     *          @OA\JsonContent(
+     *            type="object"
+     *         )
+     *      )
+     * )
+     *
+     * Logs user into the system.
+     *
+     * @param Request $request
+     * @return void
+    */
+    public function list_months_validate_senasir(Request $request)
+    {
+       $request->validate([
+           'period_year' => 'required|date_format:"Y"',
+       ]);
+        $period_year = $request->get('period_year');
+        $query = "SELECT  distinct mes,a_o,  to_char( (to_date(a_o|| '-' ||mes, 'YYYY/MM/DD')), 'TMMonth') as period_month_name from payroll_validated_senasirs where deleted_at  is null and a_o =3 group by mes, a_o ";
+        $query = DB::select($query);
+        $query_months = "select id as period_month ,name  as period_month_name from months order by id asc";
+        $query_months = DB::select($query_months);
+
+        foreach ($query_months as $month) {
+           $month->state_importation = false;
+           foreach ($query as $month_contribution) {
+               if($month->period_month_name == $month_contribution->period_month_name){
+                   $month->state_importation = true;
+                   break;
+               }
+           }
+           $date_payroll_format = Carbon::parse($period_year.'-'.$month->period_month.'-'.'01')->toDateString();
+           $month->data_count = $this->data_count_payroll_senasir($month->period_month,$period_year,$date_payroll_format);
+        }
+
+        return response()->json([
+           'message' => "Exito",
+           'payload' => [
+               'list_senasir_months' =>  $query_months,
+               'count_senasir_months' =>  count($query)
+           ],
+       ]);
+    }
+    public function data_count_payroll_senasir($mes,$a_o,$date_payroll_format){
+        $month = $mes;
+        $year = $a_o;
+        $data_count['num_total_data_copy'] = 0;
+        $data_count['num_data_not_considered'] = 0;
+        $data_count['num_data_considered'] = 0;
+        $data_count['num_data_validated'] = 0;
+        $data_count['num_data_not_validated'] = 0;
+
+        //---TOTAL DE DATOS DEL ARCHIVO
+        $query_total_data = "SELECT * FROM payroll_copy_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER;";
+        $query_total_data = DB::connection('db_aux')->select($query_total_data);
+        $data_count['num_total_data_copy'] = count($query_total_data);
+
+        //---NUMERO DE DATOS NO CONSIDERADOS
+        $query_data_not_considered = "SELECT * FROM payroll_copy_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER and clase_renta like 'ORFANDAD%';";
+        $query_data_not_considered = DB::connection('db_aux')->select($query_data_not_considered);
+        $data_count['num_data_not_considered'] = count($query_data_not_considered);
+
+        //---NUMERO DE DATOS CONSIDERADOS
+        $query_data_considered = "SELECT * FROM payroll_copy_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER and clase_renta not like 'ORFANDAD%';";
+        $query_data_considered = DB::connection('db_aux')->select($query_data_considered);
+        $data_count['num_data_considered'] = count($query_data_considered);
+
+        //---NUMERO DE DATOS VALIDADOS
+        $query_data_validated = "SELECT * FROM payroll_validated_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER;";
+        $query_data_validated = DB::select($query_data_validated);
+        $data_count['num_data_validated'] = count($query_data_validated);
+         //---NUMERO DE DATOS NO VALIDADOS
+        $data_count['num_data_not_validated'] = $data_count['num_data_considered'] - $data_count['num_data_validated'];
+
+        return  $data_count;
+    }
 }

@@ -31,7 +31,7 @@ class CreatePayrollValidatedSenasirsTable extends Migration
             $table->string('materno')->nullable()->comment('Apellido materno');
             $table->string('p_nombre')->comment('Primer nombre');
             $table->string('s_nombre')->nullable()->comment('Segundo nombre');
-            $table->string('ap_Casada')->nullable()->comment('Apellido de casada');
+            $table->string('ap_casada')->nullable()->comment('Apellido de casada');
             $table->date('fecha_nacimiento')->comment('Fecha de nacimiento');
             $table->string('clase_renta')->comment('Clase de renta');
             $table->decimal('total_ganado', 13, 2)->comment('Total ganado');
@@ -46,7 +46,6 @@ class CreatePayrollValidatedSenasirsTable extends Migration
             $table->decimal('descuento_aporte_muserpol', 13, 2)->comment('Descuento aporte muserpol');
             $table->decimal('descuento_covipol', 13, 2)->comment('Descuento covipol');
             $table->decimal('descuento_prestamo_musepol', 13, 2)->comment('Descuento prestamo muserpol');
-            $table->unsignedBigInteger('id_person_Titular')->comment('id persona de titular senasir');
             $table->string('carnet_num_com_tit')->nullable()->comment('Carnet numero titular');
             $table->string('pat_titular')->nullable()->comment('Apellido paterno titular');
             $table->string('mat_titular')->nullable()->comment('Apellido materno titular');
@@ -54,7 +53,7 @@ class CreatePayrollValidatedSenasirsTable extends Migration
             $table->string('s_nombre_titular')->nullable()->comment('Segundo nombre titular');
             $table->string('ap_casada_titular')->nullable()->comment('Ap casada titular');
             $table->date('fecha_nac_titular')->nullable()->comment('Fecha de nacimiento titular');
-            $table->string('clase_renta_tit')->comment('Clase de renta titular');
+            $table->string('clase_renta_tit')->nullable()->comment('Clase de renta titular');
             $table->date('fec_fail_tit')->nullable()->comment('Fecha de fallecimiento titular');
             $table->enum('state', ['registered','created','updated'])->default('registered')->comment('Estado del registro');
             $table->timestamps();

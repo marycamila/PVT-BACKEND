@@ -68,71 +68,32 @@ class ImportPayrollSenasirController extends Controller
                  $month = $date_payroll->format("m");
                  $date_payroll_format = $request->date_payroll;
 
-                 $existing_period = "select  count(*) from  aid_contribution_copy_payroll_senasirs  where mes ='$month' and a_o='$year'";
-                 $existing_period = DB::select($existing_period)[0]->count;
-                 if(!$this->exists_data_table_aid_contributions($month,$year)){
-                    $this->delete_aid_contribution_copy_payroll_senasirs($month,$year);
+                 $existing_period = "select  count(*) from  payroll_copy_senasirs  where mes ='$month' and a_o='$year'";
+                 $existing_period = DB::connection('db_aux')->select($existing_period)[0]->count;
+                    $this->delete_payroll_copy_senasirs($month,$year);
                      $file_name = "senasir-".$month."-".$year.'.'.$extencion;
                      if($file_name_entry == $file_name){
-                         $base_path = 'contribucion/planilla_senasir';
+                         $base_path = 'planillas/planilla_senasir';
                          $file_path = Storage::disk('ftp')->putFileAs($base_path,$request->file,$file_name);
                          $base_path ='ftp://'.env('FTP_HOST').env('FTP_ROOT').$file_path;
- 
-                         $temporary_payroll = "create temporary table aid_contribution_copy_payroll_senasirs_aux(a_o integer,mes integer,matricula_titular varchar, mat_dh varchar, departamento varchar, regional varchar, renta varchar,
-                         tipo_renta varchar, carnet varchar, num_com varchar, paterno varchar, materno varchar, p_nombre varchar, s_nombre varchar, fecha_nacimiento date, clase_renta varchar, 
-                         total_ganado NUMERIC(13,2),
-                         total_descuentos NUMERIC(13,2), liquido_pagable NUMERIC(13,2),
-                         renta_basica NUMERIC(13,2), rentegro_r_basica NUMERIC(13,2), bono_del_estado NUMERIC(13,2), adicion_ivm NUMERIC(13,2),
-                         incremento_acumulado NUMERIC(13,2), renta_complementaria NUMERIC(13,2),  renta_dignidad NUMERIC(13,2), reintegro_renta_dignidad NUMERIC(13,2), aguinaldo_renta_dignidad NUMERIC(13,2),
-                         inc_al_minimo_nacional NUMERIC(13,2), reintegro_aguinaldo NUMERIC(13,2), bono_ips_ds_27760 NUMERIC(13,2), beneficios_adicionales NUMERIC(13,2), plus_afps NUMERIC(13,2), resolucion_15_95 NUMERIC(13,2),
-                         importe_adicional NUMERIC(13,2), reintegro_importe_adicional NUMERIC(13,2), bono_adicional_ip2006 NUMERIC(13,2), ajuste_adicional NUMERIC(13,2), incremento_gestion NUMERIC(13,2), 
-                         reintegro_inc_gestion NUMERIC(13,2), incr_inv_prop_ip_gestion NUMERIC(13,2), caja_nacional_de_salud NUMERIC(13,2), caja_salud_banca_privada NUMERIC(13,2), conf_nac_jubil_rent_bolivia NUMERIC(13,2),
-                         conf_nac_maestros_jubilados NUMERIC(13,2), desc_a_favor_cnjrb NUMERIC(13,2), moneda_fraccionada NUMERIC(13,2), pago_indebido_ivm NUMERIC(13,2), pago_adelantado_pra_ivm NUMERIC(13,2),
-                         desc_cobro_indebido_r026_99_ivm NUMERIC(13,2), retencion_judicial NUMERIC(13,2), descuento_muserpol NUMERIC(13,2), descuento_covipol NUMERIC(13,2), prestamo_muserpol NUMERIC(13,2),
-                         pat_titular varchar, mat_titular varchar, p_nom_titular varchar, s_nombre_titular varchar, clase_rent_tit varchar, carnet_tit varchar, num_com_tit varchar, fec_fail_tit date);";
-                         //return $temporary_payroll;
-                         $temporary_payroll = DB::select($temporary_payroll);
 
-                         //return $temporary_payroll;
-                         $copy = "copy aid_contribution_copy_payroll_senasirs_aux(a_o ,mes ,matricula_titular , mat_dh , departamento , regional , renta ,
-                         tipo_renta , carnet , num_com , paterno , materno , p_nombre , s_nombre , fecha_nacimiento , clase_renta ,
-                         total_ganado ,
-                         total_descuentos , liquido_pagable ,
-                         renta_basica , rentegro_r_basica , bono_del_estado , adicion_ivm ,
-                         incremento_acumulado , renta_complementaria ,  renta_dignidad , reintegro_renta_dignidad , aguinaldo_renta_dignidad ,
-                         inc_al_minimo_nacional , reintegro_aguinaldo , bono_ips_ds_27760 , beneficios_adicionales , plus_afps , resolucion_15_95 ,
-                         importe_adicional , reintegro_importe_adicional , bono_adicional_ip2006 , ajuste_adicional , incremento_gestion ,
-                         reintegro_inc_gestion , incr_inv_prop_ip_gestion , caja_nacional_de_salud , caja_salud_banca_privada , conf_nac_jubil_rent_bolivia ,
-                         conf_nac_maestros_jubilados , desc_a_favor_cnjrb , moneda_fraccionada , pago_indebido_ivm , pago_adelantado_pra_ivm ,
-                         desc_cobro_indebido_r026_99_ivm , retencion_judicial , descuento_muserpol , descuento_covipol , prestamo_muserpol ,
-                         pat_titular , mat_titular , p_nom_titular , s_nombre_titular , clase_rent_tit , carnet_tit , num_com_tit , fec_fail_tit )
-                         FROM PROGRAM 'wget -q -O - $@  --user=$username --password=$password $base_path'
-                                 WITH DELIMITER ':' CSV header;";
-                         $copy = DB::select($copy);
- 
-                         $insert = "INSERT INTO aid_contribution_copy_payroll_senasirs(a_o,mes,matricula_titular,mat_dh,departamento,carnet,num_com,paterno,materno,
-                         p_nombre,s_nombre,fecha_nacimiento,clase_renta,total_ganado,liquido_pagable,renta_dignidad,descuento_muserpol,
-                         pat_titular,mat_titular,p_nom_titular,s_nombre_titular,carnet_tit,num_com_tit,fec_fail_tit)
-                                    SELECT a_o,mes,matricula_titular,mat_dh,departamento,carnet,num_com,paterno,materno,
-                        p_nombre,s_nombre,fecha_nacimiento,clase_renta,total_ganado,liquido_pagable,renta_dignidad,descuento_muserpol,
-                        pat_titular,mat_titular,p_nom_titular,s_nombre_titular,carnet_tit,num_com_tit,fec_fail_tit FROM  aid_contribution_copy_payroll_senasirs_aux
-                        where mes ='$month' and a_o='$year'; ";
-                         $insert = DB::select($insert);
-                       //  return $insert;
-                    DB::commit();
- 
-                        $drop = "drop table if exists aid_contribution_copy_payroll_senasirs_aux";
-                        $drop = DB::select($drop);
- 
-                         $consult = "select  count(*) from  aid_contribution_copy_payroll_senasirs where mes ='$month' and a_o='$year'";
-                         $consult = DB::select($consult)[0]->count;
-                         //return $consult;
+                         $copy = "copy payroll_copy_senasirs(a_o, mes, id_person_titular, matricula_titular, mat_dh,departamento,regional,renta,tipo_renta,
+                                  carnet,num_com, paterno, materno, p_nombre,s_nombre, ap_casada, fecha_nacimiento, clase_renta,total_ganado, total_descuentos,
+                                  liquido_pagable, rentegro_r_basica, renta_dignidad, reintegro_renta_dignidad, reintegro_aguinaldo,reintegro_importe_adicional,
+                                  reintegro_inc_gestion, descuento_aporte_muserpol, descuento_covipol, descuento_prestamo_musepol,carnet_tit,
+                                  num_com_tit, pat_titular, mat_titular, p_nom_titular, s_nombre_titular, ap_casada_titular, fecha_nac_titular,
+                                  clase_renta_tit, fec_fail_tit) FROM PROGRAM 'wget -q -O - $@  --user=$username --password=$password $base_path' WITH DELIMITER ':' CSV header;";
+                         $copy = DB::connection('db_aux')->select($copy);
+                         DB::commit();
+                         $query_count = "select  count(*) from  payroll_copy_senasirs where mes ='$month' and a_o='$year'";
+                         $query_count = DB::connection('db_aux')->select($query_count)[0]->count;
+
                          return response()->json([
                              'message' => 'Realizado con exito',
                              'payload' => [
                                  'successfully' => true,
-                                // 'copied_record' => $consult
-                                'data_count' =>  $this->data_count($month,$year,$date_payroll_format)
+                                'copied_record' => $query_count
+                                //'data_count' =>  $this->data_count($month,$year,$date_payroll_format)
                              ],
                          ]);
                      } else {
@@ -144,16 +105,7 @@ class ImportPayrollSenasirController extends Controller
                              ],
                          ]);
                      }
-                  } else {
-                     return response()->json([
-                         'message' => 'Error en el copiado del archivo',
-                         'payload' => [
-                             'successfully' => false,
-                             'error' => 'El periodo ya existe'
-                         ],
-                     ]);
-                 }
-             } else {
+            } else {
                      return response()->json([
                          'message' => 'Error en el copiado del archivo',
                          'payload' => [
@@ -237,7 +189,7 @@ class ImportPayrollSenasirController extends Controller
 
             if(!$this->exists_data_table_aid_contributions($month,$year)){
             $this->delete_aid_contribution_affiliate_payroll_senasirs($month,$year);
-            if($this->exists_data_table_aid_contribution_copy_payroll_senasirs($month,$year)){
+            if($this->exists_data_payroll_copy_senasirs($month,$year)){
                 $query = "select * from registration_aid_contribution_affiliate_payroll_senasir($month,$year);";
                 $data_validated = DB::select($query);
 
@@ -261,7 +213,7 @@ class ImportPayrollSenasirController extends Controller
                     $drop = "drop table if exists aid_contribution_copy_payroll_senasirs_aux_no_exist";
                     $drop = DB::select($drop);
                     $this->delete_aid_contribution_affiliate_payroll_senasirs($month,$year);
-                    $this->delete_aid_contribution_copy_payroll_senasirs($month,$year);
+                    $this->delete_payroll_copy_senasirs($month,$year);
                 }
                 $consult = "select  count(*) from  aid_contribution_affiliate_payroll_senasirs where mes ='$month' and a_o='$year'";
                 $consult = DB::select($consult)[0]->count;
@@ -372,12 +324,12 @@ class ImportPayrollSenasirController extends Controller
         return $exists_data;
     }
     // -------------metodo para verificar si existe datos en el paso 1 -----//
-    public function exists_data_table_aid_contribution_copy_payroll_senasirs($mes,$a_o){
+    public function exists_data_payroll_copy_senasirs($mes,$a_o){
         $month = $mes;
         $year = $a_o;
         $exists_data = true;
-        $query = "select * from aid_contribution_copy_payroll_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER;";
-        $verify_data = DB::select($query);
+        $query = "select * from payroll_copy_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER;";
+        $verify_data = DB::connection('db_aux')->select($query);
 
         if($verify_data == []) $exists_data = false;
 
@@ -422,15 +374,15 @@ class ImportPayrollSenasirController extends Controller
                  return false;
      }
 
-     //------------borrado de datos de la tabla aid_contribution_copy_payroll_senasirs paso 1
-     public function delete_aid_contribution_copy_payroll_senasirs($month, $year)
+     //------------borrado de datos de la tabla payroll_copy_senasirs paso 1
+     public function delete_payroll_copy_senasirs($month, $year)
      {
-             if($this->exists_data_table_aid_contribution_copy_payroll_senasirs($month,$year))
+             if($this->exists_data_payroll_copy_senasirs($month,$year))
              {
                 $query = "delete
-                        from aid_contribution_copy_payroll_senasirs
+                        from payroll_copy_senasirs
                         where a_o = $year::INTEGER and mes = $month::INTEGER ";
-                $query = DB::select($query);
+                $query = DB::connection('db_aux')->select($query);
                 DB::commit();
                 return true;
              }
@@ -605,8 +557,8 @@ class ImportPayrollSenasirController extends Controller
             $year = (int)$date_payroll->format("Y");
             $month = (int)$date_payroll->format("m");
 
-            if($this->exists_data_table_aid_contribution_copy_payroll_senasirs($month,$year) || $this->exists_data_table_aid_contribution_affiliate_payrroll($month,$year)){
-                $result['delete_step_1'] = $this->delete_aid_contribution_copy_payroll_senasirs($month,$year);
+            if($this->exists_data_payroll_copy_senasirs($month,$year) || $this->exists_data_table_aid_contribution_affiliate_payrroll($month,$year)){
+                $result['delete_step_1'] = $this->delete_payroll_copy_senasirs($month,$year);
                 $result['delete_step_2'] = $this->delete_aid_contribution_affiliate_payroll_senasirs($month,$year);
 
                 if($result['delete_step_1'] == true || $result['delete_step_2'] == true){
@@ -762,7 +714,7 @@ class ImportPayrollSenasirController extends Controller
         $result['query_step_2'] = false;
         $result['query_step_3'] = false;
 
-        $result['query_step_1'] = $this->exists_data_table_aid_contribution_copy_payroll_senasirs($month,$year);
+        $result['query_step_1'] = $this->exists_data_payroll_copy_senasirs($month,$year);
         $result['query_step_2'] = $this->exists_data_table_aid_contribution_affiliate_payrroll($month,$year);
         $date_payroll_format = $request->date_payroll;
         $result['query_step_3'] = $this->exists_data_table_aid_contributions($month,$year);

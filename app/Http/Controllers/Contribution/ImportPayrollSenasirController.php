@@ -849,7 +849,7 @@ class ImportPayrollSenasirController extends Controller
            'period_year' => 'required|date_format:"Y"',
        ]);
         $period_year = $request->get('period_year');
-        $query = "SELECT  distinct mes,a_o,  to_char( (to_date(a_o|| '-' ||mes, 'YYYY/MM/DD')), 'TMMonth') as period_month_name from payroll_validated_senasirs where deleted_at  is null and a_o =3 group by mes, a_o ";
+        $query = "SELECT  distinct mes,a_o,  to_char( (to_date(a_o|| '-' ||mes, 'YYYY/MM/DD')), 'TMMonth') as period_month_name from payroll_validated_senasirs where deleted_at  is null and a_o =$period_year group by mes, a_o ";
         $query = DB::select($query);
         $query_months = "select id as period_month ,name  as period_month_name from months order by id asc";
         $query_months = DB::select($query_months);

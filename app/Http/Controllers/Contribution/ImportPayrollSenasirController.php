@@ -125,7 +125,7 @@ class ImportPayrollSenasirController extends Controller
 
      /**
      * @OA\Post(
-     *      path="/api/contribution/validation_aid_contribution_affiliate_payroll_senasir",
+     *      path="/api/contribution/validation_payroll_senasir",
      *      tags={"IMPORT-PAYROLL-SENASIR"},
      *      summary="PASO 2 VALIDACION DE DATOS DE TITULARES SENASIR",
      *      operationId="validation_aid_contribution_affiliate_payroll_senasir",
@@ -244,10 +244,10 @@ class ImportPayrollSenasirController extends Controller
     }
          /**
      * @OA\Post(
-     *      path="/api/contribution/download_fail_validated_senasir",
+     *      path="/api/contribution/download_fail_not_found_payroll_senasir",
      *      tags={"IMPORT-PAYROLL-SENASIR"},
      *      summary="DESCARGA DE ARCHIVO DE NO ENCONTRADOS DEL PASO 2 DE VALIDACION DE DATOS AFILIADO TITULAR ",
-     *      operationId="download_fail_validated_senasir",
+     *      operationId="download_fail_not_found_payroll_senasir",
      *      description="Descarga el archivo de falla del paso 2 de validacion de datos del afiliado titular",
      *      @OA\RequestBody(
      *          description= "Provide auth credentials",
@@ -274,7 +274,7 @@ class ImportPayrollSenasirController extends Controller
      * @param Request $request
      * @return void
     */
-        public function download_fail_validated_senasir(Request $request){
+        public function download_fail_not_found_payroll_senasir(Request $request){
 
             $request->validate([
                 'date_payroll' => 'required|date_format:"Y-m-d"',
@@ -418,10 +418,10 @@ class ImportPayrollSenasirController extends Controller
 
     /**
      * @OA\Post(
-     *      path="/api/contribution/rollback_copy_validate_senasir",
+     *      path="/api/contribution/rollback_payroll_copy_senasir",
      *      tags={"IMPORT-PAYROLL-SENASIR"},
      *      summary="REHACER LOS PASOS DE PASO 1 Y 2 IMPORTACION SENASIR",
-     *      operationId="rollback_copy_validate_senasir",
+     *      operationId="rollback_payroll_copy_senasir",
      *      description="Para rehacer paso 1 y paso 2 de la importacion senasir",
      *      @OA\RequestBody(
      *          description= "Provide auth credentials",
@@ -449,7 +449,7 @@ class ImportPayrollSenasirController extends Controller
      * @return void
     */
 
-     public function rollback_copy_validate_senasir(Request $request)
+     public function rollback_payroll_copy_senasir(Request $request)
      {
         $request->validate([
             'date_payroll' => 'required|date_format:"Y-m-d"',
@@ -566,10 +566,10 @@ class ImportPayrollSenasirController extends Controller
     }
      /**
      * @OA\Post(
-     *      path="/api/contribution/import_progress_bar",
+     *      path="/api/contribution/import_payroll_senasir_progress_bar",
      *      tags={"IMPORT-PAYROLL-SENASIR"},
      *      summary="INFORMACION DE PROGRESO DE IMPORTACION SENASIR",
-     *      operationId="import_progress_bar",
+     *      operationId="import_payroll_senasir_progress_bar",
      *      description="Muestra la informacion de la importación de senasir  (-1)Si exixtio al gun error en algun paso, (100)Si todo fue exitoso, (30-60)Paso 1 y 2 (0)si esta iniciando la importación",
      *      @OA\RequestBody(
      *          description= "Provide auth credentials",
@@ -597,7 +597,7 @@ class ImportPayrollSenasirController extends Controller
      * @return void
     */
 
-    public function  import_progress_bar(Request $request){
+    public function  import_payroll_senasir_progress_bar(Request $request){
 
         $request->validate([
             'date_payroll' => 'required|date_format:"Y-m-d"',

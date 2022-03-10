@@ -55,7 +55,6 @@ class CreatePayrollValidatedSenasirsTable extends Migration
             $table->date('fecha_nac_titular')->nullable()->comment('Fecha de nacimiento titular');
             $table->string('clase_renta_tit')->nullable()->comment('Clase de renta titular');
             $table->date('fec_fail_tit')->nullable()->comment('Fecha de fallecimiento titular');
-            $table->enum('state', ['registered','created','updated'])->default('registered')->comment('Estado del registro');
             $table->timestamps();
             $table->softDeletes();
         });

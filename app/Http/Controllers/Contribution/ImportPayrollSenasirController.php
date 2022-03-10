@@ -17,7 +17,7 @@ class ImportPayrollSenasirController extends Controller
     /**
      * @OA\Post(
      *      path="/api/contribution/upload_copy_payroll_senasir",
-     *      tags={"CONTRIBUCION-IMPORT-SENASIR"},
+     *      tags={"IMPORT-PAYROLL-SENASIR"},
      *      summary="PASO 1 COPIADO DE DATOS PLANILLA SENASIR",
      *      operationId="upload_copy_payroll_senasir",
      *      description="Copiado de datos del archivo de planillas senasir a la tabla aid_contribution_copy_payroll_senasir",
@@ -85,15 +85,12 @@ class ImportPayrollSenasirController extends Controller
                                   clase_renta_tit, fec_fail_tit) FROM PROGRAM 'wget -q -O - $@  --user=$username --password=$password $base_path' WITH DELIMITER ':' CSV header;";
                          $copy = DB::connection('db_aux')->select($copy);
                          DB::commit();
-                         $query_count = "select  count(*) from  payroll_copy_senasirs where mes ='$month' and a_o='$year'";
-                         $query_count = DB::connection('db_aux')->select($query_count)[0]->count;
 
                          return response()->json([
                              'message' => 'Realizado con exito',
                              'payload' => [
                                  'successfully' => true,
-                                'copied_record' => $query_count
-                                //'data_count' =>  $this->data_count($month,$year,$date_payroll_format)
+                                'data_count' =>  $this->data_count_payroll_senasir($month,$year,$date_payroll_format)
                              ],
                          ]);
                      } else {
@@ -128,8 +125,8 @@ class ImportPayrollSenasirController extends Controller
 
      /**
      * @OA\Post(
-     *      path="/api/contribution/validation_aid_contribution_affiliate_payroll_senasir",
-     *      tags={"CONTRIBUCION-IMPORT-SENASIR"},
+     *      path="/api/contribution/validation_payroll_senasir",
+     *      tags={"IMPORT-PAYROLL-SENASIR"},
      *      summary="PASO 2 VALIDACION DE DATOS DE TITULARES SENASIR",
      *      operationId="validation_aid_contribution_affiliate_payroll_senasir",
      *      description="validacion de datos de titulares senasir a la tabla validation_aid_contribution_affiliate_payroll_senasir",
@@ -158,18 +155,19 @@ class ImportPayrollSenasirController extends Controller
      * @param Request $request
      * @return void
     */
-     public function validation_aid_contribution_affiliate_payroll_senasir(Request $request){
-        $request->validate([
-          'date_payroll' => 'required|date_format:"Y-m-d"',
-        ]);
-      try{
+
+    public function validation_payroll_senasir(Request $request){
+    $request->validate([
+    'date_payroll' => 'required|date_format:"Y-m-d"',
+    ]);
+    try{
             DB::beginTransaction();
             $message = "No hay datos";
             $successfully =false;
             $date_payroll_format = $request->date_payroll;
             $data_cabeceraS=array(array("AÑO","MES","MATRÍCULA TITULAR", "MATRÍCULA D_H","DEPARTAMENTO","CARNET", "APELLIDO PATERNO","APELLIDO MATERNO", "PRIMER NOMBRE","SEGUNDO NOMBRE",
-        "FECHA DE NACIMIENTO","CLASE DE RENTA","TOTAL GANADO","LIQUIDO PAGABLE","RENTA DIGNIDAD","DESCUENTO MUSERPOL","PATERNO TITULAR","MATERNO TITULAR"," PRIMER NOMBRE TITULAR",
-        "SEGUNDO NOMBRE TITULAR","CARNET TITULAR","FECHA DE FALLECIMIENTO TITULAR"));
+            "FECHA DE NACIMIENTO","CLASE DE RENTA","TOTAL GANADO","LIQUIDO PAGABLE","RENTA DIGNIDAD","DESCUENTO MUSERPOL","PATERNO TITULAR","MATERNO TITULAR"," PRIMER NOMBRE TITULAR",
+            "SEGUNDO NOMBRE TITULAR","CARNET TITULAR","FECHA DE FALLECIMIENTO TITULAR"));
 
             $date_payroll = Carbon::parse($request->date_payroll);
             $year = (int)$date_payroll->format("Y");
@@ -177,94 +175,79 @@ class ImportPayrollSenasirController extends Controller
             $last_date = Carbon::parse($year.'-'.$month)->toDateString();
             $num_data_no_validated = 0;
 
-            //tabla temporal
-            $temporary_payroll = "CREATE temporary table aid_contribution_copy_payroll_senasirs_aux_no_exist(
-                a_o integer,mes integer,matricula_titular varchar,mat_dh varchar,departamento varchar,
-                carnet_num_com varchar,paterno varchar,materno varchar,p_nombre varchar,s_nombre varchar,
-                fecha_nacimiento  date,clase_renta varchar,total_ganado NUMERIC(13,2) ,liquido_pagable NUMERIC(13,2),
-                renta_dignidad NUMERIC(13,2),descuento_muserpol NUMERIC(13,2),pat_titular varchar,mat_titular varchar,
-                p_nom_titular varchar,s_nombre_titular varchar,carnet_num_com_tit varchar,fec_fail_tit date
-               );";
-            $temporary_payroll = DB::select($temporary_payroll);
-
-            if(!$this->exists_data_table_aid_contributions($month,$year)){
-            $this->delete_aid_contribution_affiliate_payroll_senasirs($month,$year);
             if($this->exists_data_payroll_copy_senasirs($month,$year)){
-                $query = "select * from registration_aid_contribution_affiliate_payroll_senasir($month,$year);";
-                $data_validated = DB::select($query);
+                if(!$this->exists_data_payroll_validated_senasirs($month,$year)){
 
-                if($data_validated == []){
-                    $message = "Realizado con exito";
-                    $successfully = true;
+                    $query = "select registration_payroll_validated_senasir('dbname=platform_auxiliar_2 port=5432 host=192.168.2.242 user=admin password=admin',2,2022);";
+                    $data_validated = DB::select($query);
+
+                        if($data_validated[0]->registration_payroll_validated_senasir > 0){
+                            $message = "Realizado con exito";
+                            $successfully = true;
+                            $data_payroll_copy_senasir = "select  * from  payroll_copy_senasirs  where mes ='$month' and a_o='$year' and is_validated = false and clase_renta not like 'ORFANDAD%'";
+                            $data_payroll_copy_senasir = DB::connection('db_aux')->select($data_payroll_copy_senasir);
+                            if(count($data_payroll_copy_senasir)> 0){
+                                $message = "Excel";
+                                foreach ($data_payroll_copy_senasir as $row){
+                                    array_push($data_cabeceraS, array($row->a_o ,$row->mes ,$row->matricula_titular ,$row->mat_dh ,
+                                    $row->departamento ,$row->carnet ,$row->paterno , $row->materno , $row->p_nombre ,$row->s_nombre ,
+                                    $row->fecha_nacimiento , $row->clase_renta , $row->total_ganado , $row->liquido_pagable , $row->renta_dignidad , $row->renta_dignidad ,
+                                    $row->pat_titular , $row->mat_titular , $row->p_nom_titular , $row->s_nombre_titular , $row->carnet_tit , $row->fec_fail_tit 
+                                ));
+                                $num_data_no_validated++;
+                                }
+                                $export = new ArchivoPrimarioExport($data_cabeceraS);
+                                $file_name = 'no-encontrados-planilla-senasir'.'-'.$last_date.'.xls';
+                                $base_path = 'planillas/no-encontrados-planilla-senasir/'.$file_name;
+                                Excel::store($export,$base_path.'/'.$file_name, 'ftp');
+                            }
+                        }
+                    DB::commit();
+                    $data_count= $this->data_count_payroll_senasir($month,$year,$date_payroll_format);
+                    return response()->json([
+                        'message' => $message,
+                        'payload' => [
+                            'successfully' => $successfully,
+                            'data_count' =>  $data_count
+                        ],
+                    ]);
                 }else{
-                    $message = "Excel";
-                    foreach ($data_validated as $row){
-                        array_push($data_cabeceraS, array($row->a_o_retorno,$row->mes_retorno,$row->matricula_titular_retorno,$row->mat_dh_retorno,
-                        $row->departamento_retorno,$row->carnet_num_com_retorno,$row->paterno_retorno, $row->materno_retorno, $row->p_nombre_retorno,$row->s_nombre_retorno,
-                        $row->fecha_nacimiento_retorno, $row->clase_renta_retorno, $row->total_ganado_retorno, $row->liquido_pagable_retorno, $row->renta_dignidad_retorno, $row->descuento_muserpol_retorno,
-                        $row->pat_titular_retorno, $row->mat_titular_retorno, $row->p_nom_titular_retorno, $row->s_nombre_titular_retorno, $row->carnet_num_com_tit_retorno, $row->fec_fail_tit_retorno
-                       ));
-                       $num_data_no_validated++;
-                    }
-                    $export = new ArchivoPrimarioExport($data_cabeceraS);
-                    $file_name = 'error-senasir'.'-'.$last_date.'.xls';
-                    $base_path = 'contribucion/Error-Import-Contribution-Senasir/'.'error-senasir-'.$last_date;
-                    Excel::store($export,$base_path.'/'.$file_name, 'ftp');
-                    $drop = "drop table if exists aid_contribution_copy_payroll_senasirs_aux_no_exist";
-                    $drop = DB::select($drop);
-                    $this->delete_aid_contribution_affiliate_payroll_senasirs($month,$year);
-                    $this->delete_payroll_copy_senasirs($month,$year);
+                    return response()->json([
+                        'message' => " Error! ya realizó la validación de datos",
+                        'payload' => [
+                            'successfully' => $successfully,
+                            'error' => 'Error! ya realizó la validación de datos.'
+                        ],
+                    ]);
                 }
-                $consult = "select  count(*) from  aid_contribution_affiliate_payroll_senasirs where mes ='$month' and a_o='$year'";
-                $consult = DB::select($consult)[0]->count;
-                DB::commit();
-                $data_count= $this->data_count($month,$year,$date_payroll_format);
-                $data_count['num_data_not_validated'] = $num_data_no_validated;
-                $data_count['num_data_validated'] =$consult;
-                return response()->json([
-                    'message' => $message,
-                    'payload' => [
-                        'successfully' => $successfully,
-                        //'validated_record' => $consult,
-                        'data_count' =>  $data_count
-                    ],
-                ]);
 
             }else{
                 return response()->json([
-                    'message' => "Error el primer paso no esta concluido.",
+                    'message' => "Error no existen datos en la tabla del copiado de datos",
                     'payload' => [
                         'successfully' => $successfully,
                         'error' => 'Error el primer paso no esta concluido.'
                     ],
                 ]);
             }
-            }else{
-                return response()->json([
-                    'message' => "El periodo ya existe",
-                    'payload' => [
-                        'successfully' => $successfully,
-                        'error' => 'El periodo ya existe'
-                    ],
-                ]);
-            }
-            }catch(Exception $e){
+
+        }catch(Exception $e){
             DB::rollBack();
             return response()->json([
-                'message' => 'Error en la busqueda de datos de titulares.',
-                'payload' => [
-                    'successfully' => false,
-                    'error' => $e->getMessage(),
-                ],
+            'message' => 'Error en la busqueda de datos de titulares.',
+            'payload' => [
+                'successfully' => false,
+                'error' => $e->getMessage(),
+            ],
             ]);
-            }
         }
+    }
          /**
      * @OA\Post(
-     *      path="/api/contribution/download_fail_validated_senasir",
-     *      tags={"CONTRIBUCION-IMPORT-SENASIR"},
-     *      summary="DESCARGA DE ARCHIVO DE FALLA DEL PASO 2 DE VALIDACION DE DATOS AFILIADO TITULAR ",
-     *      operationId="download_fail_validated_senasir",
+     *      path="/api/contribution/download_fail_not_found_payroll_senasir",
+     *      tags={"IMPORT-PAYROLL-SENASIR"},
+     *      summary="DESCARGA DE ARCHIVO DE NO ENCONTRADOS DEL PASO 2 DE VALIDACION DE DATOS AFILIADO TITULAR ",
+     *      operationId="download_fail_not_found_payroll_senasir",
      *      description="Descarga el archivo de falla del paso 2 de validacion de datos del afiliado titular",
      *      @OA\RequestBody(
      *          description= "Provide auth credentials",
@@ -291,7 +274,7 @@ class ImportPayrollSenasirController extends Controller
      * @param Request $request
      * @return void
     */
-        public function download_fail_validated_senasir(Request $request){
+        public function download_fail_not_found_payroll_senasir(Request $request){
 
             $request->validate([
                 'date_payroll' => 'required|date_format:"Y-m-d"',
@@ -302,8 +285,8 @@ class ImportPayrollSenasirController extends Controller
             $month = (int)$date_payroll->format("m");
             $last_date = Carbon::parse($year.'-'.$month)->toDateString();
 
-            $file_name = 'error-senasir'.'-'.$last_date.'.xls';
-            $base_path = 'contribucion/Error-Import-Contribution-Senasir/'.'error-senasir-'.$last_date;
+            $file_name = 'no-encontrados-planilla-senasir'.'-'.$last_date.'.xls';
+            $base_path = 'planillas/no-encontrados-planilla-senasir/'.$file_name;
 
             if(Storage::disk('ftp')->has($base_path.'/'.$file_name)){
                 return $file = Storage::disk('ftp')->download($base_path.'/'.$file_name);
@@ -312,11 +295,11 @@ class ImportPayrollSenasirController extends Controller
             }
         }
     // -------------metodo para verificar si existe datos en el paso 2 -----//
-    public function exists_data_table_aid_contribution_affiliate_payrroll($mes,$a_o){
+    public function exists_data_payroll_validated_senasirs($mes,$a_o){
         $month = $mes;
         $year = $a_o;
         $exists_data = true;
-        $query = "select * from aid_contribution_affiliate_payroll_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER;";
+        $query = "select * from payroll_validated_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER;";
         $verify_data = DB::select($query);
 
         if($verify_data == []) $exists_data = false;
@@ -359,12 +342,12 @@ class ImportPayrollSenasirController extends Controller
     }
 
      //-----------borrado de datos de la tabla aid_contribution_affiliate_payroll_senasirs paso 2
-     public function delete_aid_contribution_affiliate_payroll_senasirs($month, $year)
+     public function delete_payroll_validated_senasirs($month, $year)
      {
-             if($this->exists_data_table_aid_contribution_affiliate_payrroll($month,$year))
+             if($this->exists_data_payroll_validated_senasirs($month,$year))
              {
                 $query = "delete
-                        from aid_contribution_affiliate_payroll_senasirs
+                        from payroll_validated_senasirs
                         where a_o = $year::INTEGER and mes = $month::INTEGER ";
                 $query = DB::select($query);
                 DB::commit();
@@ -394,7 +377,7 @@ class ImportPayrollSenasirController extends Controller
     /**
      * @OA\Get(
      *      path="/api/contribution/list_senasir_years",
-     *      tags={"CONTRIBUCION-IMPORT-SENASIR"},
+     *      tags={"METODOS-GLOBALES"},
      *      summary="OBTIENE EL LISTADO DE AÑOS DE CONTRIBUCIONES DE SENASIR CONSECUTIVAMENTE ",
      *      operationId="list_senasir_years",
      *      description="Obtiene el listado de años de contribuciones de senasir de manera consecutiva hasta el año actual Ej 2022",
@@ -435,10 +418,10 @@ class ImportPayrollSenasirController extends Controller
 
     /**
      * @OA\Post(
-     *      path="/api/contribution/rollback_copy_validate_senasir",
-     *      tags={"CONTRIBUCION-IMPORT-SENASIR"},
+     *      path="/api/contribution/rollback_payroll_copy_senasir",
+     *      tags={"IMPORT-PAYROLL-SENASIR"},
      *      summary="REHACER LOS PASOS DE PASO 1 Y 2 IMPORTACION SENASIR",
-     *      operationId="rollback_copy_validate_senasir",
+     *      operationId="rollback_payroll_copy_senasir",
      *      description="Para rehacer paso 1 y paso 2 de la importacion senasir",
      *      @OA\RequestBody(
      *          description= "Provide auth credentials",
@@ -466,7 +449,7 @@ class ImportPayrollSenasirController extends Controller
      * @return void
     */
 
-     public function rollback_copy_validate_senasir(Request $request)
+     public function rollback_payroll_copy_senasir(Request $request)
      {
         $request->validate([
             'date_payroll' => 'required|date_format:"Y-m-d"',
@@ -481,9 +464,9 @@ class ImportPayrollSenasirController extends Controller
             $year = (int)$date_payroll->format("Y");
             $month = (int)$date_payroll->format("m");
 
-            if($this->exists_data_payroll_copy_senasirs($month,$year) || $this->exists_data_table_aid_contribution_affiliate_payrroll($month,$year)){
+            if($this->exists_data_payroll_copy_senasirs($month,$year) || $this->exists_data_payroll_validated_senasirs($month,$year)){
                 $result['delete_step_1'] = $this->delete_payroll_copy_senasirs($month,$year);
-                $result['delete_step_2'] = $this->delete_aid_contribution_affiliate_payroll_senasirs($month,$year);
+                $result['delete_step_2'] = $this->delete_payroll_validated_senasirs($month,$year);
 
                 if($result['delete_step_1'] == true || $result['delete_step_2'] == true){
                     $validated_rollback = true;
@@ -583,10 +566,10 @@ class ImportPayrollSenasirController extends Controller
     }
      /**
      * @OA\Post(
-     *      path="/api/contribution/import_progress_bar",
-     *      tags={"CONTRIBUCION-IMPORT-SENASIR"},
+     *      path="/api/contribution/import_payroll_senasir_progress_bar",
+     *      tags={"IMPORT-PAYROLL-SENASIR"},
      *      summary="INFORMACION DE PROGRESO DE IMPORTACION SENASIR",
-     *      operationId="import_progress_bar",
+     *      operationId="import_payroll_senasir_progress_bar",
      *      description="Muestra la informacion de la importación de senasir  (-1)Si exixtio al gun error en algun paso, (100)Si todo fue exitoso, (30-60)Paso 1 y 2 (0)si esta iniciando la importación",
      *      @OA\RequestBody(
      *          description= "Provide auth credentials",
@@ -614,7 +597,7 @@ class ImportPayrollSenasirController extends Controller
      * @return void
     */
 
-    public function  import_progress_bar(Request $request){
+    public function  import_payroll_senasir_progress_bar(Request $request){
 
         $request->validate([
             'date_payroll' => 'required|date_format:"Y-m-d"',
@@ -639,7 +622,7 @@ class ImportPayrollSenasirController extends Controller
         $result['query_step_3'] = false;
 
         $result['query_step_1'] = $this->exists_data_payroll_copy_senasirs($month,$year);
-        $result['query_step_2'] = $this->exists_data_table_aid_contribution_affiliate_payrroll($month,$year);
+        $result['query_step_2'] = $this->exists_data_payrroll_validated_senasirs($month,$year);
         $date_payroll_format = $request->date_payroll;
         $result['query_step_3'] = $this->exists_data_table_aid_contributions($month,$year);
 

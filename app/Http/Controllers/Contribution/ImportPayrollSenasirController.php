@@ -17,7 +17,7 @@ class ImportPayrollSenasirController extends Controller
     /**
      * @OA\Post(
      *      path="/api/contribution/upload_copy_payroll_senasir",
-     *      tags={"CONTRIBUCION-IMPORT-SENASIR"},
+     *      tags={"IMPORT-PAYROLL-SENASIR"},
      *      summary="PASO 1 COPIADO DE DATOS PLANILLA SENASIR",
      *      operationId="upload_copy_payroll_senasir",
      *      description="Copiado de datos del archivo de planillas senasir a la tabla aid_contribution_copy_payroll_senasir",
@@ -126,7 +126,7 @@ class ImportPayrollSenasirController extends Controller
      /**
      * @OA\Post(
      *      path="/api/contribution/validation_aid_contribution_affiliate_payroll_senasir",
-     *      tags={"CONTRIBUCION-IMPORT-SENASIR"},
+     *      tags={"IMPORT-PAYROLL-SENASIR"},
      *      summary="PASO 2 VALIDACION DE DATOS DE TITULARES SENASIR",
      *      operationId="validation_aid_contribution_affiliate_payroll_senasir",
      *      description="validacion de datos de titulares senasir a la tabla validation_aid_contribution_affiliate_payroll_senasir",
@@ -245,8 +245,8 @@ class ImportPayrollSenasirController extends Controller
          /**
      * @OA\Post(
      *      path="/api/contribution/download_fail_validated_senasir",
-     *      tags={"CONTRIBUCION-IMPORT-SENASIR"},
-     *      summary="DESCARGA DE ARCHIVO DE FALLA DEL PASO 2 DE VALIDACION DE DATOS AFILIADO TITULAR ",
+     *      tags={"IMPORT-PAYROLL-SENASIR"},
+     *      summary="DESCARGA DE ARCHIVO DE NO ENCONTRADOS DEL PASO 2 DE VALIDACION DE DATOS AFILIADO TITULAR ",
      *      operationId="download_fail_validated_senasir",
      *      description="Descarga el archivo de falla del paso 2 de validacion de datos del afiliado titular",
      *      @OA\RequestBody(
@@ -377,7 +377,7 @@ class ImportPayrollSenasirController extends Controller
     /**
      * @OA\Get(
      *      path="/api/contribution/list_senasir_years",
-     *      tags={"CONTRIBUCION-IMPORT-SENASIR"},
+     *      tags={"METODOS-GLOBALES"},
      *      summary="OBTIENE EL LISTADO DE AÑOS DE CONTRIBUCIONES DE SENASIR CONSECUTIVAMENTE ",
      *      operationId="list_senasir_years",
      *      description="Obtiene el listado de años de contribuciones de senasir de manera consecutiva hasta el año actual Ej 2022",
@@ -419,7 +419,7 @@ class ImportPayrollSenasirController extends Controller
     /**
      * @OA\Post(
      *      path="/api/contribution/rollback_copy_validate_senasir",
-     *      tags={"CONTRIBUCION-IMPORT-SENASIR"},
+     *      tags={"IMPORT-PAYROLL-SENASIR"},
      *      summary="REHACER LOS PASOS DE PASO 1 Y 2 IMPORTACION SENASIR",
      *      operationId="rollback_copy_validate_senasir",
      *      description="Para rehacer paso 1 y paso 2 de la importacion senasir",
@@ -567,7 +567,7 @@ class ImportPayrollSenasirController extends Controller
      /**
      * @OA\Post(
      *      path="/api/contribution/import_progress_bar",
-     *      tags={"CONTRIBUCION-IMPORT-SENASIR"},
+     *      tags={"IMPORT-PAYROLL-SENASIR"},
      *      summary="INFORMACION DE PROGRESO DE IMPORTACION SENASIR",
      *      operationId="import_progress_bar",
      *      description="Muestra la informacion de la importación de senasir  (-1)Si exixtio al gun error en algun paso, (100)Si todo fue exitoso, (30-60)Paso 1 y 2 (0)si esta iniciando la importación",

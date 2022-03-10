@@ -457,27 +457,24 @@ class ImportPayrollSenasirController extends Controller
         DB::beginTransaction();
         try{
             $result['delete_step_1'] = false;
-            $result['delete_step_2'] = false;
-            $validated_rollback = false;
+            $valid_rollback = false;
             $date_payroll = Carbon::parse($request->date_payroll);
 
             $year = (int)$date_payroll->format("Y");
             $month = (int)$date_payroll->format("m");
 
-            if($this->exists_data_payroll_copy_senasirs($month,$year) || $this->exists_data_payroll_validated_senasirs($month,$year)){
+            if($this->exists_data_payroll_copy_senasirs($month,$year) && !$this->exists_data_payroll_validated_senasirs($month,$year)){
                 $result['delete_step_1'] = $this->delete_payroll_copy_senasirs($month,$year);
-                $result['delete_step_2'] = $this->delete_payroll_validated_senasirs($month,$year);
 
-                if($result['delete_step_1'] == true || $result['delete_step_2'] == true){
-                    $validated_rollback = true;
+                if($result['delete_step_1'] == true){
+                    $valid_rollback = true;
+                    $message = "Realizado con exito!";
                 }
-            }
-
-            if(!$validated_rollback){
-                $message = "No se rehizó, no existe datos en ningun paso";
-
             }else{
-                $message = "Realizado con exito!";
+                if($this->exists_data_payroll_validated_senasirs($month,$year))
+                    $message = "No se puede rehacer, por que ya realizó la validacion del la planilla senasir";
+                else
+                    $message = "No existen datos para rehacer";
             }
 
             DB::commit();
@@ -485,7 +482,7 @@ class ImportPayrollSenasirController extends Controller
             return response()->json([
                 'message' => $message,
                 'payload' => [
-                    'validated_rollback' =>  $validated_rollback,
+                    'valid_rollbackk' =>  $valid_rollback,
                     'delete_step' =>  $result
                 ],
             ]);
@@ -550,38 +547,32 @@ class ImportPayrollSenasirController extends Controller
         $result['percentage'] = 0;
         $result['query_step_1'] = false;
         $result['query_step_2'] = false;
-        $result['query_step_3'] = false;
 
         $result['query_step_1'] = $this->exists_data_payroll_copy_senasirs($month,$year);
-        $result['query_step_2'] = $this->exists_data_payrroll_validated_senasirs($month,$year);
+        $result['query_step_2'] = $this->exists_data_payroll_validated_senasirs($month,$year);
         $date_payroll_format = $request->date_payroll;
-        $result['query_step_3'] = $this->exists_data_table_aid_contributions($month,$year);
 
         //verificamos si existe el el archivo de importación 
         $date_month= strlen($month)==1?'0'.$month:$month;
         $origin_name = 'senasir-';
         $new_file_name = "senasir-".$date_month."-".$year.'.csv';
-        $base_path = 'contribucion/planilla_senasir'.'/'.$new_file_name;
+        $base_path = 'planillas/planilla_senasir'.'/'.$new_file_name;
         if (Storage::disk('ftp')->has($base_path)) {
             $result['file_name'] = $new_file_name;
             $result['file_exists'] = true;
         }
 
-        if($result['file_exists'] == true && $result['query_step_1'] == true && $result['query_step_2'] == true && $result['query_step_3'] == true){
+        if($result['file_exists'] == true && $result['query_step_1'] == true && $result['query_step_2'] == true){
             $result['percentage'] = 100;
         }else{
-            if($result['file_exists'] == true && $result['query_step_1'] == true && $result['query_step_2'] == true && $result['query_step_3'] == false){
-                $result['percentage'] = 60;
+            if($result['file_exists'] == true && $result['query_step_1'] == true && $result['query_step_2'] == false){
+                $result['percentage'] = 50;
             }else{
-                if ($result['file_exists'] == true && $result['query_step_1'] == true && $result['query_step_2'] == false && $result['query_step_3'] == false) {
-                    $result['percentage'] = 30;
+                if ($result['query_step_1'] == false && $result['query_step_2'] == false) {
+                    $result['percentage'] = 0;
                 } else {
-                    if ($result['query_step_1'] == false && $result['query_step_2'] == false && $result['query_step_3'] == false) {
-                        $result['percentage'] = 0;
-                    } else {
-                        $result['percentage'] = -1;
-                        $message = "Error! Algo salio mal en algun paso, favor vuelva a iniciar la importación.";
-                    }
+                    $result['percentage'] = -1;
+                    $message = "Error! Algo salio mal en algun paso, favor vuelva a iniciar la importación.";
                 }
             }
         }
@@ -590,7 +581,7 @@ class ImportPayrollSenasirController extends Controller
             'message' => $message,
             'payload' => [
                 'import_progress_bar' =>  $result,
-                'data_count' =>  $this->data_count($month,$year,$date_payroll_format)
+                'data_count' =>  $this->data_count_payroll_senasir($month,$year,$date_payroll_format)
             ],
         ]);
     }

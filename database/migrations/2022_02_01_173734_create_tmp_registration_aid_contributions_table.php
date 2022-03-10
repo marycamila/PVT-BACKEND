@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateTemporaryRegistrationAidContributionsTable extends Migration
+class CreateTmpRegistrationAidContributionsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,7 +13,7 @@ class CreateTemporaryRegistrationAidContributionsTable extends Migration
      */
     public function up()
     {
-        Schema::create('temporary_registration_aid_contributions', function (Blueprint $table) {
+        Schema::create('tmp_registration_aid_contributions', function (Blueprint $table) {
             $table->id();
             $table->integer('contribution_aid_id')->comment('contribucion senasir');
             $table->integer('user_id')->comment('Usuario');
@@ -37,6 +37,6 @@ class CreateTemporaryRegistrationAidContributionsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('temporary_registration_aid_contributions');
+        Schema::dropIfExists('tmp_registration_aid_contributions');
     }
 }

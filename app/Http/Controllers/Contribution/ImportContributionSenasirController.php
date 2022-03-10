@@ -12,7 +12,7 @@ class ImportContributionSenasirController extends Controller
      //
       /**
      * @OA\Post(
-     *      path="/api/contribution/list_months_import_senasir_contribution",
+     *      path="/api/contribution/list_months_import_contribution_senasir",
      *      tags={"CONTRIBUCION-IMPORT-SENASIR"},
      *      summary="LISTA LOS MESES QUE SE REALIZARON IMPORTACIONES A LA TABLA AID_CONTRIBUTION SENASIR EN BASE A UN AÑO DADO EJ:2021",
      *      operationId="list_senasir_months",
@@ -42,7 +42,7 @@ class ImportContributionSenasirController extends Controller
      * @param Request $request
      * @return void
     */
-    public function list_months_import_senasir_contribution(Request $request)
+    public function list_months_import_contribution_senasir(Request $request)
      {
         $request->validate([
             'period_year' => 'required|date_format:"Y"',
@@ -121,6 +121,74 @@ class ImportContributionSenasirController extends Controller
         $data_count['sum_amount_total_aid_contribution'] = isset($query_sum_amount[0]->amount_total) ? floatval($query_sum_amount[0]->amount_total):0;
 
         return  $data_count;
+    }
+    /**
+     * @OA\Post(
+     *      path="/api/contribution/import_create_or_update_contribution_period_senasir",
+     *      tags={"CONTRIBUCION-IMPORT-SENASIR"},
+     *      summary="PASO 3 IMPORTACIÓN REGISTRO O ACTUALIZACIÓN DE DATOS DE CONTRIBUCION SENASIR",
+     *      operationId="import_create_or_update_contribution_period_senasir",
+     *      description="Creacion o actualizacion de aid_contributions y registro de la tabla tmp_registration_aid_contributions de contribuciones actualizadas",
+     *      @OA\RequestBody(
+     *          description= "Provide auth credentials",
+     *          required=true,
+     *          @OA\JsonContent(
+     *              type="object",
+     *              @OA\Property(property="period_contribution_senasir", type="string",description="fecha de planilla required",example= "2021-10-01")
+     *            )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     },
+     *      @OA\Response(
+     *          response=200,
+     *          description="Success",
+     *          @OA\JsonContent(
+     *            type="object"
+     *         )
+     *      )
+     * )
+     *
+     * Logs user into the system.
+     *
+     * @param Request $request
+     * @return void
+    */
+    public function import_create_or_update_contribution_period_senasir(Request $request){
+        $request->validate([
+        'period_contribution_senasir' => 'required|date_format:"Y-m-d"',
+        ]);
+        $user_id = Auth::user()->id;
+        $successfully = false;
+        $period_contribution_senasir = Carbon::parse($request->period_contribution_senasir);
+        $year = (int)$period_contribution_senasir->format("Y");
+        $month = (int)$period_contribution_senasir->format("m");
+        $count_registered = "select count(*) from payroll_validated_senasirs where a_o = $year::INTEGER and mes = $month::INTEGER ";
+        $count_registered = DB::select($count_registered)[0]->count;
+        if((int)$count_registered == 0){
+            return response()->json([
+                'message' => "Error al realizar la importacion, el periodo ya fue importado.",
+                'payload' => [
+                    'successfully' => $successfully
+                ],
+            ]);
+        }else{
+            $query ="select import_period_contribution_senasir('$request->period_contribution_senasir',$user_id,$year,$month)";
+            $query = DB::select($query);
+            $count_updated = "select count(*) from tmp_registration_aid_contributions where month_year = $period_contribution_senasir";
+            $count_updated = DB::select($count_updated)[0]->count;
+            $count_created =  $count_registered - $count_updated;
+            $successfully = true;
+            return response()->json([
+                'message' => "Realizado con exito!",
+                'payload' => [
+                    'successfully' => $successfully,
+                    'num_created' => $count_created,
+                    'num_updated' => $count_updated,
+                    'num_total' => $count_registered
+                ],
+            ]);
+        }
     }
 
 }

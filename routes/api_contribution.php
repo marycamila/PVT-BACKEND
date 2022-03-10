@@ -18,7 +18,7 @@ Route::group([
         Route::post('/format_payroll_data_type_command', [App\Http\Controllers\Contribution\ImportPayrollCommandController::class, 'format_payroll_data_type_command']);
         Route::post('/update_base_wages', [App\Http\Controllers\Contribution\ImportPayrollCommandController::class, 'update_base_wages']);
         Route::post('/upload_copy_payroll_senasir', [App\Http\Controllers\Contribution\ImportPayrollSenasirController::class, 'upload_copy_payroll_senasir']);
-        Route::post('/validation_aid_contribution_affiliate_payroll_senasir', [App\Http\Controllers\Contribution\ImportPayrollSenasirController::class, 'validation_aid_contribution_affiliate_payroll_senasir']);
+        Route::post('/validation_payroll_senasir', [App\Http\Controllers\Contribution\ImportPayrollSenasirController::class, 'validation_payroll_senasir']);
         Route::post('/download_fail_validated_senasir', [App\Http\Controllers\Contribution\ImportPayrollSenasirController::class, 'download_fail_validated_senasir']);
         Route::get('/list_senasir_years', [App\Http\Controllers\Contribution\ImportPayrollSenasirController::class, 'list_senasir_years']);
         Route::post('/list_months_import_senasir_contribution', [App\Http\Controllers\Contribution\ImportContributionSenasirController::class, 'list_months_import_senasir_contribution']);

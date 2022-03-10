@@ -432,82 +432,6 @@ class ImportPayrollSenasirController extends Controller
                 ],
             ]);
      }
-          /**
-     * @OA\Post(
-     *      path="/api/contribution/list_senasir_months",
-     *      tags={"CONTRIBUCION-IMPORT-SENASIR"},
-     *      summary="LISTA LOS MESES QUE SE REALIZARON IMPORTACIONES DE TIPO SENASIR EN BASE A UN AÑO DADO EJ:2021",
-     *      operationId="list_senasir_months",
-     *      description="Lista los meses importados en la tabla aid_contributions enviando como parametro un año en especifico",
-     *      @OA\RequestBody(
-     *          description= "Provide auth credentials",
-     *          required=true,
-     *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
-     *             @OA\Property(property="period_year", type="integer",description="Año de contribucion a listar",example= "2021")
-     *            )
-     *          ),
-     *     ),
-     *     security={
-     *         {"bearerAuth": {}}
-     *     },
-     *      @OA\Response(
-     *          response=200,
-     *          description="Success",
-     *          @OA\JsonContent(
-     *            type="object"
-     *         )
-     *      )
-     * )
-     *
-     * Logs user into the system.
-     *
-     * @param Request $request
-     * @return void
-    */
-    public function list_senasir_months(Request $request)
-     {
-        $request->validate([
-            'period_year' => 'required|date_format:"Y"',
-        ]);
-         $period_year = $request->get('period_year');
-         $list_senasir_months =[];
-
-         $query_origin_senasir = "SELECT id from contribution_origins where name like 'senasir'";
-         $query_origin_senasir = DB::select($query_origin_senasir);
-
-         if($query_origin_senasir != []) $id_origin_senasir =$query_origin_senasir[0]->id;
-         else $id_origin_senasir = 1;//en caso que cambie el nombre senasir de la tabla contribution origin
-
-         $query = "SELECT period_month, to_char(month_y, 'TMMonth') as period_month_name
-         from (select to_date(month_year, 'YYYY/MM/DD') as month_y,extract(year from periods.month_year::timestamp) as period_year, extract(month from periods.month_year::timestamp) as period_month
-         from (select month_year ,count(*) from  aid_contributions ac  where ac.deleted_at is null and ac.contribution_origin_id = $id_origin_senasir group by month_year ) as periods) as period_months
-         where period_months.period_year = $period_year
-         order by period_months.period_month";
-         $query = DB::select($query);
-
-         $query_months = "select id as period_month ,name  as period_month_name from months order by id asc";
-         $query_months = DB::select($query_months);
-
-         foreach ($query_months as $month) {
-            $month->state_importation = false;
-            foreach ($query as $month_contribution) {
-                if($month->period_month_name == $month_contribution->period_month_name){
-                    $month->state_importation = true;
-                    break;
-                }
-            }
-            $date_payroll_format = Carbon::parse($period_year.'-'.$month->period_month.'-'.'01')->toDateString();
-            $month->data_count = $this->data_count($month->period_month,$period_year,$date_payroll_format);
-         }
-
-         return response()->json([
-            'message' => "Exito",
-            'payload' => [
-                'list_senasir_months' =>  $query_months,
-                'count_senasir_months' =>  count($query)
-            ],
-        ]);
-     }
 
     /**
      * @OA\Post(
@@ -814,8 +738,8 @@ class ImportPayrollSenasirController extends Controller
             /**
      * @OA\Post(
      *      path="/api/contribution/list_months_validate_senasir",
-     *      tags={"CONTRIBUCION-IMPORT-SENASIR"},
-     *      summary="LISTA LOS MESES QUE SE REALIZARON IMPORTACIONES DE TIPO SENASIR EN BASE A UN AÑO DADO EJ:2021",
+     *      tags={"IMPORT-PAYROLL-SENASIR"},
+     *      summary="LISTA LOS MESES QUE SE REALIZARON IMPORTACIONES PLANILLA DE TIPO SENASIR EN BASE A UN AÑO DADO EJ:2021",
      *      operationId="list_months_validate_senasir",
      *      description="Lista los meses importados en la tabla payroll_copy_senasirs enviando como parametro un año en especifico",
      *      @OA\RequestBody(

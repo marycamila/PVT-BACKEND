@@ -34,14 +34,14 @@ class CreateFunctionUpdateOrCreateSpouseAndUpdateAffiliate extends Migration
                       registration = pvs.mat_dh,
                       updated_at = (select current_timestamp)
                       FROM (SELECT * FROM payroll_validated_senasirs WHERE id = payroll_validated_senasir_id) AS pvs
-                      WHERE spouses.affiliate_id = 8480 and (spouses.registration in ('','0') or spouses.registration is null);      
+                      WHERE spouses.affiliate_id = affiliate and (spouses.registration in ('','0') or spouses.registration is null);
 
                       UPDATE public.spouses
                       SET user_id = user_reg,
                       birth_date = pvs.fecha_nacimiento,
                       updated_at = (select current_timestamp)
                       FROM (SELECT * FROM payroll_validated_senasirs WHERE id = payroll_validated_senasir_id) AS pvs
-                      WHERE spouses.affiliate_id = affiliate and (spouses.birth_date = '' or spouses.birth_date is null);
+                      WHERE spouses.affiliate_id = affiliate and spouses.birth_date is null;
 
                 else
                 message:=  'crear esposa';
@@ -57,13 +57,13 @@ class CreateFunctionUpdateOrCreateSpouseAndUpdateAffiliate extends Migration
                date_death = pvs.fec_fail_tit,
                updated_at = (select current_timestamp)
                FROM (SELECT * FROM payroll_validated_senasirs WHERE id = payroll_validated_senasir_id) AS pvs
-               WHERE affiliates.id = affiliate and (affiliates.date_death = '' or affiliates.date_death is null);
+               WHERE affiliates.id = affiliate and affiliates.date_death is null;
 
                UPDATE public.affiliates
                SET user_id = user_reg,
                affiliate_state_id = id_affiliate_state,
                updated_at = (select current_timestamp)
-               WHERE affiliates.id = affiliate and (affiliates.affiliate_state_id = '' or affiliates.affiliate_state_id is null);
+               WHERE affiliates.id = affiliate and  affiliates.affiliate_state_id is null;
 
             else
             message:=  'Se actualiza afiliado';
@@ -71,14 +71,14 @@ class CreateFunctionUpdateOrCreateSpouseAndUpdateAffiliate extends Migration
                SET user_id = user_reg,
                birth_date = pvs.fecha_nacimiento, updated_at = (select current_timestamp)
                FROM (SELECT * FROM payroll_validated_senasirs WHERE id = payroll_validated_senasir_id) AS pvs
-               WHERE affiliates.id = affiliate and (affiliates.birth_date = '' or affiliates.birth_date is null);
+               WHERE affiliates.id = affiliate and affiliates.birth_date is null;
 
            end if;
                UPDATE affiliates
                SET user_id = user_reg,
                pension_entity_id = id_pension_entity,
                updated_at = (select current_timestamp)
-               WHERE affiliates.id = affiliate and (affiliates.pension_entity_id = '' or affiliates.pension_entity_id is null);
+               WHERE affiliates.id = affiliate and  affiliates.pension_entity_id is null;
 
             return  message;
         end

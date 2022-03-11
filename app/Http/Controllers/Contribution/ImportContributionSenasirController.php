@@ -161,15 +161,17 @@ class ImportContributionSenasirController extends Controller
         $request->validate([
         'period_contribution_senasir' => 'required|date_format:"Y-m-d"',
         ]);
+     try{
+            DB::beginTransaction();
         $user_id = Auth::user()->id;
         $successfully = false;
         $contribution_origin_id = ContributionOrigin::where('name','=','senasir')->first()->id;
         $period_contribution_senasir = Carbon::parse($request->period_contribution_senasir);
         $year = (int)$period_contribution_senasir->format("Y");
         $month = (int)$period_contribution_senasir->format("m");
-        $count_regist = "select count(*) from aid_contributions ac where  month_year = '$request->period_contribution_senasir' and contribution_origin_id =$contribution_origin_id and aid_contributionsable_type ='payroll_validated_senasirs';";
-        $count_regist = DB::select($count_regist)[0]->count;
-        if((int)$count_regist > 0){
+        $count_registered = "select count(*) from aid_contributions where  month_year = '$request->period_contribution_senasir' and contribution_origin_id =$contribution_origin_id and aid_contributionsable_type ='payroll_validated_senasirs';";
+        $count_registered = DB::select($count_registered)[0]->count;
+        if((int)$count_registered > 0){
             return response()->json([
                 'message' => "Error al realizar la importacion, el periodo ya fue importado.",
                 'payload' => [
@@ -177,12 +179,13 @@ class ImportContributionSenasirController extends Controller
                 ],
             ]);
         }else{
-            $count_registered = "select count(*) from aid_contributions ac where  month_year = '$request->period_contribution_senasir' and contribution_origin_id =$contribution_origin_id and aid_contributionsable_type ='payroll_validated_senasirs';";
-            $count_registered = DB::select($count_regist)[0]->count;
             $query ="select import_period_contribution_senasir('$request->period_contribution_senasir',$user_id,$year,$month)";
             $query = DB::select($query);
             $count_updated = "select count(*) from tmp_registration_aid_contributions where month_year = '$request->period_contribution_senasir';";
             $count_updated = DB::select($count_updated)[0]->count;
+            $count_registered = "select count(*) from aid_contributions where  month_year = '$request->period_contribution_senasir' and contribution_origin_id =$contribution_origin_id and aid_contributionsable_type ='payroll_validated_senasirs';";
+            $count_registered = DB::select($count_registered)[0]->count;
+            DB::commit();
             $count_created =  $count_registered - $count_updated;
             $successfully = true;
             return response()->json([
@@ -195,6 +198,16 @@ class ImportContributionSenasirController extends Controller
                 ],
             ]);
         }
+     }catch(Exception $e){
+        DB::rollBack();
+        return response()->json([
+            'message' => 'Error al realizar la importacion',
+            'payload' => [
+                'successfully' => false,
+                'error' => $e->getMessage(),
+            ],
+        ]);
+     }
     }
 
 }

@@ -11,13 +11,14 @@ use Illuminate\Support\Facades\DB;
 use Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ArchivoPrimarioExport;
+use App\Helpers\Util;
 
 class ImportPayrollSenasirController extends Controller
 {
     /**
      * @OA\Post(
      *      path="/api/contribution/upload_copy_payroll_senasir",
-     *      tags={"IMPORT-PAYROLL-SENASIR"},
+     *      tags={"IMPORTACION-PLANILLA-SENASIR"},
      *      summary="PASO 1 COPIADO DE DATOS PLANILLA SENASIR",
      *      operationId="upload_copy_payroll_senasir",
      *      description="Copiado de datos del archivo de planillas senasir a la tabla aid_contribution_copy_payroll_senasir",
@@ -126,7 +127,7 @@ class ImportPayrollSenasirController extends Controller
      /**
      * @OA\Post(
      *      path="/api/contribution/validation_payroll_senasir",
-     *      tags={"IMPORT-PAYROLL-SENASIR"},
+     *      tags={"IMPORTACION-PLANILLA-SENASIR"},
      *      summary="PASO 2 VALIDACION DE DATOS DE TITULARES SENASIR",
      *      operationId="validation_aid_contribution_affiliate_payroll_senasir",
      *      description="validacion de datos de titulares senasir a la tabla validation_aid_contribution_affiliate_payroll_senasir",
@@ -174,11 +175,12 @@ class ImportPayrollSenasirController extends Controller
             $month = (int)$date_payroll->format("m");
             $last_date = Carbon::parse($year.'-'.$month)->toDateString();
             $num_data_no_validated = 0;
+            $connection_db_aux = Util::connection_db_aux();
 
             if($this->exists_data_payroll_copy_senasirs($month,$year)){
                 if(!$this->exists_data_payroll_validated_senasirs($month,$year)){
 
-                    $query = "select registration_payroll_validated_senasir('dbname=platform_auxiliar_2 port=5432 host=192.168.2.242 user=admin password=admin',2,2022);";
+                    $query = "select registration_payroll_validated_senasir('$connection_db_aux','$month','$year');";
                     $data_validated = DB::select($query);
 
                         if($data_validated[0]->registration_payroll_validated_senasir > 0){
@@ -245,7 +247,7 @@ class ImportPayrollSenasirController extends Controller
          /**
      * @OA\Post(
      *      path="/api/contribution/download_fail_not_found_payroll_senasir",
-     *      tags={"IMPORT-PAYROLL-SENASIR"},
+     *      tags={"IMPORTACION-PLANILLA-SENASIR"},
      *      summary="DESCARGA DE ARCHIVO DE NO ENCONTRADOS DEL PASO 2 DE VALIDACION DE DATOS AFILIADO TITULAR ",
      *      operationId="download_fail_not_found_payroll_senasir",
      *      description="Descarga el archivo de falla del paso 2 de validacion de datos del afiliado titular",
@@ -295,7 +297,7 @@ class ImportPayrollSenasirController extends Controller
             }
         }
     // -------------metodo para verificar si existe datos en el paso 2 -----//
-    public function exists_data_payroll_validated_senasirs($mes,$a_o){
+    public static function exists_data_payroll_validated_senasirs($mes,$a_o){
         $month = $mes;
         $year = $a_o;
         $exists_data = true;
@@ -400,26 +402,18 @@ class ImportPayrollSenasirController extends Controller
     */
     public function list_senasir_years()
      {
-            $start_year = 1980;
-            $end_year =Carbon::now()->format('Y');
-            $list_senasir_years =[];
-            while ($end_year >= $start_year) {
-                array_push($list_senasir_years, $start_year);
-                $start_year++;
-            }
-
-            return response()->json([
-                'message' => "Exito",
-                'payload' => [
-                    'list_senasir_years' =>  $list_senasir_years
-                ],
-            ]);
+        return response()->json([
+            'message' => "Exito",
+            'payload' => [
+                'list_years' =>  Util::list_years(1997)
+            ],
+        ]);
      }
 
     /**
      * @OA\Post(
      *      path="/api/contribution/rollback_payroll_copy_senasir",
-     *      tags={"IMPORT-PAYROLL-SENASIR"},
+     *      tags={"IMPORTACION-PLANILLA-SENASIR"},
      *      summary="REHACER LOS PASOS DE PASO 1 Y 2 IMPORTACION SENASIR",
      *      operationId="rollback_payroll_copy_senasir",
      *      description="Para rehacer paso 1 y paso 2 de la importacion senasir",
@@ -495,7 +489,7 @@ class ImportPayrollSenasirController extends Controller
      /**
      * @OA\Post(
      *      path="/api/contribution/import_payroll_senasir_progress_bar",
-     *      tags={"IMPORT-PAYROLL-SENASIR"},
+     *      tags={"IMPORTACION-PLANILLA-SENASIR"},
      *      summary="INFORMACION DE PROGRESO DE IMPORTACION SENASIR",
      *      operationId="import_payroll_senasir_progress_bar",
      *      description="Muestra la informacion de la importación de senasir  (-1)Si exixtio al gun error en algun paso, (100)Si todo fue exitoso, (30-60)Paso 1 y 2 (0)si esta iniciando la importación",
@@ -585,65 +579,10 @@ class ImportPayrollSenasirController extends Controller
             ],
         ]);
     }
-
-    public function data_count($mes,$a_o,$date_payroll_format){
-        $month = $mes;
-        $year = $a_o;
-        $data_count['num_total_data_copy'] = 0;
-        $data_count['num_data_not_considered'] = 0;
-        $data_count['num_data_considered'] = 0;
-        $data_count['num_data_validated'] = 0;
-        $data_count['num_data_not_validated'] = 0;
-        $data_count['num_total_data_aid_contributions'] = 0;
-        $data_count['sum_amount_total_aid_contribution'] = 0;
-
-        $query_origin_senasir = "SELECT id from contribution_origins where name like 'senasir'";
-        $query_origin_senasir = DB::select($query_origin_senasir);
-        if($query_origin_senasir != []) $id_origin_senasir =$query_origin_senasir[0]->id;
-        else $id_origin_senasir = 1;//en caso que cambie el nombre senasir de la tabla contribution origin
-
-        //---TOTAL DE DATOS DEL ARCHIVO
-        $query_total_data = "SELECT * FROM aid_contribution_copy_payroll_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER;";
-        $query_total_data = DB::select($query_total_data);
-        $data_count['num_total_data_copy'] = count($query_total_data);
-
-        //---NUMERO DE DATOS NO CONSIDERADOs
-        $query_data_not_considered = "SELECT * FROM aid_contribution_copy_payroll_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER and clase_renta like 'ORFANDAD%';";
-        $query_data_not_considered = DB::select($query_data_not_considered);
-        $data_count['num_data_not_considered'] = count($query_data_not_considered);
-
-        //---NUMERO DE DATOS CONSIDERADOS
-        $query_data_considered = "SELECT * FROM aid_contribution_copy_payroll_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER and clase_renta not like 'ORFANDAD%';";
-        $query_data_considered = DB::select($query_data_considered);
-        $data_count['num_data_considered'] = count($query_data_considered);
-
-        //---NUMERO DE DATOS VALIDADOS
-        $query_data_validated = "SELECT * FROM aid_contribution_affiliate_payroll_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER;";
-        $query_data_validated = DB::select($query_data_validated);
-        $data_count['num_data_validated'] = count($query_data_validated);
-
-        //---NUMERO DE DATOS NO VALIDADOS
-        $data_count['num_data_not_validated'] = $data_count['num_data_considered'] - $data_count['num_data_validated'];
-
-        //---TOTAL DE REGISTROS AID_CONTRIBUTIONS
-        $query_data_aid_contributions = "SELECT id from aid_contributions ac
-        where month_year = '$date_payroll_format' and ac.contribution_origin_id = $id_origin_senasir and ac.deleted_at is null";
-        $query_data_aid_contributions = DB::select($query_data_aid_contributions);
-        $data_count['num_total_data_aid_contributions'] = count($query_data_aid_contributions);
-
-        //---suma monto total contribucion
-        $query_sum_amount = "SELECT sum(ac.total) as amount_total from aid_contributions ac
-        where month_year = '$date_payroll_format' and ac.contribution_origin_id = $id_origin_senasir and ac.deleted_at is null";
-        $query_sum_amount = DB::select($query_sum_amount);
-        $data_count['sum_amount_total_aid_contribution'] = isset($query_sum_amount[0]->amount_total) ? floatval($query_sum_amount[0]->amount_total):0;
-
-        return  $data_count;
-    }
-
-            /**
+/**
      * @OA\Post(
      *      path="/api/contribution/list_months_validate_senasir",
-     *      tags={"IMPORT-PAYROLL-SENASIR"},
+     *      tags={"IMPORTACION-PLANILLA-SENASIR"},
      *      summary="LISTA LOS MESES QUE SE REALIZARON IMPORTACIONES PLANILLA DE TIPO SENASIR EN BASE A UN AÑO DADO EJ:2021",
      *      operationId="list_months_validate_senasir",
      *      description="Lista los meses importados en la tabla payroll_copy_senasirs enviando como parametro un año en especifico",

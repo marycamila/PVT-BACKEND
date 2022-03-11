@@ -13,7 +13,7 @@ class TmpCopyDataSenasirController extends Controller
 {   /**
     * @OA\Post(
     *      path="/api/temporary/upload_copy_affiliate_spouse_senasir",
-    *      tags={"AFFILIATE-IMPORT-SENASIR"},
+    *      tags={"IMPORTACION-IDS-PERSONAS-SENASIR"},
     *      summary="PASO 1 COPIADO DE DATOS DE AFFILIADOS Y ESPOSAS SENASIR",
     *      operationId="upload_copy_affiliate_spouse_senasir",
     *      description="Copiado de datos del archivo de afiliados senasir a la tabla tmp_copy_data_senasirs",
@@ -113,7 +113,7 @@ class TmpCopyDataSenasirController extends Controller
     /**
     * @OA\Post(
     *      path="/api/temporary/data_senasir_type_spouses",
-    *      tags={"AFFILIATE-IMPORT-SENASIR"},
+    *      tags={"IMPORTACION-IDS-PERSONAS-SENASIR"},
     *      summary="PASO 2 COPIADO DE ID DE PERSONAS SENASIR DE TIPO VIUDEDAD Y CREACION DE AFILIADOS",
     *      operationId="data_senasir_type_spouses",
     *      description="Importacion de afiliados y data de senasir ",
@@ -173,7 +173,7 @@ class TmpCopyDataSenasirController extends Controller
     /**
     * @OA\Post(
     *      path="/api/temporary/data_senasir_type_affiliate",
-    *      tags={"AFFILIATE-IMPORT-SENASIR"},
+    *      tags={"IMPORTACION-IDS-PERSONAS-SENASIR"},
     *      summary="PASO 2 COPIADO DE ID DE PERSONAS SENASIR DE TIPO VEJEZ Y CREACION DE AFILIADOS",
     *      operationId="data_senasir_type_affiliate",
     *      description="Importacion de afiliados y data de senasir ",

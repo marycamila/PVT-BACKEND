@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Http\Controllers\Contribution\ImportPayrollSenasirController;
 use App\Models\Contribution\ContributionOrigin;
 use Auth;
 
@@ -16,7 +17,7 @@ class ImportContributionSenasirController extends Controller
       /**
      * @OA\Post(
      *      path="/api/contribution/list_months_import_contribution_senasir",
-     *      tags={"CONTRIBUCION-IMPORT-SENASIR"},
+     *      tags={"IMPORTACION-APORTES-SENASIR"},
      *      summary="LISTA LOS MESES QUE SE REALIZARON IMPORTACIONES A LA TABLA AID_CONTRIBUTION SENASIR EN BASE A UN AÑO DADO EJ:2021",
      *      operationId="list_senasir_months",
      *      description="Lista los meses importados en la tabla aid_contributions enviando como parametro un año en especifico",
@@ -72,6 +73,7 @@ class ImportContributionSenasirController extends Controller
                     break;
                 }
             }
+            $month->state_validated_payroll = ImportPayrollSenasirController::exists_data_payroll_validated_senasirs($month->period_month,$period_year);
             $date_payroll_format = Carbon::parse($period_year.'-'.$month->period_month.'-'.'01')->toDateString();
             $month->data_count = $this->data_count($month->period_month,$period_year,$date_payroll_format);
          }
@@ -88,6 +90,8 @@ class ImportContributionSenasirController extends Controller
      public function data_count($mes,$a_o,$date_payroll_format){
         $month = $mes;
         $year = $a_o;
+        $data_count['num_total_data_copy'] = 0;
+        $data_count['num_data_not_considered'] = 0;
         $data_count['num_data_considered'] = 0;
         $data_count['num_data_validated'] = 0;
         $data_count['num_data_not_validated'] = 0;
@@ -98,6 +102,16 @@ class ImportContributionSenasirController extends Controller
         $query_origin_senasir = DB::select($query_origin_senasir);
         if($query_origin_senasir != []) $id_origin_senasir =$query_origin_senasir[0]->id;
         else $id_origin_senasir = 1;//en caso que cambie el nombre senasir de la tabla contribution origin
+
+        //---TOTAL DE DATOS DEL ARCHIVO
+        $query_total_data = "SELECT * FROM payroll_copy_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER;";
+        $query_total_data = DB::connection('db_aux')->select($query_total_data);
+        $data_count['num_total_data_copy'] = count($query_total_data);
+
+        //---NUMERO DE DATOS NO CONSIDERADOs
+        $query_data_not_considered = "SELECT * FROM payroll_copy_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER and clase_renta like 'ORFANDAD%';";
+        $query_data_not_considered = DB::connection('db_aux')->select($query_data_not_considered);
+        $data_count['num_data_not_considered'] = count($query_data_not_considered);
 
         //---NUMERO DE DATOS CONSIDERADOS
         $query_data_considered = "SELECT * FROM payroll_copy_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER and clase_renta not like 'ORFANDAD%';";
@@ -128,7 +142,7 @@ class ImportContributionSenasirController extends Controller
     /**
      * @OA\Post(
      *      path="/api/contribution/import_create_or_update_contribution_period_senasir",
-     *      tags={"CONTRIBUCION-IMPORT-SENASIR"},
+     *      tags={"IMPORTACION-APORTES-SENASIR"},
      *      summary="PASO 3 IMPORTACIÓN REGISTRO O ACTUALIZACIÓN DE DATOS DE CONTRIBUCION SENASIR",
      *      operationId="import_create_or_update_contribution_period_senasir",
      *      description="Creacion o actualizacion de aid_contributions y registro de la tabla tmp_registration_aid_contributions de contribuciones actualizadas",

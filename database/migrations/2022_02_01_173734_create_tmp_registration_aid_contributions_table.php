@@ -19,6 +19,7 @@ class CreateTmpRegistrationAidContributionsTable extends Migration
             $table->integer('user_id')->comment('Usuario');
             $table->integer('affiliate_id')->comment('Afiliado');
             $table->string('month_year')->comment('Perido');
+            $table->unique(['affiliate_id', 'month_year']);
             $table->decimal('quotable', 13, 2)->comment('cotizable');
             $table->decimal('rent', 13, 2)->comment('Liquido Pagable');
             $table->decimal('dignity_rent', 13, 2)->comment('Renta Digniodad');

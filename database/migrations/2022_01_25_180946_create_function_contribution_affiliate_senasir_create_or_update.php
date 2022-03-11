@@ -33,7 +33,7 @@ class CreateFunctionContributionAffiliateSenasirCreateOrUpdate extends Migration
 
                -- Creacion de un nuevo registro
                    INSERT INTO public.aid_contributions (user_id, affiliate_id, month_year, quotable, rent, dignity_rent, interest, total, created_at, contribution_origin_id,affiliate_rent_class,valid, aid_contributionsable_type, aid_contributionsable_id)
-                   SELECT user_reg as user_id, pvs.affiliate_id,year_copy as month_year, (pvs.liquido_pagable-pvs.renta_dignidad) as quotable, pvs.liquido_pagable as rent,pvs.renta_dignidad as dignity_rent, 0 as interest, pvs.descuento_muserpol as total,(select current_timestamp as created_at), id_contribution_origin as contribution_origin_id, CASE clase_renta
+                   SELECT user_reg as user_id, pvs.affiliate_id,year_copy as month_year, (pvs.liquido_pagable-pvs.renta_dignidad) as quotable, pvs.liquido_pagable as rent,pvs.renta_dignidad as dignity_rent, 0 as interest, pvs.descuento_aporte_muserpol as total,(select current_timestamp as created_at), id_contribution_origin as contribution_origin_id, CASE clase_renta
                         when 'VIUDEDAD' then 'VIUDEDAD'
                         else 'VEJEZ'
                         end
@@ -51,7 +51,7 @@ class CreateFunctionContributionAffiliateSenasirCreateOrUpdate extends Migration
                quotable = pvs.liquido_pagable-pvs.renta_dignidad,
                rent = pvs.liquido_pagable,
                dignity_rent= pvs.renta_dignidad,
-               total = pvs.descuento_muserpol,
+               total = pvs.descuento_aporte_muserpol,
                contribution_origin_id = id_contribution_origin,
                updated_at = (select current_timestamp),
                affiliate_rent_class = CASE pvs.clase_renta

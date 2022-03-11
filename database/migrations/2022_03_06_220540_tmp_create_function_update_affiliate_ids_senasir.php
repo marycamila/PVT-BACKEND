@@ -29,7 +29,7 @@ class TmpCreateFunctionUpdateAffiliateIdsSenasir extends Migration
 
 		begin
 	   			--************************************************************************************
-                --Funcion importar planilla por periodo
+                --Funcion actualizacion de ids y creacion de afiliados
                 --************************************************************************************
              -- Procesa el cursor
              FOR registro IN cur_contribution loop

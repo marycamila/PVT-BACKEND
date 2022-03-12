@@ -2,6 +2,7 @@
 
 namespace App\Helpers;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class Util
 {
@@ -46,4 +47,27 @@ class Util
         $close_conection_aux= DB::connection($db_connection)->select("SELECT dblink_disconnect('$db_connection_name_dblink_aux');");
         return $close_conection_aux;
     }
+
+    public static function list_years($start_year)
+    {
+        $end_year =Carbon::now()->format('Y');
+           $list_years =[];
+           while ($start_year <= $end_year  ) {
+               array_push($list_years, (int)$end_year);
+               $end_year--;
+           }
+           return $list_years;
+    }
+
+    public static function connection_db_aux()
+    {
+        $dbname_input = ENV('DB_DATABASE_AUX');
+        $port_input = ENV('DB_PORT_AUX');
+        $host_input = ENV('DB_HOST_AUX');
+        $user_input = ENV('DB_USERNAME_AUX');
+        $password_input = ENV('DB_PASSWORD_AUX');
+
+        return "dbname=$dbname_input port=$port_input host=$host_input user=$user_input password=$password_input";
+    }
+
 }

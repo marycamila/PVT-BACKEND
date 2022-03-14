@@ -183,7 +183,7 @@ class ImportContributionSenasirController extends Controller
         $period_contribution_senasir = Carbon::parse($request->period_contribution_senasir);
         $year = (int)$period_contribution_senasir->format("Y");
         $month = (int)$period_contribution_senasir->format("m");
-        $count_registered = "select count(*) from aid_contributions where  month_year = '$request->period_contribution_senasir' and contribution_origin_id =$contribution_origin_id and aid_contributionsable_type ='payroll_validated_senasirs';";
+        $count_registered = "select count(*) from aid_contributions where  month_year = '$request->period_contribution_senasir' and contribution_origin_id =$contribution_origin_id and aid_contributionable_type ='payroll_validated_senasirs';";
         $count_registered = DB::select($count_registered)[0]->count;
         if((int)$count_registered > 0){
             return response()->json([
@@ -197,7 +197,7 @@ class ImportContributionSenasirController extends Controller
             $query = DB::select($query);
             $count_updated = "select count(*) from tmp_registration_aid_contributions where month_year = '$request->period_contribution_senasir';";
             $count_updated = DB::select($count_updated)[0]->count;
-            $count_registered = "select count(*) from aid_contributions where  month_year = '$request->period_contribution_senasir' and contribution_origin_id =$contribution_origin_id and aid_contributionsable_type ='payroll_validated_senasirs';";
+            $count_registered = "select count(*) from aid_contributions where  month_year = '$request->period_contribution_senasir' and contribution_origin_id =$contribution_origin_id and aid_contributionable_type ='payroll_validated_senasirs';";
             $count_registered = DB::select($count_registered)[0]->count;
             DB::commit();
             $count_created =  $count_registered - $count_updated;

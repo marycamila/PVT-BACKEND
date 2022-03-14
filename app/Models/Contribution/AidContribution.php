@@ -26,8 +26,8 @@ class AidContribution extends Model
         'valid',
         'contribution_origin_id',
         'affiliate_rent_class',
-        'aid_contributionsable_type',
-        'aid_contributionsable_id'
+        'aid_contributionable_type',
+        'aid_contributionable_id'
 
     ];
     public function affiliate()
@@ -38,7 +38,7 @@ class AidContribution extends Model
     public function user(){
         return $this->hasOne(User::class,'id','id');
     }
-    public function aid_contributionsable()
+    public function aid_contributionable()
     {
         return $this->morphTo();
     }

@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\Global;
+namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Global\City;
+use App\Models\City;
 
 class CityController extends Controller
 {

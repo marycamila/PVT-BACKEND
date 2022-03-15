@@ -4,6 +4,7 @@ namespace App\Models\Contribution;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Affiliate\Affiliate;
 
 class PayrollValidatedSenasir extends Model
 {
@@ -54,4 +55,9 @@ class PayrollValidatedSenasir extends Model
         'updated_at',
         'deleted_at'
     ];
+
+    public function affiliate()
+    {
+        return $this->belongsTo(Affiliate::class);
+    }
 }

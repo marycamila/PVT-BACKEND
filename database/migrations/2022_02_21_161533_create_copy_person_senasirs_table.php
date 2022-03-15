@@ -30,19 +30,19 @@ class CreateCopyPersonSenasirsTable extends Migration
             $table->date('fec_fail_tit')->nullable()->comment('Fecha de fallecimiento titular');
             $table->string('clase_renta_tit')->comment('Clase de renta');
 
-            $table->string('mat_dh')->nullable()->comment('Matricula derechohabiente');
+            $table->string('matricula_dh')->nullable()->comment('Matricula derechohabiente');
             $table->string('carnet_dh')->nullable()->comment('Carnet numero');
             $table->string('num_com_dh')->nullable()->comment('complemento del numero de carnet');
             $table->string('concat_carnet_num_com_dh')->nullable()->comment('carnet y complemento de carnet concat');
-            $table->string('p_nombre_dh')->comment('Primer nombre');
+            $table->string('p_nombre_dh')->nullable()->comment('Primer nombre');
             $table->string('s_nombre_dh')->nullable()->comment('Segundo nombre');
             $table->string('paterno_dh')->nullable()->comment('Apellido paterno');
             $table->string('materno_dh')->nullable()->comment('Apellido materno');
             $table->string('ap_casada_dh')->nullable()->comment('Apellido de casada');
-            $table->date('fecha_nacimiento_dh')->comment('Fecha de nacimiento');
+            $table->date('fecha_nacimiento_dh')->nullable()->comment('Fecha de nacimiento');
             $table->string('genero_dh')->nullable()->comment('Genero derechohabiente');
             $table->date('fec_fail_dh')->nullable()->comment('Fecha de fallecimiento derechohabiente');
-            $table->string('clase_renta_dh')->comment('Clase de renta');
+            $table->string('clase_renta_dh')->nullable()->comment('Clase de renta');
             $table->enum('state', ['accomplished','unrealized'])->default('unrealized')->comment('Estado si fue encontrado o no encontrado');
             $table->string('observacion')->nullable()->comment('Observacion del registro');
             $table->timestamps();

@@ -9,14 +9,14 @@ use Illuminate\Support\Facades\DB;
 use App\Helpers\Util;
 
 
-class TmpCopyDataSenasirController extends Controller
+class CopyPersonSenasirController extends Controller
 {   /**
     * @OA\Post(
-    *      path="/api/temporary/upload_copy_affiliate_spouse_senasir",
+    *      path="/api/temporary/upload_copy_person_senasir",
     *      tags={"IMPORTACION-IDS-PERSONAS-SENASIR"},
     *      summary="PASO 1 COPIADO DE DATOS DE AFFILIADOS Y ESPOSAS SENASIR",
-    *      operationId="upload_copy_affiliate_spouse_senasir",
-    *      description="Copiado de datos del archivo de afiliados senasir a la tabla tmp_copy_data_senasirs",
+    *      operationId="upload_copy_person_senasir",
+    *      description="Copiado de datos del archivo de afiliados senasir a la tabla copy_person_senasirs",
     *      @OA\RequestBody(
     *          description= "Provide auth credentials",
     *          required=true,
@@ -42,8 +42,8 @@ class TmpCopyDataSenasirController extends Controller
     * @param Request $request
     * @return void
    */
-   //copiado de datos de afiliados y esposas a la tabla tmp_copy_data_senasirs
-    public function upload_copy_affiliate_spouse_senasir(request $request){
+   //copiado de datos de afiliados y esposas a la tabla copy_person_senasir
+    public function upload_copy_person_senasir(request $request){
         $request->validate([
         'file' => 'required'
         ]);
@@ -60,28 +60,27 @@ class TmpCopyDataSenasirController extends Controller
             $base_path = 'afiliados';
             $file_path = Storage::disk('ftp')->putFileAs($base_path,$request->file,$file_name);
             $base_path ='ftp://'.env('FTP_HOST').env('FTP_ROOT').$file_path;
-            $temporary_payroll = "create temporary table tmp_copy_data_senasir_aux(id_person_senasir integer,matricula_titular varchar, mat_dh varchar,
-            carnet varchar, num_com varchar, paterno varchar, materno varchar, p_nombre varchar, s_nombre varchar, ap_casada varchar, fecha_nacimiento date, lugar_nacimiento varchar, clase_renta varchar,
-            pat_titular varchar, mat_titular varchar, p_nom_titular varchar, s_nombre_titular varchar, ap_casada_titular varchar, carnet_tit varchar, num_com_tit varchar, fec_fail_tit date, lugar_nacimiento_tit varchar);";
-            $temporary_payroll = DB::connection('db_aux')->select($temporary_payroll);
+            $temporary_person = "create temporary table tmp_copy_person_senasir_aux(id_person_senasir integer,matricula_tit varchar,carnet_tit varchar,
+            num_com_tit varchar, p_nom_tit varchar, s_nombre_tit varchar, paterno_tit varchar, materno_tit varchar, ap_casada_tit varchar,
+            fecha_nacimiento_tit date, genero_tit varchar, fec_fail_tit date, clase_renta_tit varchar, matricula_dh varchar, carnet_dh varchar, num_com_dh varchar,
+            p_nombre_dh varchar, s_nombre_dh varchar, paterno_dh varchar, materno_dh varchar, ap_casada_dh varchar, fecha_nacimiento_dh date, genero_dh varchar, fec_fail_dh varchar, clase_renta_dh varchar);";
+            $temporary_person = DB::connection('db_aux')->select($temporary_person);
 
-            $copy = "copy tmp_copy_data_senasir_aux(id_person_senasir ,matricula_titular , mat_dh ,
-            carnet , num_com , paterno , materno , p_nombre , s_nombre , ap_casada , fecha_nacimiento , lugar_nacimiento , clase_renta ,
-            pat_titular , mat_titular , p_nom_titular , s_nombre_titular , ap_casada_titular , carnet_tit , num_com_tit , fec_fail_tit , lugar_nacimiento_tit )
+            $copy = "copy tmp_copy_person_senasir_aux(id_person_senasir, matricula_tit, carnet_tit,
+            num_com_tit, p_nom_tit, s_nombre_tit, paterno_tit, materno_tit, ap_casada_tit, fecha_nacimiento_tit, genero_tit, fec_fail_tit, clase_renta_tit, matricula_dh, carnet_dh, num_com_dh,
+            p_nombre_dh, s_nombre_dh, paterno_dh, materno_dh, ap_casada_dh, fecha_nacimiento_dh, genero_dh, fec_fail_dh, clase_renta_dh)
             FROM PROGRAM 'wget -q -O - $@  --user=$username --password=$password $base_path'
                     WITH DELIMITER ':' CSV header;";
             $copy = DB::connection('db_aux')->select($copy);
-            $insert = "INSERT INTO tmp_copy_data_senasirs(id_person_senasir, matricula_titular, mat_dh,
-                        carnet, num_com , concat_carnet_num_com, paterno, materno, p_nombre, s_nombre, ap_casada, fecha_nacimiento, lugar_nacimiento, clase_renta,
-                        pat_titular, mat_titular, p_nom_titular, s_nombre_titular, ap_casada_titular, carnet_tit, num_com_tit, concat_carnet_num_com_tit, fec_fail_tit, lugar_nacimiento_tit,created_at)
-                                   SELECT id_person_senasir, matricula_titular, mat_dh, carnet, num_com ,(select * from dblink('$db_connection_name_dblink','SELECT * FROM concat_identity_card_complement('''||carnet||''','''||carnet||''')'::text) as  uu(concat_carnet_num_com character varying(250))) as concat_carnet_num_com, paterno, materno, p_nombre, s_nombre, ap_casada, fecha_nacimiento, lugar_nacimiento, clase_renta,
-                        pat_titular, mat_titular, p_nom_titular, s_nombre_titular, ap_casada_titular, carnet_tit, num_com_tit,(select * from dblink('$db_connection_name_dblink','SELECT * FROM concat_identity_card_complement('''||carnet_tit||''','''||num_com_tit||''')'::text) as  uu(concat_carnet_num_com character varying(250)))  as concat_carnet_num_com_tit, fec_fail_tit, lugar_nacimiento_tit,current_timestamp  as created_at FROM  tmp_copy_data_senasir_aux;";
+            $insert = "INSERT INTO copy_dat_senasirs(id_person_senasir, matricula_tit, carnet_tit, num_com_tit, concat_carnet_num_com_tit, p_nom_tit, s_nombre_tit, paterno_tit, materno_tit, ap_casada_tit, fecha_nacimiento_tit, genero_tit, fec_fail_tit, clase_renta_tit, matricula_dh, carnet_dh, num_com_dh, concat_carnet_num_com_dh, p_nombre_dh, s_nombre_dh, paterno_dh, materno_dh, ap_casada_dh, fecha_nacimiento_dh, genero_dh, fec_fail_dh, clase_renta_dh, created_at)
+                            SELECT id_person_senasir, matricula_tit, carnet_tit, num_com_tit,(select * from dblink('$db_connection_name_dblink','SELECT * FROM concat_identity_card_complement('''||carnet_tit||''','''||num_com_tit||''')'::text) as  uu(concat_carnet_num_com character varying(250))) as concat_carnet_num_com_tit, p_nom_tit, s_nombre_tit, paterno_tit, s_nombre,materno_tit, ap_casada_tit, fecha_nacimiento_tit, genero_tit,fec_fail_tit, clase_renta_tit,
+                            matricula_dh, carnet_dh, num_com_dh, (select * from dblink('$db_connection_name_dblink','SELECT * FROM concat_identity_card_complement('''||carnet_dh||''','''||num_com_dh||''')'::text) as  uu(concat_carnet_num_com_dh character varying(250)))  as concat_carnet_num_com_dh, p_nombre_dh, s_nombre_dh, paterno_dh, materno_dh, ap_casada_dh, fecha_nacimiento_dh, genero_dh, fec_fail_dh, clase_renta_dh, current_timestamp  as created_at FROM  copy_person_senasir;";
             $insert = DB::connection('db_aux')->select($insert);
-            $drop = "drop table if exists tmp_copy_data_senasir_aux";
+            $drop = "drop table if exists tmp_copy_person_senasir_aux";
             $drop = DB::select($drop);
             Util::close_conection_database_default();
             DB::commit();
-            $consult = "select  count(*) from tmp_copy_data_senasirs";
+            $consult = "select  count(*) from copy_person_senasir";
                         $consult = DB::connection('db_aux')->select($consult)[0]->count;
                         return response()->json([
                             'message' => 'Realizado con exito',
@@ -203,12 +202,14 @@ class TmpCopyDataSenasirController extends Controller
             $db_username_aux= env("DB_USERNAME_AUX");
             $db_password_aux = env("DB_PASSWORD_AUX");
             $insert = "select tmp_update_affiliate_ids_senasir('hostaddr=$db_host_aux port=$db_port_aux dbname=$db_database_aux user=$db_username_aux password=$db_password_aux');";
+           
             $insert = DB::select($insert);
            DB::commit();
           return response()->json([
           'message' => 'Realizado con exito',
           'payload' => [
               'successfully' => true,
+              'insert'=>$insert,
           ],
       ]);
         } catch(Exception $e){

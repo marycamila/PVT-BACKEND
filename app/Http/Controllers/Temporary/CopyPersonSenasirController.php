@@ -111,7 +111,7 @@ class CopyPersonSenasirController extends Controller
     }
     /**
     * @OA\Post(
-    *      path="/api/temporary/data_senasir_type_spouses",
+    *      path="/api/temporary/update_affiliate_id_person_senasir",
     *      tags={"IMPORTACION-IDS-PERSONAS-SENASIR"},
     *      summary="PASO 2 COPIADO DE ID DE PERSONAS SENASIR DE TIPO VIUDEDAD Y CREACION DE AFILIADOS",
     *      operationId="data_senasir_type_spouses",
@@ -134,28 +134,22 @@ class CopyPersonSenasirController extends Controller
     * @return void
    */
 
-    public function data_senasir_type_spouses(Request $request){
+    public function update_affiliate_id_person_senasir(Request $request){
     DB::beginTransaction();
     try{
-        $dbname_input = ENV('DB_DATABASE_AUX');
-        $port_input = ENV('DB_PORT_AUX');
-        $host_input = ENV('DB_HOST_AUX');
-        $user_input = ENV('DB_USERNAME_AUX');
-        $password_input = ENV('DB_PASSWORD_AUX');
+        $connection_db_aux = Util::connection_db_aux();
+        $update_affiliate_id_person_senasir =  DB::select("select tmp_update_affiliate_id_person_senasir('$connection_db_aux')");
 
-        $update_by_registration = DB::select("select tmp_senasir_update_by_registration('dbname=$dbname_input port=$port_input host=$host_input user=$user_input password=$password_input')");
-        $update_by_identity = DB::select("select tmp_senasir_update_by_identity('dbname=$dbname_input port=$port_input host=$host_input user=$user_input password=$password_input')");
-        $update_by_full_name_fail = DB::select("select tmp_senasir_update_by_full_name_fail('dbname=$dbname_input port=$port_input host=$host_input user=$user_input password=$password_input')");
-        $create_affiliates_senasir = DB::select("select tmp_senasir_create_affiliates_senasir('dbname=$dbname_input port=$port_input host=$host_input user=$user_input password=$password_input')");
+        $update_affiliate_id_person_senasir = explode(',',$update_affiliate_id_person_senasir[0]->tmp_update_affiliate_id_person_senasir);
+
         DB::commit();
         return response()->json([
             'message' => 'Realizado con exito',
             'payload' => [
                 'successfully' => true,
-                'update_by_registration' => $update_by_registration[0]->tmp_senasir_update_by_registration,
-                'update_by_identity' => $update_by_identity[0]->tmp_senasir_update_by_identity,
-                'update_by_full_name_fail' => $update_by_full_name_fail[0]->tmp_senasir_update_by_full_name_fail,
-                'create_affiliates_senasir' => $create_affiliates_senasir[0]->tmp_senasir_create_affiliates_senasir
+                'count_update_by_registration' => (int)$update_affiliate_id_person_senasir[0],
+                'count_update_by_identity' => (int)$update_affiliate_id_person_senasir[1],
+                'count_created_affiliate' => (int)$update_affiliate_id_person_senasir[2]
             ],
         ]);
     } catch(Exception $e){
@@ -168,60 +162,6 @@ class CopyPersonSenasirController extends Controller
             ],
         ]);
         }
-    }
-    /**
-    * @OA\Post(
-    *      path="/api/temporary/data_senasir_type_affiliate",
-    *      tags={"IMPORTACION-IDS-PERSONAS-SENASIR"},
-    *      summary="PASO 2 COPIADO DE ID DE PERSONAS SENASIR DE TIPO VEJEZ Y CREACION DE AFILIADOS",
-    *      operationId="data_senasir_type_affiliate",
-    *      description="Importacion de afiliados y data de senasir ",
-    *     security={
-    *         {"bearerAuth": {}}
-    *     },
-    *      @OA\Response(
-    *          response=200,
-    *          description="Success",
-    *          @OA\JsonContent(
-    *            type="object"
-    *         )
-    *      )
-    * )
-    *
-    * Logs user into the system.
-    *
-    * @param Request $request
-    * @return void
-   */
-    public function data_senasir_type_affiliate(){
-        DB::beginTransaction();
-        try{
-            $db_host_aux= env("DB_HOST_AUX");
-            $db_port_aux = env("DB_PORT_AUX");
-            $db_database_aux = env("DB_DATABASE_AUX");
-            $db_username_aux= env("DB_USERNAME_AUX");
-            $db_password_aux = env("DB_PASSWORD_AUX");
-            $insert = "select tmp_update_affiliate_ids_senasir('hostaddr=$db_host_aux port=$db_port_aux dbname=$db_database_aux user=$db_username_aux password=$db_password_aux');";
-           
-            $insert = DB::select($insert);
-           DB::commit();
-          return response()->json([
-          'message' => 'Realizado con exito',
-          'payload' => [
-              'successfully' => true,
-              'insert'=>$insert,
-          ],
-      ]);
-        } catch(Exception $e){
-        DB::rollBack();
-        return response()->json([
-            'message' => 'Error en la importación',
-            'payload' => [
-                'successfully' => false,
-                'error' => $e->getMessage(),
-            ],
-        ]);
-      }
     }
 
 }

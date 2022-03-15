@@ -15,7 +15,7 @@ class PermissionController extends Controller
      *     path="/api/admin/permission",
      *     tags={"PERMISOS"},
      *     summary="LISTADO DE PERMISOS",
-     *     operationId="getUsers",
+     *     operationId="get_permission",
      *     @OA\Parameter(
      *         name="id",
      *         in="query",

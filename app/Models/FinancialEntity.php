@@ -1,16 +1,21 @@
 <?php
 
-namespace App\Models\Affiliate;
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Affiliate\Affiliate;
 
-class PensionEntity extends Model
+class FinancialEntity extends Model
 {
     use HasFactory;
-    public $timestamps = false;
+    public $timestamps = true;
     public $guarded = ['id'];
-    protected $fillable = ['type','name'];
+    protected $fillable = [
+        'name',
+        'created_at',
+        'updated_at'
+    ];
 
     public function affiliates()
     {

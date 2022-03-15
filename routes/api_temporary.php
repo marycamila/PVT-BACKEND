@@ -13,8 +13,7 @@ Route::group([
         'middleware' => ['auth:sanctum']
     ], function () {
         Route::post('upload_copy_person_senasir', [App\Http\Controllers\Temporary\CopyPersonSenasirController::class, 'upload_copy_person_senasir']);
-        Route::post('data_senasir_type_spouses', [App\Http\Controllers\Temporary\CopyPersonSenasirController::class, 'data_senasir_type_spouses']);
-        Route::post('data_senasir_type_affiliate', [App\Http\Controllers\Temporary\CopyPersonSenasirController::class, 'data_senasir_type_affiliate']);
+        Route::post('update_affiliate_id_person_senasir', [App\Http\Controllers\Temporary\CopyPersonSenasirController::class, 'update_affiliate_id_person_senasir']);
     });
 });
 

@@ -20,7 +20,7 @@ class CreateCopyPersonSenasirsTable extends Migration
             $table->string('carnet_tit')->nullable()->comment('Carnet numero titular');
             $table->string('num_com_tit')->nullable()->comment('complemento del numero de carnet titular');
             $table->string('concat_carnet_num_com_tit')->nullable()->comment('carnet y complemento de carnet concat');
-            $table->string('p_nom_tit')->nullable()->comment('Primer nombre titular');
+            $table->string('p_nombre_tit')->nullable()->comment('Primer nombre titular');
             $table->string('s_nombre_tit')->nullable()->comment('Segundo nombre titular');
             $table->string('paterno_tit')->nullable()->comment('Apellido paterno titular');
             $table->string('materno_tit')->nullable()->comment('Apellido materno titular');
@@ -28,7 +28,6 @@ class CreateCopyPersonSenasirsTable extends Migration
             $table->date('fecha_nacimiento_tit')->comment('Fecha de nacimiento');
             $table->string('genero_tit')->nullable()->comment('Genero del titular');
             $table->date('fec_fail_tit')->nullable()->comment('Fecha de fallecimiento titular');
-            $table->string('clase_renta_tit')->comment('Clase de renta');
 
             $table->string('matricula_dh')->nullable()->comment('Matricula derechohabiente');
             $table->string('carnet_dh')->nullable()->comment('Carnet numero');

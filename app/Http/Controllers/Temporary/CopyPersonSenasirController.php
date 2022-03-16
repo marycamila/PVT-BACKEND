@@ -73,8 +73,14 @@ class CopyPersonSenasirController extends Controller
                     WITH DELIMITER ':' CSV header;";
             $copy = DB::connection('db_aux')->select($copy);
             $insert = "INSERT INTO copy_person_senasirs(id_person_senasir, matricula_tit, carnet_tit, num_com_tit, concat_carnet_num_com_tit, p_nombre_tit, s_nombre_tit, paterno_tit, materno_tit, ap_casada_tit, fecha_nacimiento_tit, genero_tit, fec_fail_tit, matricula_dh, carnet_dh, num_com_dh, concat_carnet_num_com_dh, p_nombre_dh, s_nombre_dh, paterno_dh, materno_dh, ap_casada_dh, fecha_nacimiento_dh, genero_dh, fec_fail_dh, clase_renta_dh, created_at)
-                            SELECT id_person_senasir, matricula_tit, carnet_tit, num_com_tit,(select * from dblink('$db_connection_name_dblink','SELECT * FROM concat_identity_card_complement('''||carnet_tit||''','''||num_com_tit||''')'::text) as  uu(concat_carnet_num_com character varying(250))) as concat_carnet_num_com_tit, p_nombre_tit, s_nombre_tit, paterno_tit,materno_tit, ap_casada_tit, fecha_nacimiento_tit, genero_tit,fec_fail_tit,
-                            matricula_dh, carnet_dh, num_com_dh, (select * from dblink('$db_connection_name_dblink','SELECT * FROM concat_identity_card_complement('''||carnet_dh||''','''||num_com_dh||''')'::text) as  uu(concat_carnet_num_com_dh character varying(250)))  as concat_carnet_num_com_dh, p_nombre_dh, s_nombre_dh, paterno_dh, materno_dh, ap_casada_dh, fecha_nacimiento_dh, genero_dh, fec_fail_dh, clase_renta_dh, current_timestamp  as created_at FROM  tmp_copy_person_senasir_aux where id_person_senasir is not null and (clase_renta_dh = 'VIUDEDAD' or clase_renta_dh is null);";
+                            SELECT id_person_senasir, matricula_tit, carnet_tit, num_com_tit,CASE WHEN num_com_tit is null then carnet_tit else (select * from dblink('$db_connection_name_dblink','SELECT * FROM concat_identity_card_complement('''||carnet_tit::varchar||''','''||num_com_tit::varchar||''')'::text) as  uu(concat_carnet_num_com_tit varchar)) end as concat_carnet_num_com_tit, p_nombre_tit, s_nombre_tit, paterno_tit,materno_tit, ap_casada_tit, fecha_nacimiento_tit,CASE genero_tit
+                            when '2' then 'F'
+                            else 'M'
+                            end,fec_fail_tit,
+                            matricula_dh, carnet_dh, num_com_dh,CASE WHEN num_com_dh is null then carnet_dh else (select * from dblink('$db_connection_name_dblink','SELECT * FROM concat_identity_card_complement('''||carnet_dh||''','''||num_com_dh||''')'::text) as  uu(concat_carnet_num_com_dh varchar)) end as concat_carnet_num_com_dh , p_nombre_dh, s_nombre_dh, paterno_dh, materno_dh, ap_casada_dh, fecha_nacimiento_dh,CASE genero_dh
+                            when '2' then 'F'
+                            else 'M'
+                            end , fec_fail_dh, clase_renta_dh, current_timestamp  as created_at FROM  tmp_copy_person_senasir_aux where id_person_senasir is not null and (clase_renta_dh = 'VIUDEDAD' or clase_renta_dh is null);";
             $insert = DB::connection('db_aux')->select($insert);
             $drop = "drop table if exists tmp_copy_person_senasir_aux";
             $drop = DB::select($drop);

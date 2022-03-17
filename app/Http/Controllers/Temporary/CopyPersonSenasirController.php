@@ -149,16 +149,37 @@ class CopyPersonSenasirController extends Controller
 
         $update_affiliate_id_person_senasir = explode(',',$update_affiliate_id_person_senasir[0]->tmp_update_affiliate_id_person_senasir);
 
+        $count_copy_total_senasir = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps")[0]->count;
+        $count_identity_card_cero_senasir = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.concat_carnet_num_com_tit like '0'")[0]->count;
+        $count_unrealized_senasir =  DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion is null  and cps.state like 'unrealized'")[0]->count;
+        $count_update_by_registration = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion like 'ACTUALIZADO_POR_MATRICULA' and cps.state like 'accomplished'")[0]->count;
+        $count_update_by_identity = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion like 'ACTUALIZADO_POR_CARNET' and cps.state like 'accomplished'")[0]->count;
+        $count_created_affiliate =  DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion like 'AFILIADO_CREADO' and cps.state like 'accomplished'")[0]->count;
+        $count_total_affiliates_update = DB::select("select count(*) from affiliates a where a.id_person_senasir is not null")[0]->count;
+
+        $count_total_accomplished_senasir = $count_update_by_registration +  $count_update_by_identity + $count_created_affiliate;
+
+
         DB::commit();
         return response()->json([
             'message' => 'Realizado con exito',
             'payload' => [
                 'successfully' => true,
                 'count_update_by_registration' => (int)$update_affiliate_id_person_senasir[0],
-                'count_update_by_registration_fullname' => (int)$update_affiliate_id_person_senasir[1],
-                'count_update_by_identity' => (int)$update_affiliate_id_person_senasir[2],
-                'count_update_by_identity_fullname' => (int)$update_affiliate_id_person_senasir[3],
-                'count_created_affiliate' => (int)$update_affiliate_id_person_senasir[4]
+                //'count_update_by_registration_fullname' => (int)$update_affiliate_id_person_senasir[1],
+                'count_update_by_identity' => (int)$update_affiliate_id_person_senasir[1],
+               // 'count_update_by_identity_fullname' => (int)$update_affiliate_id_person_senasir[3],
+                'count_created_affiliate' => (int)$update_affiliate_id_person_senasir[2]
+            ],
+            'count_data_copy_person_senasir' => [
+                'count_copy_total_senasir' => $count_copy_total_senasir,
+                'count_identity_card_cero_senasir' => $count_identity_card_cero_senasir,
+                'count_unrealized_senasir' => $count_unrealized_senasir,
+                'count_update_by_registration' => $count_update_by_registration,
+                'count_update_by_identity' => $count_update_by_identity,
+                'count_created_affiliate' => $count_created_affiliate,
+                '_count_total_affiliates_update'=> $count_total_affiliates_update,
+                '_count_total_accomplished_senasir' =>$count_total_accomplished_senasir
             ],
         ]);
     } catch(Exception $e){

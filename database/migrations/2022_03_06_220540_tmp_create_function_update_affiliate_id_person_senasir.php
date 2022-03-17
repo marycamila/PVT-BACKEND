@@ -66,11 +66,11 @@ class TmpCreateFunctionUpdateAffiliateIdPersonSenasir extends Migration
                                       count_update_by_registration:= count_update_by_registration + 1;
                                  --END IF;
                               else
-                              IF quantity_identity_card(record_row.concat_carnet_num_com_tit) = quantity then
+                              IF quantity_identity_card(record_row.concat_carnet_num_com_tit) = quantity and record_row.concat_carnet_num_com_tit != '0' then
                               
                                    UPDATE public.affiliates
                                       SET id_person_senasir = record_row.id_person_senasir,
-                                      registration = record_row.matricula_tit,
+                                      --registration = record_row.matricula_tit,
                                       updated_at = (select current_timestamp)
                                       WHERE affiliates.identity_card = record_row.concat_carnet_num_com_tit;
                               

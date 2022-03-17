@@ -155,8 +155,10 @@ class CopyPersonSenasirController extends Controller
             'payload' => [
                 'successfully' => true,
                 'count_update_by_registration' => (int)$update_affiliate_id_person_senasir[0],
-                'count_update_by_identity' => (int)$update_affiliate_id_person_senasir[1],
-                'count_created_affiliate' => (int)$update_affiliate_id_person_senasir[2]
+                'count_update_by_registration_fullname' => (int)$update_affiliate_id_person_senasir[1],
+                'count_update_by_identity' => (int)$update_affiliate_id_person_senasir[2],
+                'count_update_by_identity_fullname' => (int)$update_affiliate_id_person_senasir[3],
+                'count_created_affiliate' => (int)$update_affiliate_id_person_senasir[4]
             ],
         ]);
     } catch(Exception $e){

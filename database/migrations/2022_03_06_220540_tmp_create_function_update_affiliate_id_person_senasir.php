@@ -27,7 +27,9 @@ class TmpCreateFunctionUpdateAffiliateIdPersonSenasir extends Migration
              affiliate_state_id  integer :=4;
        
             count_update_by_registration integer := 0;
+            count_update_by_registration_fullname integer := 0;
             count_update_by_identity integer := 0;
+            count_update_by_identity_fullname integer := 0;
             count_created_affiliate integer := 0;
        
               -- Declaración EXPLICITA del cursor
@@ -55,23 +57,34 @@ class TmpCreateFunctionUpdateAffiliateIdPersonSenasir extends Migration
                               SET id_person_senasir = record_row.id_person_senasir,
                               updated_at = (select current_timestamp)
                               WHERE affiliates.registration = record_row.matricula_tit;
-                              type_state:='realizado';
-                              count_update_by_registration:= count_update_by_registration + 1;
+                              
+                              IF quantity_fullname(record_row.p_nombre_tit,record_row.paterno_tit,record_row.materno_tit) = quantity then
+                               type_state:='ACTUALIZADO_POR_MATRICULA_NOMBRE_PM';
+                               count_update_by_registration_fullname:= count_update_by_registration_fullname + 1;
+                          else
+                                type_state:='ACTUALIZADO_POR_MATRICULA';
+                                   count_update_by_registration:= count_update_by_registration + 1;
+                          END IF;
                        else
                        IF quantity_identity_card(record_row.concat_carnet_num_com_tit) = quantity then
-                           IF quantity_fullname(record_row.p_nombre_tit,record_row.paterno_tit,record_row.materno_tit) = quantity then
-                             UPDATE public.affiliates
-                                     SET id_person_senasir = record_row.id_person_senasir,
-                                     registration = record_row.matricula_tit,
-                                   updated_at = (select current_timestamp)
-                                   WHERE affiliates.identity_card = record_row.concat_carnet_num_com_tit;
-                           type_state:='actualizado';
-                           count_update_by_identity:= count_update_by_identity + 1;
-                              END IF;
+                       
+                            UPDATE public.affiliates
+                               SET id_person_senasir = record_row.id_person_senasir,
+                               registration = record_row.matricula_tit,
+                               updated_at = (select current_timestamp)
+                               WHERE affiliates.identity_card = record_row.concat_carnet_num_com_tit;
+                       
+                             IF quantity_fullname(record_row.p_nombre_tit,record_row.paterno_tit,record_row.materno_tit) = quantity then
+                             type_state:='ACTUALIZADO_POR_CARNET_NOMBRE_PM';
+                             count_update_by_identity_fullname:= count_update_by_identity_fullname + 1;
+                            else
+                              type_state:='ACTUALIZADO_POR_CARNET';
+                             count_update_by_identity:= count_update_by_identity + 1;
+                             END IF;
                          else
                            IF quantity_identity_card(record_row.concat_carnet_num_com_tit) = 0 then
                             if record_row.concat_carnet_num_com_tit is not null then
-                              type_state:='creado';
+                              type_state:='AFILIADO_CREADO';
                               count_created_affiliate:= count_created_affiliate + 1;
        
                     INSERT INTO affiliates (user_id,affiliate_state_id,pension_entity_id,id_person_senasir,
@@ -97,8 +110,9 @@ class TmpCreateFunctionUpdateAffiliateIdPersonSenasir extends Migration
                             cant:=  (select dblink_exec(db_name_intext, 'UPDATE copy_person_senasirs SET state=''accomplished'',observacion='''||type_state||''' WHERE copy_person_senasirs.id= '||record_row.id||''));                  
                         END IF;
                       END LOOP;
-         return count_update_by_registration||','||count_update_by_identity||','||count_created_affiliate;
+         return count_update_by_registration||','||count_update_by_registration_fullname||','||count_update_by_identity||','||count_update_by_identity_fullname||','||count_created_affiliate;
         end
+        
         $$
        ;");
     }

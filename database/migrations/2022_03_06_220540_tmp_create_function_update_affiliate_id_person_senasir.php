@@ -116,6 +116,39 @@ class TmpCreateFunctionUpdateAffiliateIdPersonSenasir extends Migration
                
                $$
        ;");
+
+        DB::statement("CREATE OR REPLACE FUNCTION LINK_AFFILIATE_ID_PERSON_SENASIR(db_name_intext text,affiliate_id integer[],id_person integer []) returns varchar
+        as $$
+        declare
+         type_state varchar;
+         dato character varying;
+         array_length_affiliate integer:=array_length(affiliate_id,1);
+         array_length_person_senasir integer:=array_length(id_person,1);
+
+                begin
+        	          --***********************************************************************************
+                      --*Funcion de actualizacion de array id_person_senasir apartir de array affiliate_id*
+                      --***********************************************************************************
+        	        if(array_length_affiliate = array_length_person_senasir)then
+        	            --obtenemos el dato en la posicion cinco
+        	       FOR i IN 1..array_length_affiliate loop
+        	         FOR j IN 1..array_length_person_senasir loop
+
+        	         if(i=j)then
+        	          type_state:='LINK_AFFILIATE_ID_PERSON_SENASIR';
+        	            UPDATE public.affiliates
+                        	SET id_person_senasir = id_person[j],
+                        		updated_at = (select current_timestamp)
+                        		WHERE id = affiliate_id[i] and id_person_senasir is null ;
+                        	 PERFORM (select dblink_exec(db_name_intext, 'UPDATE copy_person_senasirs SET state=''accomplished'',observacion='''||type_state||''' WHERE copy_person_senasirs.id_person_senasir= '||id_person[j]||'')); 
+                       end if;
+                      END LOOP;
+                     END LOOP;
+                   end if;
+               return type_state;
+             end;
+        $$ LANGUAGE 'plpgsql'
+        ;");
     }
 
     /**

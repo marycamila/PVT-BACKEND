@@ -179,11 +179,10 @@ class ImportContributionSenasirController extends Controller
             DB::beginTransaction();
         $user_id = Auth::user()->id;
         $successfully = false;
-        $contribution_origin_id = ContributionOrigin::where('name','=','senasir')->first()->id;
         $period_contribution_senasir = Carbon::parse($request->period_contribution_senasir);
         $year = (int)$period_contribution_senasir->format("Y");
         $month = (int)$period_contribution_senasir->format("m");
-        $count_registered = "select count(*) from aid_contributions where  month_year = '$request->period_contribution_senasir' and contribution_origin_id =$contribution_origin_id and aid_contributionable_type ='payroll_validated_senasirs';";
+        $count_registered = "select count(*) from aid_contributions where  month_year = '$request->period_contribution_senasir' and aid_contributionable_type ='payroll_senasirs';";
         $count_registered = DB::select($count_registered)[0]->count;
         if((int)$count_registered > 0){
             return response()->json([
@@ -195,20 +194,15 @@ class ImportContributionSenasirController extends Controller
         }else{
             $query ="select import_period_contribution_senasir('$request->period_contribution_senasir',$user_id,$year,$month)";
             $query = DB::select($query);
-            $count_updated = "select count(*) from tmp_registration_aid_contributions where month_year = '$request->period_contribution_senasir';";
-            $count_updated = DB::select($count_updated)[0]->count;
-            $count_registered = "select count(*) from aid_contributions where  month_year = '$request->period_contribution_senasir' and contribution_origin_id =$contribution_origin_id and aid_contributionable_type ='payroll_validated_senasirs';";
-            $count_registered = DB::select($count_registered)[0]->count;
+            $count_created = "select count(*) from aid_contributions where  month_year = '$request->period_contribution_senasir' and aid_contributionable_type ='payroll_senasirs';";
+            $count_created = DB::select($count_created)[0]->count;
             DB::commit();
-            $count_created =  $count_registered - $count_updated;
             $successfully = true;
             return response()->json([
                 'message' => "Realizado con exito!",
                 'payload' => [
                     'successfully' => $successfully,
                     'num_created' => $count_created,
-                    'num_updated' => $count_updated,
-                    'num_total' => $count_registered
                 ],
             ]);
         }

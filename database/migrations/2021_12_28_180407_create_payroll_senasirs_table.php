@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreatePayrollValidatedSenasirsTable extends Migration
+class CreatePayrollSenasirsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,7 +13,7 @@ class CreatePayrollValidatedSenasirsTable extends Migration
      */
     public function up()
     {
-        Schema::create('payroll_validated_senasirs', function (Blueprint $table) {
+        Schema::create('payroll_senasirs', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('affiliate_id')->unsigned()->comment('Id del afiliado titular'); // Id del afiliado titular
             $table->foreign('affiliate_id')->references('id')->on('affiliates');
@@ -67,6 +67,6 @@ class CreatePayrollValidatedSenasirsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('payroll_validated_senasirs');
+        Schema::dropIfExists('payroll_senasirs');
     }
 }

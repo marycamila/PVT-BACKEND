@@ -5,7 +5,7 @@ namespace App\Models\Affiliate;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\FinancialEntity;
-use App\Models\Contribution\PayrollValidatedSenasir;
+use App\Models\Contribution\PayrollSenasir;
 
 class Affiliate extends Model
 {
@@ -79,8 +79,8 @@ class Affiliate extends Model
     {
         return $this->belongsTo(FinancialEntity::class);
     }
-    public function payroll_validated_senasirs()
+    public function payroll_senasir()
     {
-        return $this->hasMany(PayrollValidatedSenasir::class);
+        return $this->hasMany(PayrollSenasir::class);
     }
 }

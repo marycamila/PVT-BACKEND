@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Http\Controllers\Contribution\ImportPayrollSenasirController;
-use App\Models\Contribution\ContributionOrigin;
 use Auth;
 
 
@@ -52,14 +51,9 @@ class ImportContributionSenasirController extends Controller
             'period_year' => 'required|date_format:"Y"',
         ]);
          $period_year = $request->get('period_year');
+         $aid_contributionable_type = 'payroll_senasirs';
 
-         $query_origin_senasir = "SELECT id from contribution_origins where name like 'senasir'";
-         $query_origin_senasir = DB::select($query_origin_senasir);
-
-         if($query_origin_senasir != []) $id_origin_senasir = $query_origin_senasir[0]->id;
-         else $id_origin_senasir = 1;//en caso que cambie el nombre senasir de la tabla contribution origin
-
-         $query = "SELECT  distinct month_year,  to_char( (to_date(month_year, 'YYYY/MM/DD')), 'TMMonth') as period_month_name, extract(year from month_year::timestamp) as period_year from aid_contributions where deleted_at  is null and  (extract(year from month_year::timestamp)) = $period_year and contribution_origin_id = $id_origin_senasir group by month_year;";
+         $query = "SELECT  distinct month_year,  to_char( (to_date(month_year, 'YYYY/MM/DD')), 'TMMonth') as period_month_name, extract(year from month_year::timestamp) as period_year from aid_contributions where deleted_at  is null and  (extract(year from month_year::timestamp)) = $period_year and aid_contributionable_type = $aid_contributionable_type group by month_year;";
          $query = DB::select($query);
 
          $query_months = "select id as period_month ,name  as period_month_name from months order by id asc";
@@ -73,7 +67,7 @@ class ImportContributionSenasirController extends Controller
                     break;
                 }
             }
-            $month->state_validated_payroll = ImportPayrollSenasirController::exists_data_payroll_validated_senasirs($month->period_month,$period_year);
+            $month->state_validated_payroll = ImportPayrollSenasirController::exists_data_payroll_senasirs($month->period_month,$period_year);
             $date_payroll_format = Carbon::parse($period_year.'-'.$month->period_month.'-'.'01')->toDateString();
             $month->data_count = $this->data_count($month->period_month,$period_year,$date_payroll_format);
          }
@@ -98,11 +92,7 @@ class ImportContributionSenasirController extends Controller
         $data_count['num_total_data_aid_contributions'] = 0;
         $data_count['sum_amount_total_aid_contribution'] = 0;
 
-        $query_origin_senasir = "SELECT id from contribution_origins where name like 'senasir'";
-        $query_origin_senasir = DB::select($query_origin_senasir);
-        if($query_origin_senasir != []) $id_origin_senasir =$query_origin_senasir[0]->id;
-        else $id_origin_senasir = 1;//en caso que cambie el nombre senasir de la tabla contribution origin
-
+        $aid_contributionable_type ='payroll_senasirs';
         //---TOTAL DE DATOS DEL ARCHIVO
         $query_total_data = "SELECT * FROM payroll_copy_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER;";
         $query_total_data = DB::connection('db_aux')->select($query_total_data);
@@ -119,7 +109,7 @@ class ImportContributionSenasirController extends Controller
         $data_count['num_data_considered'] = count($query_data_considered);
 
         //---NUMERO DE DATOS VALIDADOS
-        $query_data_validated = "SELECT * FROM payroll_validated_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER;";
+        $query_data_validated = "SELECT * FROM payroll_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER;";
         $query_data_validated = DB::select($query_data_validated);
         $data_count['num_data_validated'] = count($query_data_validated);
          //---NUMERO DE DATOS NO VALIDADOS
@@ -127,13 +117,13 @@ class ImportContributionSenasirController extends Controller
 
         //---TOTAL DE REGISTROS AID_CONTRIBUTIONS
         $query_data_aid_contributions = "SELECT id from aid_contributions ac
-        where month_year = '$date_payroll_format' and ac.contribution_origin_id = $id_origin_senasir and ac.deleted_at is null";
+        where month_year = '$date_payroll_format' and ac.aid_contributionable_type = $aid_contributionable_type and ac.deleted_at is null";
         $query_data_aid_contributions = DB::select($query_data_aid_contributions);
         $data_count['num_total_data_aid_contributions'] = count($query_data_aid_contributions);
 
         //---suma monto total contribucion
         $query_sum_amount = "SELECT sum(ac.total) as amount_total from aid_contributions ac
-        where month_year = '$date_payroll_format' and ac.contribution_origin_id = $id_origin_senasir and ac.deleted_at is null";
+        where month_year = '$date_payroll_format' and ac.aid_contributionable_type = $aid_contributionable_type and ac.deleted_at is null";
         $query_sum_amount = DB::select($query_sum_amount);
         $data_count['sum_amount_total_aid_contribution'] = isset($query_sum_amount[0]->amount_total) ? floatval($query_sum_amount[0]->amount_total):0;
 

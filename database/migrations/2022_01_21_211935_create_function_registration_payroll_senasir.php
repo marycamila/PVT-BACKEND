@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateFunctionRegistrationPayrollValidatedSenasir extends Migration
+class CreateFunctionRegistrationPayrollSenasir extends Migration
 {
     /**
      * Run the migrations.
@@ -13,7 +13,7 @@ class CreateFunctionRegistrationPayrollValidatedSenasir extends Migration
      */
     public function up()
     {
-        DB::statement("CREATE OR REPLACE FUNCTION public.registration_payroll_validated_senasir(conection_db_aux character varying,month_copy integer, year_copy integer)
+        DB::statement("CREATE OR REPLACE FUNCTION public.registration_payroll_senasir(conection_db_aux character varying,month_copy integer, year_copy integer)
         RETURNS numeric
         LANGUAGE plpgsql
         AS $$
@@ -54,9 +54,8 @@ class CreateFunctionRegistrationPayrollValidatedSenasir extends Migration
                clase_renta_tit varchar,fec_fail_tit date,is_validated boolean)
            where a.id_person_senasir  = payroll_copy_senasirs.id_person_titular and payroll_copy_senasirs.clase_renta not like 'ORFANDAD%'
            and payroll_copy_senasirs.is_validated = false and payroll_copy_senasirs.a_o = year_copy and payroll_copy_senasirs.mes = month_copy
-
        LOOP
-               INSERT INTO payroll_validated_senasirs  
+               INSERT INTO payroll_senasirs  
                VALUES (default,record_row.id_affiliate ,record_row.a_o, record_row.mes, 
                record_row.id_person_titular, record_row.matricula_titular, 
                record_row.mat_dh,
@@ -95,6 +94,6 @@ class CreateFunctionRegistrationPayrollValidatedSenasir extends Migration
      */
     public function down()
     {
-        DB::statement("DROP FUNCTION registration_payroll_validated_senasir");
+        DB::statement("DROP FUNCTION registration_payroll_senasir");
     }
 }

@@ -18,8 +18,8 @@ class CreateFunctionImportPeriodContributionSenasir extends Migration
       declare
           acction varchar;
                  -- Declaración EXPLICITA del cursor
-                  cur_contribution CURSOR FOR select * from payroll_validated_senasirs where a_o = year_period::INTEGER and mes = month_period::INTEGER;
-                  registro payroll_validated_senasirs%ROWTYPE;
+                  cur_contribution CURSOR FOR select * from payroll_senasirs where a_o = year_period::INTEGER and mes = month_period::INTEGER;
+                  registro payroll_senasirs%ROWTYPE;
               begin
                  --***************************************
                  --Funcion importar planilla por periodo--

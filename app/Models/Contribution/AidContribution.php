@@ -24,7 +24,6 @@ class AidContribution extends Model
         'affiliate_contribution',
         'mortuary_aid',
         'valid',
-        'contribution_origin_id',
         'affiliate_rent_class',
         'aid_contributionable_type',
         'aid_contributionable_id'

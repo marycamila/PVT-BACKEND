@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Affiliate\Affiliate;
 
-class PayrollValidatedSenasir extends Model
+class PayrollSenasir extends Model
 {
     use HasFactory;
     public $timestamps = true;

@@ -14,9 +14,7 @@ class AddColumnsToAidContributions extends Migration
     public function up()
     {
         Schema::table('aid_contributions', function (Blueprint $table) {
-            $table->foreign('contribution_origin_id')->references('id')->on('contribution_origins');
-            $table->unsignedBigInteger('contribution_origin_id')->nullable(); // id del bien inmueble
-            $table->enum('affiliate_rent_class', ['VEJEZ', 'VIUDEDAD'])->default('VEJEZ')->comment('Tipo de Afiliado que Realizo el Aporte');
+            $table->enum('affiliate_rent_class', ['VEJEZ', 'VIUDEDAD'])->default('VEJEZ')->comment('Tipo de Afiliado que realizo el Aporte');
             $table->nullableMorphs('aid_contributionable'); // Campo para contribuiciones de aportes directos y complemento economico
             $table->dropColumn('mortuary_aid');
             $table->dropColumn('affiliate_contribution');

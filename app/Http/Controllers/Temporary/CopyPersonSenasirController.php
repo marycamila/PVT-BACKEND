@@ -156,8 +156,8 @@ class CopyPersonSenasirController extends Controller
         $count_update_by_identity = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion like 'ACTUALIZADO_POR_CARNET' and cps.state like 'accomplished'")[0]->count;
         $count_created_affiliate =  DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion like 'AFILIADO_CREADO' and cps.state like 'accomplished'")[0]->count;
         $count_total_affiliates_update = DB::select("select count(*) from affiliates a where a.id_person_senasir is not null")[0]->count;
-
-        $count_total_accomplished_senasir = $count_update_by_registration +  $count_update_by_identity + $count_created_affiliate;
+        $count_total_update_link =DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion like 'LINK_AFFILIATE_ID_PERSON_SENASIR'")[0]->count;
+        $count_total_accomplished_senasir = $count_update_by_registration +  $count_update_by_identity + $count_created_affiliate + $count_total_update_link;
 
 
         DB::commit();
@@ -178,6 +178,7 @@ class CopyPersonSenasirController extends Controller
                 'count_update_by_registration' => $count_update_by_registration,
                 'count_update_by_identity' => $count_update_by_identity,
                 'count_created_affiliate' => $count_created_affiliate,
+                'count_total_update_link' => $count_total_update_link,
                 '_count_total_affiliates_update'=> $count_total_affiliates_update,
                 '_count_total_accomplished_senasir' =>$count_total_accomplished_senasir
             ],

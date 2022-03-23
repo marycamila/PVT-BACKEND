@@ -17,9 +17,9 @@ class ImportContributionSenasirController extends Controller
      * @OA\Post(
      *      path="/api/contribution/list_months_import_contribution_senasir",
      *      tags={"IMPORTACION-APORTES-SENASIR"},
-     *      summary="LISTA LOS MESES QUE SE REALIZARON IMPORTACIONES A LA TABLA AID_CONTRIBUTION SENASIR EN BASE A UN AÑO DADO EJ:2021",
+     *      summary="LISTA LOS MESES QUE SE REALIZARON IMPORTACIONES A LA TABLA CONTRIBUTION PASSIVES SENASIR EN BASE A UN AÑO DADO EJ:2021",
      *      operationId="list_senasir_months",
-     *      description="Lista los meses importados en la tabla aid_contributions enviando como parametro un año en especifico",
+     *      description="Lista los meses importados en la tabla contribution_passives enviando como parametro un año en especifico",
      *      @OA\RequestBody(
      *          description= "Provide auth credentials",
      *          required=true,
@@ -51,9 +51,9 @@ class ImportContributionSenasirController extends Controller
             'period_year' => 'required|date_format:"Y"',
         ]);
          $period_year = $request->get('period_year');
-         $aid_contributionable_type = 'payroll_senasirs';
+         $contributionable_type = 'payroll_senasirs';
 
-         $query = "SELECT  distinct month_year,  to_char( (to_date(month_year, 'YYYY/MM/DD')), 'TMMonth') as period_month_name, extract(year from month_year::timestamp) as period_year from aid_contributions where deleted_at  is null and  (extract(year from month_year::timestamp)) = $period_year and aid_contributionable_type = '$aid_contributionable_type' group by month_year;";
+         $query = "SELECT  distinct month_year,  to_char( (to_date(month_year, 'YYYY/MM/DD')), 'TMMonth') as period_month_name, extract(year from month_year::timestamp) as period_year from contribution_passives where deleted_at  is null and  (extract(year from month_year::timestamp)) = $period_year and contributionable_type = '$contributionable_type' group by month_year;";
          $query = DB::select($query);
 
          $query_months = "select id as period_month ,name  as period_month_name from months order by id asc";
@@ -89,10 +89,10 @@ class ImportContributionSenasirController extends Controller
         $data_count['num_data_considered'] = 0;
         $data_count['num_data_validated'] = 0;
         $data_count['num_data_not_validated'] = 0;
-        $data_count['num_total_data_aid_contributions'] = 0;
-        $data_count['sum_amount_total_aid_contribution'] = 0;
+        $data_count['num_total_data_contribution_passives'] = 0;
+        $data_count['sum_amount_total_contribution_passives'] = 0;
 
-        $aid_contributionable_type ='payroll_senasirs';
+        $contributionable_type ='payroll_senasirs';
         //---TOTAL DE DATOS DEL ARCHIVO
         $query_total_data = "SELECT * FROM payroll_copy_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER;";
         $query_total_data = DB::connection('db_aux')->select($query_total_data);
@@ -115,17 +115,17 @@ class ImportContributionSenasirController extends Controller
          //---NUMERO DE DATOS NO VALIDADOS
         $data_count['num_data_not_validated'] = $data_count['num_data_considered'] - $data_count['num_data_validated'];
 
-        //---TOTAL DE REGISTROS AID_CONTRIBUTIONS
-        $query_data_aid_contributions = "SELECT id from aid_contributions ac
-        where month_year = '$date_payroll_format' and ac.aid_contributionable_type = '$aid_contributionable_type' and ac.deleted_at is null";
-        $query_data_aid_contributions = DB::select($query_data_aid_contributions);
-        $data_count['num_total_data_aid_contributions'] = count($query_data_aid_contributions);
+        //---TOTAL DE REGISTROS CONTRIBUTION PASSIVES
+        $query_data_contribution_passives = "SELECT id from contribution_passives ac
+        where month_year = '$date_payroll_format' and ac.contributionable_type = '$contributionable_type' and ac.deleted_at is null";
+        $query_data_contribution_passives = DB::select($query_data_contribution_passives);
+        $data_count['num_total_data_contribution_passives'] = count($query_data_contribution_passives);
 
         //---suma monto total contribucion
-        $query_sum_amount = "SELECT sum(ac.total) as amount_total from aid_contributions ac
-        where month_year = '$date_payroll_format' and ac.aid_contributionable_type = '$aid_contributionable_type' and ac.deleted_at is null";
+        $query_sum_amount = "SELECT sum(ac.total) as amount_total from contribution_passives ac
+        where month_year = '$date_payroll_format' and ac.contributionable_type = '$contributionable_type' and ac.deleted_at is null";
         $query_sum_amount = DB::select($query_sum_amount);
-        $data_count['sum_amount_total_aid_contribution'] = isset($query_sum_amount[0]->amount_total) ? floatval($query_sum_amount[0]->amount_total):0;
+        $data_count['sum_amount_total_contribution_passives'] = isset($query_sum_amount[0]->amount_total) ? floatval($query_sum_amount[0]->amount_total):0;
 
         return  $data_count;
     }
@@ -135,7 +135,7 @@ class ImportContributionSenasirController extends Controller
      *      tags={"IMPORTACION-APORTES-SENASIR"},
      *      summary="PASO 3 IMPORTACIÓN REGISTRO O ACTUALIZACIÓN DE DATOS DE CONTRIBUCION SENASIR",
      *      operationId="import_create_or_update_contribution_period_senasir",
-     *      description="Creacion o actualizacion de aid_contributions y registro de la tabla tmp_registration_aid_contributions de contribuciones actualizadas",
+     *      description="Creacion o actualizacion de contribution_passives y registro de la tabla tmp_registration_contribution_passives de contribuciones actualizadas",
      *      @OA\RequestBody(
      *          description= "Provide auth credentials",
      *          required=true,
@@ -172,7 +172,7 @@ class ImportContributionSenasirController extends Controller
         $period_contribution_senasir = Carbon::parse($request->period_contribution_senasir);
         $year = (int)$period_contribution_senasir->format("Y");
         $month = (int)$period_contribution_senasir->format("m");
-        $count_registered = "select count(*) from aid_contributions where  month_year = '$request->period_contribution_senasir' and aid_contributionable_type ='payroll_senasirs';";
+        $count_registered = "select count(*) from contribution_passives where  month_year = '$request->period_contribution_senasir' and contributionable_type ='payroll_senasirs';";
         $count_registered = DB::select($count_registered)[0]->count;
         if((int)$count_registered > 0){
             return response()->json([
@@ -184,7 +184,7 @@ class ImportContributionSenasirController extends Controller
         }else{
             $query ="select import_period_contribution_senasir('$request->period_contribution_senasir',$user_id,$year,$month)";
             $query = DB::select($query);
-            $count_created = "select count(*) from aid_contributions where  month_year = '$request->period_contribution_senasir' and aid_contributionable_type ='payroll_senasirs';";
+            $count_created = "select count(*) from contribution_passives where  month_year = '$request->period_contribution_senasir' and contributionable_type ='payroll_senasirs';";
             $count_created = DB::select($count_created)[0]->count;
             DB::commit();
             $successfully = true;

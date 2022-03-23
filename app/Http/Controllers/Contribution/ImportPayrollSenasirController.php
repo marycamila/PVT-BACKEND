@@ -21,7 +21,7 @@ class ImportPayrollSenasirController extends Controller
      *      tags={"IMPORTACION-PLANILLA-SENASIR"},
      *      summary="PASO 1 COPIADO DE DATOS PLANILLA SENASIR",
      *      operationId="upload_copy_payroll_senasir",
-     *      description="Copiado de datos del archivo de planillas senasir a la tabla aid_contribution_copy_payroll_senasir",
+     *      description="Copiado de datos del archivo de planillas senasir a la tabla contribution_passives_copy_payroll_senasir",
      *      @OA\RequestBody(
      *          description= "Provide auth credentials",
      *          required=true,
@@ -129,8 +129,8 @@ class ImportPayrollSenasirController extends Controller
      *      path="/api/contribution/validation_payroll_senasir",
      *      tags={"IMPORTACION-PLANILLA-SENASIR"},
      *      summary="PASO 2 VALIDACION DE DATOS DE TITULARES SENASIR",
-     *      operationId="validation_aid_contribution_affiliate_payroll_senasir",
-     *      description="validacion de datos de titulares senasir a la tabla validation_aid_contribution_affiliate_payroll_senasir",
+     *      operationId="validation_contribution_passives_affiliate_payroll_senasir",
+     *      description="validacion de datos de titulares senasir a la tabla validation_contribution_passives_affiliate_payroll_senasir",
      *      @OA\RequestBody(
      *          description= "Provide auth credentials",
      *          required=true,
@@ -321,17 +321,17 @@ class ImportPayrollSenasirController extends Controller
         return $exists_data;
     }
     //----------- verificar si existen datos importados senasir en tabla contribucion
-    public function exists_data_table_aid_contributions($mes,$a_o){
+    public function exists_data_table_contribution_passives($mes,$a_o){
         $month = $mes;
         $year = $a_o;
         $date_payroll = Carbon::create($year, $month, 1);
         $date_payroll = Carbon::parse($date_payroll)->format('Y-m-d');
 
         $exists_data = true;
-        $aid_contributionable_type = 'payroll_senasirs';
+        $contributionable_type = 'payroll_senasirs';
 
-        $query = " SELECT id from aid_contributions ac
-        where month_year = '$date_payroll' and ac.aid_contributionable_type = '$aid_contributionable_type' and ac.deleted_at is null";
+        $query = " SELECT id from contribution_passives ac
+        where month_year = '$date_payroll' and ac.contributionable_type = '$contributionable_type' and ac.deleted_at is null";
         $verify_data = DB::select($query);
 
         if($verify_data == []) $exists_data = false;
@@ -339,7 +339,7 @@ class ImportPayrollSenasirController extends Controller
         return $exists_data;
     }
 
-     //-----------borrado de datos de la tabla aid_contribution_affiliate_payroll_senasirs paso 2
+     //-----------borrado de datos de la tabla payroll_senasirs paso 2
      public function delete_payroll_senasirs($month, $year)
      {
              if($this->exists_data_payroll_senasirs($month,$year))

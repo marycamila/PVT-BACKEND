@@ -19,28 +19,28 @@ class CreateFunctionContributionAffiliateSenasirCreateOrUpdate extends Migration
         declare
 
            type_acction varchar;
-           id_aid_contribution int;
+           id_contribution_passive int;
         begin
             --*******************************************************************************
-            --Funcion par crear o actualizar un nuevo registro en la tabla aid_contribution--
+            --Funcion par crear o actualizar un nuevo registro en la tabla contribution_passive--
             --*******************************************************************************
-           id_aid_contribution:= serch_affiliate_period_senasir(affiliate,year_copy);
-             IF id_aid_contribution = 0 then
+            id_contribution_passive:= serch_affiliate_period_senasir(affiliate,year_copy);
+             IF id_contribution_passive = 0 then
                    type_acction:= 'created';
 
                -- Creacion de un nuevo registro
-                   INSERT INTO public.aid_contributions (user_id, affiliate_id, month_year, quotable, rent, dignity_rent, interest, total, created_at,affiliate_rent_class,valid, aid_contributionable_type, aid_contributionable_id)
+                   INSERT INTO public.contribution_passives(user_id, affiliate_id, month_year, quotable, rent, dignity_rent, interest, total, created_at,affiliate_rent_class,valid, contributionable_type, contributionable_id)
                    SELECT user_reg as user_id, pvs.affiliate_id,year_copy as month_year, (pvs.liquido_pagable-pvs.renta_dignidad) as quotable, pvs.liquido_pagable as rent,pvs.renta_dignidad as dignity_rent, 0 as interest, pvs.descuento_aporte_muserpol as total,(select current_timestamp as created_at), CASE clase_renta
                         when 'VIUDEDAD' then 'VIUDEDAD'
                         else 'VEJEZ'
                         end
-                    as affiliate_rent_class,true as valid,'payroll_senasirs'::character varying as aid_contributionable_type, payroll_senasir_id as aid_contributionable_id from payroll_senasirs pvs
+                    as affiliate_rent_class,true as valid,'payroll_senasirs'::character varying as contributionable_type, payroll_senasir_id as contributionable_id from payroll_senasirs pvs
                     WHERE id=payroll_senasir_id;
              RETURN type_acction ;
             ELSE
                 type_acction:= 'updated';
             -- Actualizar datos en la contribucion
-               UPDATE aid_contributions
+               UPDATE contribution_passives
                SET user_id = user_reg,
                quotable = pvs.liquido_pagable-pvs.renta_dignidad,
                rent = pvs.liquido_pagable,
@@ -52,10 +52,10 @@ class CreateFunctionContributionAffiliateSenasirCreateOrUpdate extends Migration
                  else 'VEJEZ'
                  end,
                valid = true,
-               aid_contributionable_type = 'payroll_senasirs'::character varying,
-               aid_contributionable_id = payroll_senasir_id
+               contributionable_type = 'payroll_senasirs'::character varying,
+               contributionable_id = payroll_senasir_id
                   FROM (SELECT * FROM payroll_senasirs WHERE id = payroll_senasir_id) AS pvs
-                  WHERE aid_contributions.id= id_aid_contribution;
+                  WHERE contribution_passives.id= id_contribution_passive;
               RETURN type_acction ;
             END IF;
         end;

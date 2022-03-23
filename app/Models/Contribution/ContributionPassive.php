@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User;
 
-class AidContribution extends Model
+class ContributionPassive extends Model
 {
     use HasFactory;
 
@@ -23,10 +23,10 @@ class AidContribution extends Model
         'total',
         'affiliate_contribution',
         'mortuary_aid',
-        'valid',
+        'is_valid',
         'affiliate_rent_class',
-        'aid_contributionable_type',
-        'aid_contributionable_id'
+        'contributionable_type',
+        'contributionable_id'
 
     ];
     public function affiliate()
@@ -35,9 +35,9 @@ class AidContribution extends Model
     }
 
     public function user(){
-        return $this->hasOne(User::class,'id','id');
+        return $this->hasOne(User::class,'id','user_id');
     }
-    public function aid_contributionable()
+    public function contributionable()
     {
         return $this->morphTo();
     }

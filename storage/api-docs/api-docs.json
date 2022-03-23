@@ -122,7 +122,7 @@
                     "PERMISOS"
                 ],
                 "summary": "LISTADO DE PERMISOS",
-                "operationId": "getUsers",
+                "operationId": "get_permission",
                 "parameters": [
                     {
                         "name": "id",
@@ -312,13 +312,13 @@
                 ]
             }
         },
-        "/api/admin/role/{role}/role_permisions": {
+        "/api/admin/role/{role}/role_permissions": {
             "get": {
                 "tags": [
                     "ROLES"
                 ],
                 "summary": "LISTADO DE PERMISOS ASIGNADOS A UN ROL",
-                "operationId": "role_permisions",
+                "operationId": "role_permissions",
                 "parameters": [
                     {
                         "name": "role",
@@ -532,33 +532,6 @@
                 ]
             }
         },
-        "/api/admin/user/module_role_permision": {
-            "get": {
-                "tags": [
-                    "USUARIO"
-                ],
-                "summary": "OBTENER DEL USUARIO EL MODULO ROLES Y PERMISOS ",
-                "description": "Obtiene los modulos, roles y permisos del usuario AUTENTICADO",
-                "operationId": "module_role_permision",
-                "responses": {
-                    "200": {
-                        "description": "ok",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
         "/api/admin/user/{user}": {
             "get": {
                 "tags": [
@@ -578,6 +551,97 @@
                         }
                     }
                 ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "USUARIO"
+                ],
+                "summary": "ACTUALIZAR USUARIO",
+                "description": "Actualizar usuario",
+                "operationId": "ActualizarUsuario",
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "description": "",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        },
+                        "example": 1
+                    }
+                ],
+                "requestBody": {
+                    "description": "Provide auth credentials",
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "city_id": {
+                                        "description": "id de ciudad",
+                                        "type": "integer",
+                                        "example": "1"
+                                    },
+                                    "first_name": {
+                                        "description": "nombres",
+                                        "type": "string",
+                                        "example": "ALEJANDRO ERICK"
+                                    },
+                                    "last_name": {
+                                        "description": "apellidos",
+                                        "type": "string",
+                                        "example": "GUISBERT FLOR"
+                                    },
+                                    "username": {
+                                        "description": "nombre de usuario",
+                                        "type": "string",
+                                        "example": "aguisbert"
+                                    },
+                                    "position": {
+                                        "description": "Cargo del usuario",
+                                        "type": "string",
+                                        "example": "Jefe de Unidad de Sistemas y Soportes Técnico"
+                                    },
+                                    "is_commission": {
+                                        "description": "usuario en comision",
+                                        "type": "boolean",
+                                        "example": "false"
+                                    },
+                                    "phone": {
+                                        "description": "telefono ",
+                                        "type": "string",
+                                        "example": "78773841"
+                                    },
+                                    "active": {
+                                        "description": "Usuario activo",
+                                        "type": "boolean",
+                                        "example": "true"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "200": {
                         "description": "Success",
@@ -898,6 +962,646 @@
                 "responses": {
                     "200": {
                         "description": "Refrescado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/contribution/list_months_import_contribution_senasir": {
+            "post": {
+                "tags": [
+                    "IMPORTACION-APORTES-SENASIR"
+                ],
+                "summary": "LISTA LOS MESES QUE SE REALIZARON IMPORTACIONES A LA TABLA AID_CONTRIBUTION SENASIR EN BASE A UN AÑO DADO EJ:2021",
+                "description": "Lista los meses importados en la tabla aid_contributions enviando como parametro un año en especifico",
+                "operationId": "list_senasir_months",
+                "requestBody": {
+                    "description": "Provide auth credentials",
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "period_year": {
+                                        "description": "Año de contribucion a listar",
+                                        "type": "integer",
+                                        "example": "2021"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/contribution/import_create_or_update_contribution_period_senasir": {
+            "post": {
+                "tags": [
+                    "IMPORTACION-APORTES-SENASIR"
+                ],
+                "summary": "PASO 3 IMPORTACIÓN REGISTRO O ACTUALIZACIÓN DE DATOS DE CONTRIBUCION SENASIR",
+                "description": "Creacion o actualizacion de aid_contributions y registro de la tabla tmp_registration_aid_contributions de contribuciones actualizadas",
+                "operationId": "import_create_or_update_contribution_period_senasir",
+                "requestBody": {
+                    "description": "Provide auth credentials",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "period_contribution_senasir": {
+                                        "description": "fecha de planilla required",
+                                        "type": "string",
+                                        "example": "2021-10-01"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/contribution/command_payroll_period": {
+            "get": {
+                "tags": [
+                    "CONTRIBUCION"
+                ],
+                "summary": "PERIODO DE LA CONTRIBUCION",
+                "operationId": "period_upload_command",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/contribution/format_payroll_data_type_command": {
+            "post": {
+                "tags": [
+                    "CONTRIBUCION"
+                ],
+                "summary": "PASO 2 FORMATEO DE DATOS",
+                "description": "Formateo de datos de la tabla contribution_copy_payroll_commands",
+                "operationId": "formatData",
+                "requestBody": {
+                    "description": "Provide auth credentials",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "month": {
+                                        "description": "mes required",
+                                        "type": "integer",
+                                        "example": 11
+                                    },
+                                    "year": {
+                                        "description": "año required",
+                                        "type": "integer",
+                                        "example": 2021
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/contribution/update_base_wages": {
+            "post": {
+                "tags": [
+                    "CONTRIBUCION"
+                ],
+                "summary": "PASO 3 ACTUALIZACION DE SUELDOS BASE",
+                "description": "Actualización de sueldos base tabla base_wages",
+                "operationId": "updateData",
+                "requestBody": {
+                    "description": "Provide auth credentials",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "month": {
+                                        "description": "mes required",
+                                        "type": "integer",
+                                        "example": 11
+                                    },
+                                    "year": {
+                                        "description": "año required",
+                                        "type": "integer",
+                                        "example": 2021
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/contribution/upload_copy_payroll_command": {
+            "post": {
+                "tags": [
+                    "CONTRIBUCION"
+                ],
+                "summary": "PASO 1 COPIADO DE DATOS PLANILLA COMANDO",
+                "description": "Copiado de datos del archivo de planillas comando a la tabla contribution_copy_payroll_commands",
+                "operationId": "upload_copy_payroll_command",
+                "requestBody": {
+                    "description": "Provide auth credentials",
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "file": {
+                                        "description": "file required",
+                                        "type": "file",
+                                        "example": "file"
+                                    },
+                                    "date_payroll": {
+                                        "description": "fecha de planilla required",
+                                        "type": "string",
+                                        "example": "2021-11-01"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/contribution/upload_copy_payroll_senasir": {
+            "post": {
+                "tags": [
+                    "IMPORTACION-PLANILLA-SENASIR"
+                ],
+                "summary": "PASO 1 COPIADO DE DATOS PLANILLA SENASIR",
+                "description": "Copiado de datos del archivo de planillas senasir a la tabla aid_contribution_copy_payroll_senasir",
+                "operationId": "upload_copy_payroll_senasir",
+                "requestBody": {
+                    "description": "Provide auth credentials",
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "file": {
+                                        "description": "file required",
+                                        "type": "file",
+                                        "example": "file"
+                                    },
+                                    "date_payroll": {
+                                        "description": "fecha de planilla required",
+                                        "type": "string",
+                                        "example": "2021-10-01"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/contribution/validation_payroll_senasir": {
+            "post": {
+                "tags": [
+                    "IMPORTACION-PLANILLA-SENASIR"
+                ],
+                "summary": "PASO 2 VALIDACION DE DATOS DE TITULARES SENASIR",
+                "description": "validacion de datos de titulares senasir a la tabla validation_aid_contribution_affiliate_payroll_senasir",
+                "operationId": "validation_aid_contribution_affiliate_payroll_senasir",
+                "requestBody": {
+                    "description": "Provide auth credentials",
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "date_payroll": {
+                                        "description": "fecha de planilla required",
+                                        "type": "string",
+                                        "example": "2021-10-01"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/contribution/download_fail_not_found_payroll_senasir": {
+            "post": {
+                "tags": [
+                    "IMPORTACION-PLANILLA-SENASIR"
+                ],
+                "summary": "DESCARGA DE ARCHIVO DE NO ENCONTRADOS DEL PASO 2 DE VALIDACION DE DATOS AFILIADO TITULAR ",
+                "description": "Descarga el archivo de falla del paso 2 de validacion de datos del afiliado titular",
+                "operationId": "download_fail_not_found_payroll_senasir",
+                "requestBody": {
+                    "description": "Provide auth credentials",
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "date_payroll": {
+                                        "description": "fecha de planilla required",
+                                        "type": "string",
+                                        "example": "2021-10-01"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/contribution/list_senasir_years": {
+            "get": {
+                "tags": [
+                    "METODOS-GLOBALES"
+                ],
+                "summary": "OBTIENE EL LISTADO DE AÑOS DE CONTRIBUCIONES DE SENASIR CONSECUTIVAMENTE ",
+                "description": "Obtiene el listado de años de contribuciones de senasir de manera consecutiva hasta el año actual Ej 2022",
+                "operationId": "list_senasir_years",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/contribution/rollback_payroll_copy_senasir": {
+            "post": {
+                "tags": [
+                    "IMPORTACION-PLANILLA-SENASIR"
+                ],
+                "summary": "REHACER LOS PASOS DE PASO 1 Y 2 IMPORTACION SENASIR",
+                "description": "Para rehacer paso 1 y paso 2 de la importacion senasir",
+                "operationId": "rollback_payroll_copy_senasir",
+                "requestBody": {
+                    "description": "Provide auth credentials",
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "date_payroll": {
+                                        "description": "fecha de planilla required",
+                                        "type": "string",
+                                        "example": "2021-10-01"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/contribution/import_payroll_senasir_progress_bar": {
+            "post": {
+                "tags": [
+                    "IMPORTACION-PLANILLA-SENASIR"
+                ],
+                "summary": "INFORMACION DE PROGRESO DE IMPORTACION SENASIR",
+                "description": "Muestra la informacion de la importación de senasir  (-1)Si exixtio al gun error en algun paso, (100)Si todo fue exitoso, (30-60)Paso 1 y 2 (0)si esta iniciando la importación",
+                "operationId": "import_payroll_senasir_progress_bar",
+                "requestBody": {
+                    "description": "Provide auth credentials",
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "date_payroll": {
+                                        "description": "fecha de planilla required",
+                                        "type": "string",
+                                        "example": "2021-10-01"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/contribution/list_months_validate_senasir": {
+            "post": {
+                "tags": [
+                    "IMPORTACION-PLANILLA-SENASIR"
+                ],
+                "summary": "LISTA LOS MESES QUE SE REALIZARON IMPORTACIONES PLANILLA DE TIPO SENASIR EN BASE A UN AÑO DADO EJ:2021",
+                "description": "Lista los meses importados en la tabla payroll_copy_senasirs enviando como parametro un año en especifico",
+                "operationId": "list_months_validate_senasir",
+                "requestBody": {
+                    "description": "Provide auth credentials",
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "period_year": {
+                                        "description": "Año de contribucion a listar",
+                                        "type": "integer",
+                                        "example": "2021"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/temporary/upload_copy_person_senasir": {
+            "post": {
+                "tags": [
+                    "IMPORTACION-IDS-PERSONAS-SENASIR"
+                ],
+                "summary": "PASO 1 COPIADO DE DATOS DE AFFILIADOS Y ESPOSAS SENASIR",
+                "description": "Copiado de datos del archivo de afiliados senasir a la tabla copy_person_senasirs",
+                "operationId": "upload_copy_person_senasir",
+                "requestBody": {
+                    "description": "Provide auth credentials",
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "file": {
+                                        "description": "file required",
+                                        "type": "file",
+                                        "example": "file"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/temporary/update_affiliate_id_person_senasir": {
+            "post": {
+                "tags": [
+                    "IMPORTACION-IDS-PERSONAS-SENASIR"
+                ],
+                "summary": "PASO 2 COPIADO DE ID DE PERSONAS SENASIR DE TIPO VIUDEDAD Y CREACION DE AFILIADOS",
+                "description": "Importacion de afiliados y data de senasir ",
+                "operationId": "data_senasir_type_spouses",
+                "responses": {
+                    "200": {
+                        "description": "Success",
                         "content": {
                             "application/json": {
                                 "schema": {

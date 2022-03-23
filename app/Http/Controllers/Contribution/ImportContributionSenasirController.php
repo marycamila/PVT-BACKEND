@@ -53,7 +53,7 @@ class ImportContributionSenasirController extends Controller
          $period_year = $request->get('period_year');
          $aid_contributionable_type = 'payroll_senasirs';
 
-         $query = "SELECT  distinct month_year,  to_char( (to_date(month_year, 'YYYY/MM/DD')), 'TMMonth') as period_month_name, extract(year from month_year::timestamp) as period_year from aid_contributions where deleted_at  is null and  (extract(year from month_year::timestamp)) = $period_year and aid_contributionable_type = $aid_contributionable_type group by month_year;";
+         $query = "SELECT  distinct month_year,  to_char( (to_date(month_year, 'YYYY/MM/DD')), 'TMMonth') as period_month_name, extract(year from month_year::timestamp) as period_year from aid_contributions where deleted_at  is null and  (extract(year from month_year::timestamp)) = $period_year and aid_contributionable_type = '$aid_contributionable_type' group by month_year;";
          $query = DB::select($query);
 
          $query_months = "select id as period_month ,name  as period_month_name from months order by id asc";
@@ -117,13 +117,13 @@ class ImportContributionSenasirController extends Controller
 
         //---TOTAL DE REGISTROS AID_CONTRIBUTIONS
         $query_data_aid_contributions = "SELECT id from aid_contributions ac
-        where month_year = '$date_payroll_format' and ac.aid_contributionable_type = $aid_contributionable_type and ac.deleted_at is null";
+        where month_year = '$date_payroll_format' and ac.aid_contributionable_type = '$aid_contributionable_type' and ac.deleted_at is null";
         $query_data_aid_contributions = DB::select($query_data_aid_contributions);
         $data_count['num_total_data_aid_contributions'] = count($query_data_aid_contributions);
 
         //---suma monto total contribucion
         $query_sum_amount = "SELECT sum(ac.total) as amount_total from aid_contributions ac
-        where month_year = '$date_payroll_format' and ac.aid_contributionable_type = $aid_contributionable_type and ac.deleted_at is null";
+        where month_year = '$date_payroll_format' and ac.aid_contributionable_type = '$aid_contributionable_type' and ac.deleted_at is null";
         $query_sum_amount = DB::select($query_sum_amount);
         $data_count['sum_amount_total_aid_contribution'] = isset($query_sum_amount[0]->amount_total) ? floatval($query_sum_amount[0]->amount_total):0;
 

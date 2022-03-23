@@ -331,7 +331,7 @@ class ImportPayrollSenasirController extends Controller
         $aid_contributionable_type = 'payroll_senasirs';
 
         $query = " SELECT id from aid_contributions ac
-        where month_year = '$date_payroll' and ac.aid_contributionable_type = $aid_contributionable_type and ac.deleted_at is null";
+        where month_year = '$date_payroll' and ac.aid_contributionable_type = '$aid_contributionable_type' and ac.deleted_at is null";
         $verify_data = DB::select($query);
 
         if($verify_data == []) $exists_data = false;

@@ -53,7 +53,7 @@ class ImportContributionSenasirController extends Controller
          $period_year = $request->get('period_year');
          $contributionable_type = 'payroll_senasirs';
 
-         $query = "SELECT  distinct month_year,  to_char( (to_date(month_year, 'YYYY/MM/DD')), 'TMMonth') as period_month_name, extract(year from month_year::timestamp) as period_year from contribution_passives where deleted_at  is null and  (extract(year from month_year::timestamp)) = $period_year and contributionable_type = '$contributionable_type' group by month_year;";
+         $query = "SELECT  distinct month_year, to_char( month_year, 'TMMonth') as period_month_name, extract(year from month_year) as period_year from contribution_passives where deleted_at  is null and  (extract(year from month_year::timestamp)) = $period_year and contributionable_type = 'payroll_senasirs' group by month_year;";
          $query = DB::select($query);
 
          $query_months = "select id as period_month ,name  as period_month_name from months order by id asc";

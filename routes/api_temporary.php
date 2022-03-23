@@ -14,6 +14,7 @@ Route::group([
     ], function () {
         Route::post('upload_copy_person_senasir', [App\Http\Controllers\Temporary\CopyPersonSenasirController::class, 'upload_copy_person_senasir']);
         Route::post('update_affiliate_id_person_senasir', [App\Http\Controllers\Temporary\CopyPersonSenasirController::class, 'update_affiliate_id_person_senasir']);
+        Route::post('update_person_senasir_id', [App\Http\Controllers\Temporary\CopyPersonSenasirController::class, 'update_person_senasir_id']);
     });
 });
 

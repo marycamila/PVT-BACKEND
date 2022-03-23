@@ -13,7 +13,7 @@ class CreateFunctionSerchAffiliatePeriodSenasir extends Migration
      */
     public function up()
     {
-        DB::statement(" CREATE OR REPLACE FUNCTION serch_affiliate_period_senasir(affiliate bigint, year_copy varchar)
+        DB::statement(" CREATE OR REPLACE FUNCTION serch_affiliate_period_senasir(affiliate bigint, year_copy date)
         RETURNS integer
         as $$
         DECLARE

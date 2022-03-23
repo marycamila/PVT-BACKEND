@@ -135,7 +135,7 @@ class ImportContributionSenasirController extends Controller
      *      tags={"IMPORTACION-APORTES-SENASIR"},
      *      summary="PASO 3 IMPORTACIÓN REGISTRO O ACTUALIZACIÓN DE DATOS DE CONTRIBUCION SENASIR",
      *      operationId="import_create_or_update_contribution_period_senasir",
-     *      description="Creacion o actualizacion de contribution_passives y registro de la tabla tmp_registration_contribution_passives de contribuciones actualizadas",
+     *      description="Creacion o actualizacion de contribution_passives",
      *      @OA\RequestBody(
      *          description= "Provide auth credentials",
      *          required=true,

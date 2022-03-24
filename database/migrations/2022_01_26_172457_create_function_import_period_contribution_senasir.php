@@ -12,7 +12,7 @@ class CreateFunctionImportPeriodContributionSenasir extends Migration
      * @return void
      */
     public function up()
-    { DB::statement("CREATE OR REPLACE FUNCTION public.import_period_contribution_senasir (year_copy varchar, user_reg integer,year_period integer, month_period integer)
+    { DB::statement("CREATE OR REPLACE FUNCTION public.import_period_contribution_senasir (year_copy date, user_reg integer,year_period integer, month_period integer)
         RETURNS varchar
       as $$
       declare

@@ -12,6 +12,7 @@ use Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ArchivoPrimarioExport;
 use App\Helpers\Util;
+use App\Models\Contribution\PayrollSenasir;
 
 class ImportPayrollSenasirController extends Controller
 {
@@ -178,7 +179,7 @@ class ImportPayrollSenasirController extends Controller
             $connection_db_aux = Util::connection_db_aux();
 
             if($this->exists_data_payroll_copy_senasirs($month,$year)){
-                if(!$this->exists_data_payroll_senasirs($month,$year)){
+                if(!PayrollSenasir::data_period($month,$year)['exist_data']){
 
                     $query = "select registration_payroll_senasir('$connection_db_aux','$month','$year');";
                     $data_validated = DB::select($query);
@@ -296,18 +297,6 @@ class ImportPayrollSenasirController extends Controller
                 return abort(403, 'No existe archivo de falla senasir para mostrar');
             }
         }
-    // -------------metodo para verificar si existe datos en el paso 2 -----//
-    public static function exists_data_payroll_senasirs($mes,$a_o){
-        $month = $mes;
-        $year = $a_o;
-        $exists_data = true;
-        $query = "select * from payroll_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER;";
-        $verify_data = DB::select($query);
-
-        if($verify_data == []) $exists_data = false;
-
-        return $exists_data;
-    }
     // -------------metodo para verificar si existe datos en el paso 1 -----//
     public function exists_data_payroll_copy_senasirs($mes,$a_o){
         $month = $mes;
@@ -320,29 +309,11 @@ class ImportPayrollSenasirController extends Controller
 
         return $exists_data;
     }
-    //----------- verificar si existen datos importados senasir en tabla contribucion
-    public function exists_data_table_contribution_passives($mes,$a_o){
-        $month = $mes;
-        $year = $a_o;
-        $date_payroll = Carbon::create($year, $month, 1);
-        $date_payroll = Carbon::parse($date_payroll)->format('Y-m-d');
-
-        $exists_data = true;
-        $contributionable_type = 'payroll_senasirs';
-
-        $query = " SELECT id from contribution_passives ac
-        where month_year = '$date_payroll' and ac.contributionable_type = '$contributionable_type' and ac.deleted_at is null";
-        $verify_data = DB::select($query);
-
-        if($verify_data == []) $exists_data = false;
-
-        return $exists_data;
-    }
 
      //-----------borrado de datos de la tabla payroll_senasirs paso 2
      public function delete_payroll_senasirs($month, $year)
      {
-             if($this->exists_data_payroll_senasirs($month,$year))
+             if(PayrollSenasir::data_period($month,$year)['exist_data'])
              {
                 $query = "delete
                         from payroll_senasirs
@@ -453,7 +424,7 @@ class ImportPayrollSenasirController extends Controller
             $year = (int)$date_payroll->format("Y");
             $month = (int)$date_payroll->format("m");
 
-            if($this->exists_data_payroll_copy_senasirs($month,$year) && !$this->exists_data_payroll_senasirs($month,$year)){
+            if($this->exists_data_payroll_copy_senasirs($month,$year) && !PayrollSenasir::data_period($month,$year)['exist_data']){
                 $result['delete_step_1'] = $this->delete_payroll_copy_senasirs($month,$year);
 
                 if($result['delete_step_1'] == true){
@@ -461,7 +432,7 @@ class ImportPayrollSenasirController extends Controller
                     $message = "Realizado con exito!";
                 }
             }else{
-                if($this->exists_data_payroll_senasirs($month,$year))
+                if(PayrollSenasir::data_period($month,$year)['exist_data'])
                     $message = "No se puede rehacer, por que ya realizó la validacion del la planilla senasir";
                 else
                     $message = "No existen datos para rehacer";
@@ -533,7 +504,7 @@ class ImportPayrollSenasirController extends Controller
         $result['query_step_2'] = false;
 
         $result['query_step_1'] = $this->exists_data_payroll_copy_senasirs($month,$year);
-        $result['query_step_2'] = $this->exists_data_payroll_senasirs($month,$year);
+        $result['query_step_2'] = PayrollSenasir::data_period($month,$year)['exist_data'];
         $date_payroll_format = $request->date_payroll;
 
         //verificamos si existe el el archivo de importación 
@@ -657,9 +628,7 @@ class ImportPayrollSenasirController extends Controller
         $data_count['num_data_considered'] = count($query_data_considered);
 
         //---NUMERO DE DATOS VALIDADOS
-        $query_data_validated = "SELECT * FROM payroll_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER;";
-        $query_data_validated = DB::select($query_data_validated);
-        $data_count['num_data_validated'] = count($query_data_validated);
+        $data_count['num_data_validated'] = PayrollSenasir::data_period($month,$year)['count_data'];
          //---NUMERO DE DATOS NO VALIDADOS
         $data_count['num_data_not_validated'] = $data_count['num_data_considered'] - $data_count['num_data_validated'];
 

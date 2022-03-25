@@ -8,7 +8,8 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Http\Controllers\Contribution\ImportPayrollSenasirController;
 use Auth;
-
+use App\Models\Contribution\PayrollSenasir;
+use App\Models\Contribution\ContributionPassive;
 
 class ImportContributionSenasirController extends Controller
 {
@@ -67,7 +68,7 @@ class ImportContributionSenasirController extends Controller
                     break;
                 }
             }
-            $month->state_validated_payroll = ImportPayrollSenasirController::exists_data_payroll_senasirs($month->period_month,$period_year);
+            $month->state_validated_payroll = PayrollSenasir::data_period($month->period_month,$period_year)['exist_data'];
             $date_payroll_format = Carbon::parse($period_year.'-'.$month->period_month.'-'.'01')->toDateString();
             $month->data_count = $this->data_count($month->period_month,$period_year,$date_payroll_format);
          }
@@ -92,7 +93,6 @@ class ImportContributionSenasirController extends Controller
         $data_count['num_total_data_contribution_passives'] = 0;
         $data_count['sum_amount_total_contribution_passives'] = 0;
 
-        $contributionable_type ='payroll_senasirs';
         //---TOTAL DE DATOS DEL ARCHIVO
         $query_total_data = "SELECT * FROM payroll_copy_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER;";
         $query_total_data = DB::connection('db_aux')->select($query_total_data);
@@ -109,23 +109,15 @@ class ImportContributionSenasirController extends Controller
         $data_count['num_data_considered'] = count($query_data_considered);
 
         //---NUMERO DE DATOS VALIDADOS
-        $query_data_validated = "SELECT * FROM payroll_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER;";
-        $query_data_validated = DB::select($query_data_validated);
-        $data_count['num_data_validated'] = count($query_data_validated);
+        $data_count['num_data_validated'] = PayrollSenasir::data_period($month,$year)['count_data'];
          //---NUMERO DE DATOS NO VALIDADOS
         $data_count['num_data_not_validated'] = $data_count['num_data_considered'] - $data_count['num_data_validated'];
 
         //---TOTAL DE REGISTROS CONTRIBUTION PASSIVES
-        $query_data_contribution_passives = "SELECT id from contribution_passives ac
-        where month_year = '$date_payroll_format' and ac.contributionable_type = '$contributionable_type' and ac.deleted_at is null";
-        $query_data_contribution_passives = DB::select($query_data_contribution_passives);
-        $data_count['num_total_data_contribution_passives'] = count($query_data_contribution_passives);
+        $data_count['num_total_data_contribution_passives'] = ContributionPassive::data_period_senasir($date_payroll_format)['count_data'];
 
         //---suma monto total contribucion
-        $query_sum_amount = "SELECT sum(ac.total) as amount_total from contribution_passives ac
-        where month_year = '$date_payroll_format' and ac.contributionable_type = '$contributionable_type' and ac.deleted_at is null";
-        $query_sum_amount = DB::select($query_sum_amount);
-        $data_count['sum_amount_total_contribution_passives'] = isset($query_sum_amount[0]->amount_total) ? floatval($query_sum_amount[0]->amount_total):0;
+        $data_count['sum_amount_total_contribution_passives'] = floatval(ContributionPassive::sum_total_senasir($date_payroll_format));
 
         return  $data_count;
     }
@@ -172,8 +164,7 @@ class ImportContributionSenasirController extends Controller
         $period_contribution_senasir = Carbon::parse($request->period_contribution_senasir);
         $year = (int)$period_contribution_senasir->format("Y");
         $month = (int)$period_contribution_senasir->format("m");
-        $count_registered = "select count(*) from contribution_passives where  month_year = '$request->period_contribution_senasir' and contributionable_type ='payroll_senasirs';";
-        $count_registered = DB::select($count_registered)[0]->count;
+        $count_registered = ContributionPassive::data_period_senasir($request->period_contribution_senasir)['count_data'];
         if((int)$count_registered > 0){
             return response()->json([
                 'message' => "Error al realizar la importacion, el periodo ya fue importado.",
@@ -184,8 +175,7 @@ class ImportContributionSenasirController extends Controller
         }else{
             $query ="select import_period_contribution_senasir('$request->period_contribution_senasir',$user_id,$year,$month)";
             $query = DB::select($query);
-            $count_created = "select count(*) from contribution_passives where  month_year = '$request->period_contribution_senasir' and contributionable_type ='payroll_senasirs';";
-            $count_created = DB::select($count_created)[0]->count;
+            $count_created = ContributionPassive::data_period_senasir($request->period_contribution_senasir)['count_data'];
             DB::commit();
             $successfully = true;
             return response()->json([

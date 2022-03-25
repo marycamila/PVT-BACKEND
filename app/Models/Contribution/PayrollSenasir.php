@@ -5,9 +5,12 @@ namespace App\Models\Contribution;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Affiliate\Affiliate;
+use App\Models\Contribution\ContributionPassive;
+use App\Models\Contribution\PayrollSenasir;
 
 class PayrollSenasir extends Model
 {
+    protected $table = "payroll_senasirs";
     use HasFactory;
     public $timestamps = true;
     public $guarded = ['id'];
@@ -59,5 +62,24 @@ class PayrollSenasir extends Model
     public function affiliate()
     {
         return $this->belongsTo(Affiliate::class);
+    }
+
+      //relacion de la tabla polimorfica 
+    public function payroll_senasir_contribution()
+    {
+        return $this->morphMany(ContributionPassive::class,'contributionable');
+    }
+
+    public static function data_period($month,$year)
+    {
+        $data = collect([]);
+        $exists_data = true;
+        $payroll =  PayrollSenasir::whereMes($month)->whereA_o($year)->count();
+        if($payroll == 0) $exists_data = false;
+
+        $data['exist_data'] = $exists_data;
+        $data['count_data'] = $payroll;
+
+        return  $data;
     }
 }

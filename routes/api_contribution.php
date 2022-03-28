@@ -25,7 +25,11 @@ Route::group([
         Route::post('/rollback_payroll_copy_senasir', [App\Http\Controllers\Contribution\ImportPayrollSenasirController::class, 'rollback_payroll_copy_senasir']);
         Route::post('/import_create_or_update_contribution_period_senasir ', [App\Http\Controllers\Contribution\ImportContributionSenasirController::class, 'import_create_or_update_contribution_period_senasir']);
         Route::post('/import_payroll_senasir_progress_bar', [App\Http\Controllers\Contribution\ImportPayrollSenasirController::class, 'import_payroll_senasir_progress_bar']);
-        Route::post('/list_months_validate_senasir', [App\Http\Controllers\Contribution\ImportPayrollSenasirController::class, 'list_months_validate_senasir']);
+        Route::group([
+            'middleware' => 'permission:show-affiliate|show-all-loan'
+        ], function () {
+            Route::post('/list_months_validate_senasir', [App\Http\Controllers\Contribution\ImportPayrollSenasirController::class, 'list_months_validate_senasir']);
+        });
     });
 });
 

@@ -171,6 +171,12 @@ class CopyPersonSenasirController extends Controller
                // 'count_update_by_identity_fullname' => (int)$update_affiliate_id_person_senasir[3],
                 'count_created_affiliate' => (int)$update_affiliate_id_person_senasir[2]
             ],
+             'spouse'=> [
+                'count_update_spouse' => (int)$update_affiliate_id_person_senasir[3],
+                'count_create_spouse' => (int)$update_affiliate_id_person_senasir[4],
+                'count_not_create_spouse' => (int)$update_affiliate_id_person_senasir[5]-(int)$update_affiliate_id_person_senasir[3]-(int)$update_affiliate_id_person_senasir[4],
+                'count_total_spouse' => (int)$update_affiliate_id_person_senasir[5]
+            ],
             'count_data_copy_person_senasir' => [
                 'count_copy_total_senasir' => $count_copy_total_senasir,
                 'count_identity_card_cero_senasir' => $count_identity_card_cero_senasir,

@@ -15,22 +15,27 @@ class TmpCreateFunctionUpdateAffiliateIdPersonSenasir extends Migration
     {
         DB::statement("CREATE OR REPLACE FUNCTION public.tmp_update_affiliate_id_person_senasir(db_name_intext text)
         RETURNS character varying
-        LANGUAGE plpgsql
-       AS $$
+ LANGUAGE plpgsql
+ AS $$
                       declare
-              
+                      
                       type_state varchar;
                       cant varchar ;
+                      affiliate_id_spouse integer; 
+                      message varchar;
                       quantity integer := 1;
-                      user_id integer := 1;
+                      user_id_reg integer := 1;
                       pension_entity_id integer :=5;
-                    affiliate_state_id  integer :=4;
+                      affiliate_state_id  integer :=4;
               
                    count_update_by_registration integer := 0;
                    count_update_by_registration_fullname integer := 0;
                    count_update_by_identity integer := 0;
                    count_update_by_identity_fullname integer := 0;
                    count_created_affiliate integer := 0;
+                   count_update_spouse integer := 0;
+                   count_create_spouse integer := 0;
+                   count_total_spouse integer := 0;
               
                      -- Declaración EXPLICITA del cursor
                        cur_payroll CURSOR for (select * from dblink(db_name_intext,'SELECT id,id_person_senasir,matricula_tit,carnet_tit,num_com_tit,concat_carnet_num_com_tit,
@@ -47,12 +52,12 @@ class TmpCreateFunctionUpdateAffiliateIdPersonSenasir extends Migration
               
                    begin
                                --************************************************************
-                               --*Funcion actualizacion de ids y creacion de afiliados*
+                               --*Funcion actualizacion de ids, creacion de afiliados y esposas*
                                --************************************************************
                                -- Procesa el cursor
                             FOR record_row IN cur_payroll loop
 
-                                 IF quantity_regitration(record_row.matricula_tit) = quantity then
+                              IF quantity_regitration(record_row.matricula_tit) = quantity then
                                      UPDATE public.affiliates
                                      SET id_person_senasir = record_row.id_person_senasir,
                                      updated_at = (select current_timestamp)
@@ -66,7 +71,7 @@ class TmpCreateFunctionUpdateAffiliateIdPersonSenasir extends Migration
                                       count_update_by_registration:= count_update_by_registration + 1;
                                  --END IF;
                               else
-                              IF quantity_identity_card(record_row.concat_carnet_num_com_tit) = quantity and record_row.concat_carnet_num_com_tit != '0' then
+                                IF quantity_identity_card(record_row.concat_carnet_num_com_tit) = quantity and record_row.concat_carnet_num_com_tit != '0' then
 
                                    UPDATE public.affiliates
                                       SET id_person_senasir = record_row.id_person_senasir,
@@ -87,35 +92,70 @@ class TmpCreateFunctionUpdateAffiliateIdPersonSenasir extends Migration
                                      type_state:='AFILIADO_CREADO';
                                      count_created_affiliate:= count_created_affiliate + 1;
 
-                           INSERT INTO affiliates (user_id,affiliate_state_id,pension_entity_id,id_person_senasir,
-                           first_name, second_name, last_name, mothers_last_name,surname_husband ,
-                           identity_card, registration,date_death,gender,created_at,updated_at)
-                           VALUES (user_id,affiliate_state_id,pension_entity_id,record_row.id_person_senasir ,
-                           insert_text(record_row.p_nombre_tit),
-                           insert_text(record_row.s_nombre_tit),
-                           insert_text(record_row.paterno_tit),
-                           insert_text(record_row.materno_tit),
-                           insert_text(record_row.ap_casada_tit),
-                           insert_text(record_row.concat_carnet_num_com_tit),
-                           insert_text(record_row.matricula_tit),
-                           record_row.fec_fail_tit,
-                           record_row.genero_tit,
-                           current_timestamp,
-                           current_timestamp);
+                                      INSERT INTO affiliates (user_id,affiliate_state_id,pension_entity_id,id_person_senasir,
+                                      first_name, second_name, last_name, mothers_last_name,surname_husband ,
+                                      identity_card, registration,date_death,gender,created_at,updated_at)
+                                      VALUES (user_id_reg,affiliate_state_id,pension_entity_id,record_row.id_person_senasir ,
+                                      insert_text(record_row.p_nombre_tit),
+                                      insert_text(record_row.s_nombre_tit),
+                                      insert_text(record_row.paterno_tit),
+                                      insert_text(record_row.materno_tit),
+                                      insert_text(record_row.ap_casada_tit),
+                                      insert_text(record_row.concat_carnet_num_com_tit),
+                                      insert_text(record_row.matricula_tit),
+                                      record_row.fec_fail_tit,
+                                      record_row.genero_tit,
+                                      current_timestamp,
+                                      current_timestamp);
                                      END IF;
                                    END IF;
                                 END IF;
-                       END IF;
-                           if exists (select * from affiliates where id_person_senasir =record_row.id_person_senasir) then
+                              END IF;
+                              if exists (select id from affiliates where id_person_senasir =record_row.id_person_senasir) then
                                    cant:=  (select dblink_exec(db_name_intext, 'UPDATE copy_person_senasirs SET state=''accomplished'',observacion='''||type_state||''' WHERE copy_person_senasirs.id= '||record_row.id||''));                  
-                               END IF;
-                             END LOOP;
-                --return count_update_by_registration||','||count_update_by_registration_fullname||','||count_update_by_identity||','||count_update_by_identity_fullname||','||count_created_affiliate;
-               return count_update_by_registration||','||count_update_by_identity||','||count_created_affiliate;
-               end
+                                  affiliate_id_spouse:= (select id from affiliates where id_person_senasir =record_row.id_person_senasir);
+                                if (record_row.clase_renta_dh='VIUDEDAD') then
+                                   count_total_spouse:=count_total_spouse+1;
+                                  if exists (select * from spouses where affiliate_id =affiliate_id_spouse) then
+                        
+                 					              message:= 'actualiza datos de esposa matricula y fecha de nacimiento';
+                 				                count_update_spouse:= count_update_spouse +1;
+                 				                UPDATE public.spouses
+                      		            		SET user_id = user_id_reg,
+                      		            		registration = insert_text(record_row.matricula_dh),
+                      		            		updated_at = (select current_timestamp)
+                     			            	  WHERE spouses.affiliate_id = affiliate_id_spouse and (spouses.registration in ('','0') or spouses.registration is null);
 
+                      		            	UPDATE public.spouses
+                      		            	  SET user_id = user_id_reg,
+                      		            	  birth_date = record_row.fecha_nacimiento_dh,
+                      		            	  updated_at = (select current_timestamp)
+                      		            	  WHERE spouses.affiliate_id = affiliate_id_spouse and spouses.birth_date is null;
+                                  else
+                                   message:=  'crear esposa';
+                                    if(insert_text(record_row.concat_carnet_num_com_dh) is not null) then
+                      			          INSERT INTO public.spouses(user_id, affiliate_id,identity_card,registration, last_name, mothers_last_name , first_name , second_name, created_at,updated_at, birth_date)
+                                        VALUES (user_id_reg,affiliate_id_spouse,
+                           		        	insert_text(record_row.concat_carnet_num_com_dh),
+                           		        	insert_text(record_row.matricula_dh),
+                           		        	insert_text(record_row.paterno_dh),
+                           		        	insert_text(record_row.materno_dh),
+                           		        	insert_text(record_row.p_nombre_dh),
+                           		        	insert_text(record_row.s_nombre_dh),
+                           		        	current_timestamp,
+                           		        	current_timestamp,
+                           		        	record_row.fecha_nacimiento_dh);
+                           		           count_create_spouse:= count_create_spouse +1;
+                           		      END IF;
+                                  END IF;
+                                END IF;
+                              END IF;
+                          END LOOP;
+                --return count_update_by_registration||','||count_update_by_registration_fullname||','||count_update_by_identity||','||count_update_by_identity_fullname||','||count_created_affiliate;
+               return count_update_by_registration||','||count_update_by_identity||','||count_created_affiliate||','||count_update_spouse||','||count_create_spouse||','||count_total_spouse;
+               end
                $$
-       ;");
+        ;");
 
         DB::statement("CREATE OR REPLACE FUNCTION LINK_AFFILIATE_ID_PERSON_SENASIR(db_name_intext text,affiliate_id integer[],id_person integer []) returns varchar
         as $$

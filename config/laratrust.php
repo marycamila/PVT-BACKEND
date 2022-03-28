@@ -46,7 +46,7 @@ return [
         | NOTE: Currently the database check does not use cache.
         |
         */
-        'enabled' => env('LARATRUST_ENABLE_CACHE', true),
+        'enabled' => env('LARATRUST_ENABLE_CACHE', false),
 
         /*
         |--------------------------------------------------------------------------
@@ -95,7 +95,7 @@ return [
         /**
          * Will be used only if the teams functionality is enabled.
          */
-        'team' => \App\Models\Team::class,
+       // 'team' => \App\Models\Team::class,
     ],
 
     /*
@@ -115,13 +115,13 @@ return [
         /**
          * Will be used only if the teams functionality is enabled.
          */
-        'teams' => 'teams',
+       // 'teams' => 'teams',
 
         'role_user' => 'role_user',
 
-        'permission_user' => 'permission_user',
+        'permission_user' => 'user_permissions',
 
-        'permission_role' => 'permission_role',
+        'permission_role' => 'role_permissions',
     ],
 
     /*
@@ -151,7 +151,7 @@ return [
         /**
          * Role foreign key on Laratrust's role_user and permission_user tables.
          */
-        'team' => 'team_id',
+        //'team' => 'team_id',
     ],
 
     /*
@@ -166,7 +166,7 @@ return [
         /**
          * Define if the laratrust middleware are registered automatically in the service provider
          */
-        'register' => true,
+        'register' => false,
 
         /**
          * Method to be called in the middleware return case.
@@ -193,13 +193,13 @@ return [
              * you can do it by setting the key and the content of the message
              * If the message content is empty it won't be added to the redirection.
              */
-            'redirect' => [
+           /* 'redirect' => [
                 'url' => '/home',
                 'message' => [
                     'key' => 'error',
                     'content' => ''
                 ]
-            ]
+            ]*/
         ]
     ],
 

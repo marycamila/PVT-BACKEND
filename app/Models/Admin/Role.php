@@ -3,6 +3,7 @@
 namespace App\Models\Admin;
 
 use Laratrust\Models\LaratrustRole;
+use Fico7489\Laravel\Pivot\Traits\PivotEventTrait;
 
 class Role extends LaratrustRole
 {

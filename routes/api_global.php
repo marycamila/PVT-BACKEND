@@ -12,7 +12,7 @@ Route::group([
     Route::group([
         'middleware' => ['auth:sanctum']
     ], function () {
-        Route::apiResource('city', App\Http\Controllers\Global\CityController::class)->only(['index', 'show']);
+        Route::apiResource('city', App\Http\Controllers\CityController::class)->only(['index', 'show']);
     });
 });
 

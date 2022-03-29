@@ -25,7 +25,7 @@ class TmpCreateFunctionUpdateAffiliateIdPersonSenasir extends Migration
                       message varchar;
                       quantity integer := 1;
                       user_id_reg integer := 1;
-                      pension_entity_id integer :=5;
+                      pension_entity_id_reg integer :=5;
                       affiliate_state_id  integer :=4;
               
                    count_update_by_registration integer := 0;
@@ -60,6 +60,7 @@ class TmpCreateFunctionUpdateAffiliateIdPersonSenasir extends Migration
                               IF quantity_regitration(record_row.matricula_tit) = quantity then
                                      UPDATE public.affiliates
                                      SET id_person_senasir = record_row.id_person_senasir,
+                                     pension_entity_id = pension_entity_id_reg,
                                      updated_at = (select current_timestamp)
                                      WHERE affiliates.registration = record_row.matricula_tit and affiliates.id_person_senasir is null;
 
@@ -75,7 +76,8 @@ class TmpCreateFunctionUpdateAffiliateIdPersonSenasir extends Migration
 
                                    UPDATE public.affiliates
                                       SET id_person_senasir = record_row.id_person_senasir,
-                                      --registration = record_row.matricula_tit,
+                                      registration = record_row.matricula_tit,
+                                      pension_entity_id = pension_entity_id_reg,
                                       updated_at = (select current_timestamp)
                                       WHERE affiliates.identity_card = record_row.concat_carnet_num_com_tit and affiliates.id_person_senasir is null;
 
@@ -95,7 +97,7 @@ class TmpCreateFunctionUpdateAffiliateIdPersonSenasir extends Migration
                                       INSERT INTO affiliates (user_id,affiliate_state_id,pension_entity_id,id_person_senasir,
                                       first_name, second_name, last_name, mothers_last_name,surname_husband ,
                                       identity_card, registration,date_death,gender,created_at,updated_at)
-                                      VALUES (user_id_reg,affiliate_state_id,pension_entity_id,record_row.id_person_senasir ,
+                                      VALUES (user_id_reg,affiliate_state_id,pension_entity_id_reg,record_row.id_person_senasir ,
                                       insert_text(record_row.p_nombre_tit),
                                       insert_text(record_row.s_nombre_tit),
                                       insert_text(record_row.paterno_tit),
@@ -124,7 +126,8 @@ class TmpCreateFunctionUpdateAffiliateIdPersonSenasir extends Migration
                       		            		SET user_id = user_id_reg,
                       		            		registration = insert_text(record_row.matricula_dh),
                       		            		updated_at = (select current_timestamp)
-                     			            	  WHERE spouses.affiliate_id = affiliate_id_spouse and (spouses.registration in ('','0') or spouses.registration is null);
+                     			            	  WHERE spouses.affiliate_id = affiliate_id_spouse;
+                     			            	 --WHERE spouses.affiliate_id = affiliate_id_spouse and (spouses.registration in ('','0') or spouses.registration is null);
 
                       		            	UPDATE public.spouses
                       		            	  SET user_id = user_id_reg,

@@ -10,6 +10,9 @@ use App\Http\Controllers\Contribution\ImportPayrollSenasirController;
 use Auth;
 use App\Models\Contribution\PayrollSenasir;
 use App\Models\Contribution\ContributionPassive;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\ArchivoPrimarioExport;
+
 
 class ImportContributionSenasirController extends Controller
 {
@@ -110,6 +113,7 @@ class ImportContributionSenasirController extends Controller
 
         //---NUMERO DE DATOS VALIDADOS
         $data_count['num_data_validated'] = PayrollSenasir::data_period($month,$year)['count_data'];
+        
          //---NUMERO DE DATOS NO VALIDADOS
         $data_count['num_data_not_validated'] = $data_count['num_data_considered'] - $data_count['num_data_validated'];
 
@@ -198,4 +202,77 @@ class ImportContributionSenasirController extends Controller
      }
     }
 
+    /**
+     * @OA\Post(
+     *      path="/api/contribution/report_import_contribution_senasir",
+     *      tags={"IMPORTACION-APORTES-SENASIR"},
+     *      summary="GENERA REPORTE DE APORTES SENASIR IMPORTADAS",
+     *      operationId="report_import_contribution_senasir",
+     *      description="Genera reporte de aportes SENASIR de la tabla contribution_passives de acuerdo a periodo",
+     *      @OA\RequestBody(
+     *          description= "Provide auth credentials",
+     *          required=true,
+     *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
+     *             @OA\Property(property="date_contribution", type="string",description="fecha de planilla required",example= "2021-10-01")
+     *            )
+     *          ),
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     },
+     *      @OA\Response(
+     *          response=200,
+     *          description="Success",
+     *          @OA\JsonContent(
+     *            type="object"
+     *         )
+     *      )
+     * )
+     *
+     * Logs user into the system.
+     *
+     * @param Request $request
+     * @return void
+    */
+    public function report_import_contribution_senasir(request $request) {
+
+        $request->validate([
+            'date_contribution' => 'required|date_format:"Y-m-d"',
+        ]);
+
+        DB::beginTransaction();
+        $message = "No hay datos";
+        $date_contribution_format = $request->date_contribution;
+
+        $data_cabeceras=array(array("FECHA","CARNET","MATRÍCULA","PRIMER NOMBRE","SEGUNDO NOMBRE","APELLIDO PATERNO","APELLIDO MATERNO", 
+        "APELLIDO CASADA","COTIZABLE","RENTA","RENTA DIGNIDAD","APORTE","CLASE DE RENTA"));
+
+        $date_contribution = Carbon::parse($request->date_contribution);
+        $year = (string)$date_contribution->format("Y");
+        $month = (string)$date_contribution->format("m");
+        $day = (string)$date_contribution->format("d");
+        $date_contribution = $year.'-'.$month.'-'.$day;     
+        $data_contribution_senasir = "select  * from  contribution_passives cp
+        inner join affiliates a 
+        on cp.affiliate_id = a.id 
+        and cp.month_year = '$date_contribution'
+        and cp.contributionable_type = 'payroll_senasirs'";
+                    $data_contribution_senasir = DB::select($data_contribution_senasir);
+                           
+                            if(count($data_contribution_senasir)> 0){
+                                $message = "Excel";
+                                foreach ($data_contribution_senasir as $row){
+                                    array_push($data_cabeceras, array($row->month_year ,$row->identity_card ,$row->registration, $row->first_name,
+                                    $row->second_name, $row->last_name, $row->mothers_last_name, $row->surname_husband , $row->quotable, $row->rent, $row->dignity_rent, $row->total,
+                                    $row->affiliate_rent_class));                               
+                                }
+
+                                $export = new ArchivoPrimarioExport($data_cabeceras);
+                                $file_name = "Aportes_Senasir";
+                                $extension = '.xls';
+                                return Excel::download($export, $file_name.$month.$year.$extension);                                
+
+                            }
+    }       
+        
 }

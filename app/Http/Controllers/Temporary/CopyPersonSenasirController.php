@@ -186,7 +186,7 @@ class CopyPersonSenasirController extends Controller
              'procedure_affiliate'=> [
                 'count_procedure_loans' => $quantity_l,
                 'count_procedure_economic_complements' => $quantity_ec,
-                'count_procedure_retiremnet_funds' => $quantity_rf,
+                'count_procedure_retirement_funds' => $quantity_rf,
                 'count_procedure_quota_aid' => $quantity_qam
             ],
             'count_data_copy_person_senasir' => [

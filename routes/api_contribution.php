@@ -30,6 +30,9 @@ Route::group([
         ], function () {
             Route::post('/list_months_validate_senasir', [App\Http\Controllers\Contribution\ImportPayrollSenasirController::class, 'list_months_validate_senasir']);
         });
+        Route::post('/report_payroll_senasir', [App\Http\Controllers\Contribution\ImportPayrollSenasirController::class, 'report_payroll_senasir']);
+        Route::post('/report_import_contribution_senasir', [App\Http\Controllers\Contribution\ImportContributionSenasirController::class, 'report_import_contribution_senasir']);
+
     });
 });
 

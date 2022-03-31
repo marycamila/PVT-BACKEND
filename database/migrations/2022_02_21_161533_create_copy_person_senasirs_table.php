@@ -44,6 +44,10 @@ class CreateCopyPersonSenasirsTable extends Migration
             $table->string('clase_renta_dh')->nullable()->comment('Clase de renta');
             $table->enum('state', ['accomplished','unrealized'])->default('unrealized')->comment('Estado si fue encontrado o no encontrado');
             $table->string('observacion')->nullable()->comment('Observacion del registro');
+            $table->integer('quantity_l')->default(0)->comment('cantidad de tramites de prestamos');
+            $table->integer('quantity_ec')->default(0)->comment('cantidad de tramites de complemento económico');
+            $table->integer('quantity_rf')->default(0)->comment('cantidad de tramites de fondo de retiro');
+            $table->integer('quantity_qam')->default(0)->comment('cantidad de tramites de cuota y auxilio mortuorio');
             $table->timestamps();
             $table->softDeletes();
         });

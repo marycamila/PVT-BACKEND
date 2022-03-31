@@ -159,6 +159,12 @@ class CopyPersonSenasirController extends Controller
         $count_total_update_link =DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion like 'LINK_AFFILIATE_ID_PERSON_SENASIR'")[0]->count;
         $count_total_accomplished_senasir = $count_update_by_registration +  $count_update_by_identity + $count_created_affiliate + $count_total_update_link;
 
+        //conteo de datos de afiliados con tramites por tipo de tramites
+         $quantity_l = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs  where state = 'accomplished' and quantity_l > 0")[0]->count;
+         $quantity_ec = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs  where state = 'accomplished' and quantity_ec > 0")[0]->count;
+         $quantity_rf = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs  where state = 'accomplished' and quantity_rf > 0")[0]->count;
+         $quantity_qam = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs  where state = 'accomplished' and quantity_l > 0")[0]->count;
+
 
         DB::commit();
         return response()->json([
@@ -176,6 +182,12 @@ class CopyPersonSenasirController extends Controller
                 'count_create_spouse' => (int)$update_affiliate_id_person_senasir[4],
                 'count_not_create_spouse' => (int)$update_affiliate_id_person_senasir[5]-(int)$update_affiliate_id_person_senasir[3]-(int)$update_affiliate_id_person_senasir[4],
                 'count_total_spouse' => (int)$update_affiliate_id_person_senasir[5]
+            ],
+             'procedure_affiliate'=> [
+                'count_procedure_loans' => $quantity_l,
+                'count_procedure_economic_complements' => $quantity_ec,
+                'count_procedure_retirement_funds' => $quantity_rf,
+                'count_procedure_quota_aid' => $quantity_qam
             ],
             'count_data_copy_person_senasir' => [
                 'count_copy_total_senasir' => $count_copy_total_senasir,

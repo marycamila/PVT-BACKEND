@@ -85,6 +85,43 @@ class CreateFunctionVerificationForImportSenasir extends Migration
             return IIF(length(trim(upper(value))) = 0, null, trim(upper(value)));
         END
         $$;");
+
+        DB::statement("CREATE OR REPLACE FUNCTION public.quantity_procedure_affiliate(id_affiliate integer,value character varying)
+        RETURNS integer
+        LANGUAGE plpgsql
+       AS $$
+          DECLARE
+                quantity integer;
+                begin
+                    CASE
+                       WHEN (value = 'l' ) THEN
+                           select count(*) into  quantity
+                           from affiliates a , (select distinct la.affiliate_id
+                           from loans l, loan_affiliates la
+                           where l.id =la.loan_id and l.deleted_at is null ) as qam
+                           where a.id_person_senasir is not null and a.id = qam.affiliate_id and a.id = id_affiliate;
+                       WHEN (value = 'ec' ) THEN
+                           select count(*) into  quantity
+                           from affiliates a , (select distinct affiliate_id
+                           from economic_complements where deleted_at is null ) as eco_com
+                           where a.id_person_senasir is not null and a.id = eco_com.affiliate_id and a.id = id_affiliate;
+                       WHEN (value = 'rf' ) THEN
+                           select count(*) into  quantity
+                           from affiliates a , (select distinct affiliate_id
+                           from retirement_funds  where deleted_at is null ) as rf
+                           where a.id_person_senasir is not null and a.id = rf.affiliate_id and a.id = id_affiliate;
+                       WHEN (value = 'qam' ) THEN
+                           select count(*) into  quantity
+                           from affiliates a , (select distinct affiliate_id
+                           from quota_aid_mortuaries where deleted_at is null) as qam
+                           where a.id_person_senasir is not null and a.id = qam.affiliate_id and a.id = id_affiliate;
+                       ELSE
+                           quantity :=0;
+                    END CASE;
+           return quantity;
+         END;
+         $$
+       ;");
     }
 
     /**

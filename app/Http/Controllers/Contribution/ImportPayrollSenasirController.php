@@ -634,4 +634,77 @@ class ImportPayrollSenasirController extends Controller
 
         return  $data_count;
     }
+
+    /**
+     * @OA\Post(
+     *      path="/api/contribution/report_payroll_senasir",
+     *      tags={"IMPORTACION-PLANILLA-SENASIR"},
+     *      summary="GENERA REPORTE EXCEL DE DATOS REMITIDOS POR SENASIR",
+     *      operationId="report_import_senasir ",
+     *      description="Genera el archivo excel de los datos remitidos por el SENASIR por mes y año",
+     *      @OA\RequestBody(
+     *          description= "Provide auth credentials",
+     *          required=true,
+     *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
+     *             @OA\Property(property="date_payroll", type="string",description="fecha de planilla required",example= "2021-10-01")
+     *            )
+     *          ),
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     },
+     *      @OA\Response(
+     *          response=200,
+     *          description="Success",
+     *          @OA\JsonContent(
+     *            type="object"
+     *         )
+     *      )
+     * )
+     *
+     * Logs user into the system.
+     *
+     * @param Request $request
+     * @return void
+    */
+   
+    public function report_payroll_senasir(request $request) {
+
+        $request->validate([
+            'date_payroll' => 'required|date_format:"Y-m-d"',
+        ]);
+
+        DB::beginTransaction();
+        $message = "No hay datos";
+        $date_payroll_format = $request->date_payroll;
+        $data_cabeceras=array(array("AÑO","MES","MATRÍCULA TITULAR","MATRÍCULA D_H","DEPARTAMENTO","RENTA","CARNET", 
+        "APELLIDO PATERNO","APELLIDO MATERNO","PRIMER NOMBRE","SEGUNDO NOMBRE","AP_CASADA","FECHA DE NACIMIENTO","CLASE DE RENTA","TOTAL GANADO",
+        "TOTAL DESCUENTOS","LIQUIDO PAGABLE","REINTEGRO RENTA BASICA","RENTA DIGNIDAD","REINTEGRO RENTA DIGNIDAD","REINTEGRO AGUINALDO",
+        "REINTEGRO IMPORTE ADICIONAL","REINTEGRO INCREMENTO DE GESTION","DESCUENTO MUSERPOL","DESCUENTO COVIPOL","DESCUENTO PRESTAMO MUSERPOL",
+        "CARNET TITULAR","PATERNO TITULAR","MATERNO TITULAR","PRIMER NOMBRE TITULAR","SEGUNDO NOMBRE TITULAR",
+        "APELLIDO CASADA TITULAR","FECHA DE NACIMIENTO TITULAR","CLASE DE RENTA TITULAR","FECHA FALLECIMIENTO TITULAR"));
+
+        $date_payroll = Carbon::parse($request->date_payroll);
+        $year = (int)$date_payroll->format("Y");
+        $month = (int)$date_payroll->format("m");     
+        $data_payroll_senasir = "select  * from  payroll_senasirs  where mes ='$month' and a_o='$year'";
+                    $data_payroll_senasir = DB::select($data_payroll_senasir);
+                            if(count($data_payroll_senasir)> 0){
+                                $message = "Excel";
+                                foreach ($data_payroll_senasir as $row){
+                                    array_push($data_cabeceras, array($row->a_o ,$row->mes ,$row->matricula_titular ,$row->mat_dh ,
+                                    $row->departamento, $row->renta, $row->carnet_num_com, $row->paterno , $row->materno, $row->p_nombre, $row->s_nombre, $row->ap_casada,
+                                    $row->fecha_nacimiento, $row->clase_renta, $row->total_ganado, $row->total_descuentos, $row->liquido_pagable, $row->rentegro_r_basica, $row->renta_dignidad, $row->reintegro_renta_dignidad,
+                                    $row->reintegro_aguinaldo, $row->reintegro_importe_adicional, $row->reintegro_inc_gestion, $row->descuento_aporte_muserpol, $row->descuento_covipol, $row->descuento_prestamo_musepol, $row->carnet_num_com_tit, 
+                                    $row->pat_titular , $row->mat_titular , $row->p_nom_titular , $row->s_nombre_titular , $row->ap_casada_titular, $row->fecha_nac_titular, $row->clase_renta_tit, $row->fec_fail_tit 
+                                ));                               
+                                }
+
+                                $export = new ArchivoPrimarioExport($data_cabeceras);
+                                $file_name = "Planilla_Senasir";
+                                $extension = '.xls';
+                                return Excel::download($export, $file_name.$month.$year.$extension);                                
+
+                            }
+    }       
 }

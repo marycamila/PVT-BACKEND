@@ -165,7 +165,7 @@ class CopyPersonSenasirController extends Controller
          $quantity_l = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs  where state = 'accomplished' and quantity_l > 0")[0]->count;
          $quantity_ec = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs  where state = 'accomplished' and quantity_ec > 0")[0]->count;
          $quantity_rf = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs  where state = 'accomplished' and quantity_rf > 0")[0]->count;
-         $quantity_qam = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs  where state = 'accomplished' and quantity_l > 0")[0]->count;
+         $quantity_qam = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs  where state = 'accomplished' and quantity_qam > 0")[0]->count;
 
 
         DB::commit();

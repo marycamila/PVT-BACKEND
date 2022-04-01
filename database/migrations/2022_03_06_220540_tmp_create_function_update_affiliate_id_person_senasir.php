@@ -14,7 +14,7 @@ class TmpCreateFunctionUpdateAffiliateIdPersonSenasir extends Migration
     public function up()
     {
         DB::statement("CREATE OR REPLACE FUNCTION public.tmp_update_affiliate_id_person_senasir(db_name_intext text)
-        RETURNS character varying
+       RETURNS character varying
 LANGUAGE plpgsql
 AS $$
                       declare
@@ -82,16 +82,16 @@ AS $$
                                             UPDATE public.affiliates
                                      		SET id_person_senasir = record_row.id_person_senasir,
                                             updated_at = (select current_timestamp)
-                                            WHERE affiliates.registration = record_row.matricula_tit and affiliates.id_person_senasir is null;
+                                            WHERE affiliates.identity_card = record_row.concat_carnet_num_com_tit and affiliates.id_person_senasir is null;
 							              ELSIF quantity_identity_card(record_row.concat_carnet_num_com_tit) = quantity and record_row.concat_carnet_num_com_tit != '0' then
                                        type_state:='ACTUALIZADO_POR_CARNET';
                                        count_update_by_identity:= count_update_by_identity + 1;
                                            UPDATE public.affiliates
                                      	   SET id_person_senasir = record_row.id_person_senasir,
                                            updated_at = (select current_timestamp)
-                                           WHERE affiliates.registration = record_row.matricula_tit and affiliates.id_person_senasir is null;
+                                           WHERE affiliates.identity_card = record_row.concat_carnet_num_com_tit and affiliates.id_person_senasir is null;
 							              ELSIF (quantity_identity_card(record_row.concat_carnet_num_com_tit) = 0) and (record_row.concat_carnet_num_com_tit is not null)  then
-							                          type_state:='AFILIADO_CREADO';
+							            type_state:='AFILIADO_CREADO';
                                        count_created_affiliate:= count_created_affiliate + 1;
 
                                       INSERT INTO affiliates (user_id,affiliate_state_id,pension_entity_id,id_person_senasir,
@@ -143,7 +143,7 @@ AS $$
                                  if (record_row.clase_renta_dh = 'VIUDEDAD') then
                                    count_total_spouse:=count_total_spouse + 1;
                                   if exists (select * from spouses where affiliate_id = affiliate_id_reg) then
-                                       IF status_process = 0 and type_state != 'AFILIADO_CREADO' then
+                                       IF status_process = 0 and type_state != 'AFILIADO_CREADO' then 
 
                  					            message:= 'actualiza datos de esposa matricula y fecha de nacimiento';
                  				                count_update_spouse:= count_update_spouse +1;
@@ -176,7 +176,7 @@ AS $$
                --return count_update_by_registrationrecord_row||','||count_update_by_identity||','||count_created_affiliate||','||count_update_spouse||','||count_create_spouse||','||count_total_spouse;
                end
         $$
-        ;");
+      ;");
 
         DB::statement("CREATE OR REPLACE FUNCTION LINK_AFFILIATE_ID_PERSON_SENASIR(db_name_intext text,affiliate_id integer[],id_person integer []) returns varchar
         as $$

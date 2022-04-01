@@ -152,12 +152,14 @@ class CopyPersonSenasirController extends Controller
         $count_copy_total_senasir = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps")[0]->count;
         $count_identity_card_cero_senasir = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.concat_carnet_num_com_tit like '0'")[0]->count;
         $count_unrealized_senasir =  DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion is null  and cps.state like 'unrealized'")[0]->count;
+        $count_update_by_registration_full_name = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion like 'ACTUALIZADO_POR_MATRICULA_NOMBRE_PM' and cps.state like 'accomplished'")[0]->count;
         $count_update_by_registration = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion like 'ACTUALIZADO_POR_MATRICULA' and cps.state like 'accomplished'")[0]->count;
-        $count_update_by_identity = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion like 'ACTUALIZADO_POR_CARNET' and cps.state like 'accomplished'")[0]->count;
+        $count_update_by_identity = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion like 'ACTUALIZADO_POR_CARNET_NOMBRE_PM' and cps.state like 'accomplished'")[0]->count;
+        $count_update_by_identity_full_name = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion like 'ACTUALIZADO_POR_CARNET' and cps.state like 'accomplished'")[0]->count;
         $count_created_affiliate =  DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion like 'AFILIADO_CREADO' and cps.state like 'accomplished'")[0]->count;
         $count_total_affiliates_update = DB::select("select count(*) from affiliates a where a.id_person_senasir is not null")[0]->count;
         $count_total_update_link =DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion like 'LINK_AFFILIATE_ID_PERSON_SENASIR'")[0]->count;
-        $count_total_accomplished_senasir = $count_update_by_registration +  $count_update_by_identity + $count_created_affiliate + $count_total_update_link;
+        $count_total_accomplished_senasir = $count_update_by_registration +  $count_update_by_identity + $count_created_affiliate + $count_total_update_link + $count_update_by_registration_full_name + $count_update_by_identity_full_name;
 
         //conteo de datos de afiliados con tramites por tipo de tramites
          $quantity_l = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs  where state = 'accomplished' and quantity_l > 0")[0]->count;
@@ -193,7 +195,9 @@ class CopyPersonSenasirController extends Controller
                 'count_copy_total_senasir' => $count_copy_total_senasir,
                 'count_identity_card_cero_senasir' => $count_identity_card_cero_senasir,
                 'count_unrealized_senasir' => $count_unrealized_senasir,
+                'count_update_by_registration_full_name' => $count_update_by_registration_full_name,
                 'count_update_by_registration' => $count_update_by_registration,
+                'count_update_by_identity_full_name' => $count_update_by_identity_full_name,
                 'count_update_by_identity' => $count_update_by_identity,
                 'count_created_affiliate' => $count_created_affiliate,
                 'count_total_update_link' => $count_total_update_link,

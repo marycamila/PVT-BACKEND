@@ -126,7 +126,7 @@ class CreateFunctionVerificationForImportSenasir extends Migration
        last_name_entry character varying,mothers_last_name_entry character varying,birth_date_entry date)
         RETURNS integer
         LANGUAGE plpgsql
-       AS $function$
+       AS $$
                  DECLARE
                        affiliate_id integer;
                        count_id integer:= 0;
@@ -185,7 +185,7 @@ class CreateFunctionVerificationForImportSenasir extends Migration
                    END IF;
                   return affiliate_id;
                 END;
-                $function$
+                $$
        ;
        ");
     }

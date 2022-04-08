@@ -122,6 +122,72 @@ class CreateFunctionVerificationForImportSenasir extends Migration
          END;
          $$
        ;");
+       DB::statement("CREATE OR REPLACE FUNCTION public.identified_affiliate(order_entry integer,identity_card_entry character varying, registration_entry character varying, first_name_entry character varying,
+       last_name_entry character varying,mothers_last_name_entry character varying,birth_date_entry date)
+        RETURNS integer
+        LANGUAGE plpgsql
+       AS $function$
+                 DECLARE
+                       affiliate_id integer;
+                       count_id integer:= 0;
+                       begin
+                           CASE
+                              WHEN (order_entry = 1 ) THEN
+                                  select id into affiliate_id from affiliates where id_person_senasir is null
+                                  and identity_card = identity_card_entry and registration = registration_entry and first_name = first_name_entry 
+                                  and last_name = last_name_entry and mothers_last_name = mothers_last_name_entry and birth_date = birth_date_entry;
+
+                                  select count(id) into count_id from affiliates where id_person_senasir is null
+                                  and identity_card = identity_card_entry and registration = registration_entry and first_name = first_name_entry 
+                                  and last_name = last_name_entry and mothers_last_name = mothers_last_name_entry and birth_date = birth_date_entry;
+                              WHEN (order_entry = 2  ) THEN
+                                  select id into affiliate_id from affiliates where id_person_senasir is null
+                                  and identity_card = identity_card_entry and first_name = first_name_entry 
+                                  and last_name = last_name_entry and mothers_last_name = mothers_last_name_entry and birth_date = birth_date_entry;
+
+                                  select count(id) into count_id from affiliates where id_person_senasir is null
+                                  and identity_card = identity_card_entry and first_name = first_name_entry 
+                                  and last_name = last_name_entry and mothers_last_name = mothers_last_name_entry and birth_date = birth_date_entry;
+                              WHEN (order_entry = 3  ) THEN
+                                 select id into affiliate_id from affiliates where id_person_senasir is null
+                                  and identity_card = identity_card_entry and registration = registration_entry and first_name = first_name_entry 
+                                  and last_name = last_name_entry and mothers_last_name = mothers_last_name_entry;
+
+                                  select count(id) into count_id from affiliates where id_person_senasir is null
+                                  and identity_card = identity_card_entry and registration = registration_entry and first_name = first_name_entry 
+                                  and last_name = last_name_entry and mothers_last_name = mothers_last_name_entry;
+                              WHEN (order_entry = 4  ) THEN
+                                  select id into affiliate_id from affiliates where id_person_senasir is null
+                                  and registration = registration_entry and first_name = first_name_entry 
+                                  and last_name = last_name_entry and mothers_last_name = mothers_last_name_entry and birth_date = birth_date_entry;
+
+                                  select count(id) into count_id from affiliates where id_person_senasir is null
+                                  and registration = registration_entry and first_name = first_name_entry 
+                                  and last_name = last_name_entry and mothers_last_name = mothers_last_name_entry and birth_date = birth_date_entry;
+                              WHEN (order_entry = 5  ) THEN
+                                  select id into affiliate_id from affiliates where id_person_senasir is null
+                                  and identity_card = identity_card_entry  and first_name = first_name_entry 
+                                  and last_name = last_name_entry and mothers_last_name = mothers_last_name_entry;
+
+                                  select count(id) into count_id from affiliates where id_person_senasir is null
+                                  and identity_card = identity_card_entry  and first_name = first_name_entry 
+                                  and last_name = last_name_entry and mothers_last_name = mothers_last_name_entry;
+                              ELSE
+                                  affiliate_id :=0;
+                           END CASE;
+
+                   IF count_id = 1 is NULL THEN
+                       affiliate_id := affiliate_id;
+                   ELSIF  count_id = 0 then
+                       affiliate_id :=  count_id;
+                   ELSIF  count_id > 1 then
+                       affiliate_id :=  -1;
+                   END IF;
+                  return affiliate_id;
+                END;
+                $function$
+       ;
+       ");
     }
 
     /**

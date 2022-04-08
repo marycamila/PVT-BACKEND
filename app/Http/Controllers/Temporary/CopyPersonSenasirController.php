@@ -216,5 +216,70 @@ class CopyPersonSenasirController extends Controller
         ]);
         }
     }
+    /**
+    * @OA\Post(
+    *      path="/api/temporary/update_affiliate_id_senasir",
+    *      tags={"IMPORTACION-IDS-PERSONAS-SENASIR"},
+    *      summary="PASO 2 ACTUAIZACION DE CRITERIOS",
+    *      operationId="update_affiliate_id_senasir",
+    *      description="Importacion de afiliados y data de senasir ",
+    *     security={
+    *         {"bearerAuth": {}}
+    *     },
+    *      @OA\Response(
+    *          response=200,
+    *          description="Success",
+    *          @OA\JsonContent(
+    *            type="object"
+    *         )
+    *      )
+    * )
+    *
+    * Logs user into the system.
+    *
+    * @param Request $request
+    * @return void
+   */
+
+  public function update_affiliate_id_senasir(Request $request){
+ 
+        $connection_db_aux = Util::connection_db_aux();
+        $update_affiliate_id_person_senasir =  DB::select("select tmp_update_affiliate_id_senasir('$connection_db_aux')");
+        $update_affiliate_id_person_senasir = explode(',',$update_affiliate_id_person_senasir[0]->tmp_update_affiliate_id_senasir);
+
+        $count_copy_total_senasir = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps")[0]->count;
+
+        $count_unrealized_senasir =  DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion is null  and cps.state like 'unrealized'")[0]->count;
+        $count_update_by_criterion_one = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion like '1-CI-MAT-PN-AP-AM-FN' and cps.state like 'accomplished'")[0]->count;
+        $count_update_by_criterion_two = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion like '2-CI-PN-AP-AM-FN' and cps.state like 'accomplished'")[0]->count;
+        $count_update_by_criterion_three = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion like '3-CI-MAT-PN-AP-AM' and cps.state like 'accomplished'")[0]->count;
+        $count_update_by_criterion_four = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion like '4-MAT-PN-AP-AM-FN' and cps.state like 'accomplished'")[0]->count;
+        $count_update_by_criterion_five =  DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion like '5-CI-PN-AP-AM' and cps.state like 'accomplished'")[0]->count;
+        $count_total_affiliates_update = DB::select("select count(*) from affiliates a where a.id_person_senasir is not null")[0]->count;
+        $count_total_accomplished_senasir = $count_update_by_criterion_one +  $count_update_by_criterion_two + $count_update_by_criterion_three + $count_update_by_criterion_four + $count_update_by_criterion_five;
+        return response()->json([
+            'message' => 'Realizado con exito',
+            'payload' => [
+                'successfully' => true,
+                'count_update_by_criterion_one' => (int)$update_affiliate_id_person_senasir[0],
+                'count_update_by_criterion_two' => (int)$update_affiliate_id_person_senasir[1],
+                'count_update_by_criterion_three' => (int)$update_affiliate_id_person_senasir[2],
+                'count_update_by_criterion_four' => (int)$update_affiliate_id_person_senasir[3],
+                'count_update_by_criterion_five' => (int)$update_affiliate_id_person_senasir[4]
+            ],
+        
+            'count_data_copy_person_senasir' => [
+                'count_copy_total_senasir' => $count_copy_total_senasir,
+                'count_unrealized_senasir' => $count_unrealized_senasir,
+                'count_update_by_1-CI-MAT-PN-AP-AM-FN' => $count_update_by_criterion_one,
+                'count_update_by_2-CI-PN-AP-AM-FN' => $count_update_by_criterion_two,
+                'count_update_by_3-CI-MAT-PN-AP-AM' => $count_update_by_criterion_three,
+                'count_update_by_4-MAT-PN-AP-AM-FN' => $count_update_by_criterion_four,
+                'count_update_by_5-CI-PN-AP-AM' => $count_update_by_criterion_five,
+                '_count_total_accomplished_senasir' => $count_total_accomplished_senasir
+            ],
+        ]);
+
+    }
 
 }

@@ -281,5 +281,71 @@ class CopyPersonSenasirController extends Controller
         ]);
 
     }
+        /**
+    * @OA\Post(
+    *      path="/api/temporary/update_affiliate_id_senasir_registration_and_identity_card",
+    *      tags={"IMPORTACION-IDS-PERSONAS-SENASIR"},
+    *      summary="PASO 3 ACTUAIZACION DE CRITERIOS 6 y 7 REVISION MANUAL",
+    *      operationId="update_affiliate_id_senasir_registration_and_identity_card",
+    *      description="Importacion de afiliados y data de senasir ",
+    *     security={
+    *         {"bearerAuth": {}}
+    *     },
+    *      @OA\Response(
+    *          response=200,
+    *          description="Success",
+    *          @OA\JsonContent(
+    *            type="object"
+    *         )
+    *      )
+    * )
+    *
+    * Logs user into the system.
+    *
+    * @param Request $request
+    * @return void
+   */
+
+  public function update_affiliate_id_senasir_registration_and_identity_card(Request $request){
+
+    $connection_db_aux = Util::connection_db_aux();
+    $count_update_by_registration = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.state like 'accomplished'")[0]->count;
+        if($count_update_by_registration>0){
+            $update_affiliate_id_person_senasir =  DB::select("select tmp_update_affiliate_id_senasir_registration_and_identity_card('$connection_db_aux')");
+            $update_affiliate_id_person_senasir = explode(',',$update_affiliate_id_person_senasir[0]->tmp_update_affiliate_id_senasir_registration_and_identity_card);
+            $count_copy_total_senasir = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps")[0]->count;
+
+            $count_unrealized_senasir =  DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion is null  and cps.state like 'unrealized'")[0]->count;
+            $count_update_by_criterion_six = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion like '6-MAT-REV-MANUAL' and cps.state like 'accomplished'")[0]->count;
+            $count_update_by_criterion_seven = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion like '7-CI-REV-MANUAL' and cps.state like 'accomplished'")[0]->count;
+            $count_total_affiliates_update = DB::select("select count(*) from affiliates a where a.id_person_senasir is not null")[0]->count;
+
+            $count_total_accomplished_senasir = $count_update_by_criterion_six +  $count_update_by_criterion_seven;
+            return response()->json([
+                'message' => 'Realizado con exito',
+                'payload' => [
+                    'successfully' => true,
+                    'count_update_by_criterion_six' => (int)$update_affiliate_id_person_senasir[0],
+                    'count_update_by_criterion_seven' => (int)$update_affiliate_id_person_senasir[1],
+                ],
+
+                'count_data_copy_person_senasir' => [
+                    'count_copy_total_senasir' => $count_copy_total_senasir,
+                    'count_unrealized_senasir' => $count_unrealized_senasir,
+                    'count_update_by_6-MAT-REV-MANUAL' => $count_update_by_criterion_six,
+                    'count_update_by_7-CI-REV-MANUAL' => $count_update_by_criterion_seven,
+                    '_count_total_accomplished_senasir' => $count_total_accomplished_senasir
+                ],
+            ]);
+        }else{
+                return response()->json([
+                    'message' => 'No a realizado la actualizacion de los primeros criterios',
+                    'payload' => [
+                        'successfully' => false,
+                    ],
+                ]);
+        }
+
+    }
 
 }

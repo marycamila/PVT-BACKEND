@@ -401,7 +401,74 @@ AS $$
              end;
               $$ LANGUAGE plpgsql;");
 
+DB::statement("CREATE OR REPLACE FUNCTION public.tmp_update_affiliate_data(db_name_intext text)
+RETURNS character varying
+AS $$
+      declare
+      ----------
+
+      affiliate_id_reg integer;
+    ------------------------------------
+     pension_entity_id_reg integer :=5;
+     affiliate_state_id_reg_fall  integer :=4;
+     affiliate_state_id_reg_jub  integer :=5;
+     ------------------------------
+     -- Declaración EXPLICITA del cursor
+       cur_payroll CURSOR for (select * from dblink(db_name_intext,'SELECT id,id_person_senasir,matricula_tit,carnet_tit,num_com_tit,concat_carnet_num_com_tit,
+       p_nombre_tit,s_nombre_tit,paterno_tit,materno_tit,ap_casada_tit,fecha_nacimiento_tit,
+   genero_tit,fec_fail_tit,matricula_dh,carnet_dh,num_com_dh,concat_carnet_num_com_dh,
+   p_nombre_dh,s_nombre_dh,paterno_dh,materno_dh,ap_casada_dh,fecha_nacimiento_dh,
+   genero_dh,fec_fail_dh,clase_renta_dh,state,observacion FROM copy_person_senasirs
+       where state = ''accomplished''')
+       as  copy_person_senasirs(id integer,id_person_senasir integer ,matricula_tit character varying(250),carnet_tit character varying(250),num_com_tit character varying(250),concat_carnet_num_com_tit character varying(250),
+         p_nombre_tit character varying(250),s_nombre_tit character varying(250),paterno_tit character varying(250),materno_tit character varying(250),ap_casada_tit character varying(250),fecha_nacimiento_tit date,
+         genero_tit character varying(250),fec_fail_tit date,matricula_dh character varying(250),carnet_dh character varying(250),num_com_dh character varying(250),concat_carnet_num_com_dh character varying(250),
+         p_nombre_dh character varying(250),s_nombre_dh character varying(250),paterno_dh character varying(250),materno_dh character varying(250),ap_casada_dh character varying(250),fecha_nacimiento_dh date,
+         genero_dh character varying(250),fec_fail_dh date,clase_renta_dh character varying(250),state character varying(250),observacion character varying));
+   begin
+               --************************************************************
+               --*Funcion actualizacion de Datos del afiliado
+               --************************************************************
+               -- Procesa el cursor
+       FOR record_row IN cur_payroll loop
+        --------------------------------------------------------------------------------------------------
+              if exists (select id from affiliates where id_person_senasir = record_row.id_person_senasir) then
+                 affiliate_id_reg:= (select id from affiliates where id_person_senasir =record_row.id_person_senasir);
+                ---- identificacion de tramites
+                             UPDATE public.affiliates
+                             set registration = record_row.matricula_tit,
+                               updated_at = (select current_timestamp)
+                             WHERE affiliates.id = affiliate_id_reg and ((affiliates.registration <>record_row.matricula_dh) or insert_text(record_row.matricula_dh) is null);
+                            ----actualizacion de pension entity solo en caso de que sea null
+
+                             UPDATE public.affiliates
+                              set pension_entity_id = pension_entity_id_reg,
+                               updated_at = (select current_timestamp)
+                             WHERE affiliates.id = affiliate_id_reg and affiliates.pension_entity_id is null;
+
+                            ------actualizacion del estado del afiliado
+
+                             UPDATE public.affiliates
+                             set affiliate_state_id =  (CASE WHEN record_row.clase_renta_dh='VIUDEDAD'  THEN affiliate_state_id_reg_fall ELSE affiliate_state_id_reg_jub end),
+                              updated_at = (select current_timestamp)
+                             WHERE affiliates.id = affiliate_id_reg;
+                            ----- actualizacion de la fecha de fallecimiento del afiliado solo en caso de ser null y su estado este como fallecido
+
+                             UPDATE public.affiliates
+                             set date_death = record_row.fec_fail_tit,
+                              updated_at = (select current_timestamp)
+                             WHERE affiliates.id = affiliate_id_reg and affiliates.affiliate_state_id = affiliate_state_id_reg_fall and affiliates.date_death is null and record_row.fec_fail_tit is not null;
+              END IF;
+       END LOOP;
+       return 'Datos del afiliado actualizados';
+    end;
+     $$ LANGUAGE plpgsql;");
+
     }
+
+
+
+    
 
     /**
      * Reverse the migrations.

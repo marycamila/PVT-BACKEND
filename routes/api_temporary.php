@@ -16,6 +16,7 @@ Route::group([
         Route::post('update_affiliate_id_person_senasir', [App\Http\Controllers\Temporary\CopyPersonSenasirController::class, 'update_affiliate_id_person_senasir']);
         Route::post('update_person_senasir_id', [App\Http\Controllers\Temporary\CopyPersonSenasirController::class, 'update_person_senasir_id']);
         Route::post('update_affiliate_id_senasir', [App\Http\Controllers\Temporary\CopyPersonSenasirController::class, 'update_affiliate_id_senasir']);
+        Route::post('update_affiliate_id_senasir_registration_and_identity_card', [App\Http\Controllers\Temporary\CopyPersonSenasirController::class, 'update_affiliate_id_senasir_registration_and_identity_card']);
     });
 });
 

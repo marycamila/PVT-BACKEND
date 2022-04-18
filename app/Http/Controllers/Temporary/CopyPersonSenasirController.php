@@ -347,5 +347,46 @@ class CopyPersonSenasirController extends Controller
         }
 
     }
+         /**
+    * @OA\Post(
+    *      path="/api/temporary/update_affiliate_data",
+    *      tags={"IMPORTACION-IDS-PERSONAS-SENASIR"},
+    *      summary="PASO 5 ACTUAIZACION DE DATOS DEL AFILIADO",
+    *      operationId="update_affiliate_data",
+    *      description="Importacion de afiliados y data de senasir ",
+    *     security={
+    *         {"bearerAuth": {}}
+    *     },
+    *      @OA\Response(
+    *          response=200,
+    *          description="Success",
+    *          @OA\JsonContent(
+    *            type="object"
+    *         )
+    *      )
+    * )
+    *
+    * Logs user into the system.
+    *
+    * @param Request $request
+    * @return void
+   */
+
+  public function update_affiliate_data(Request $request){
+
+    $connection_db_aux = Util::connection_db_aux();
+
+            $update_affiliate_data =  DB::select("select tmp_update_affiliate_data('$connection_db_aux')")[0]->tmp_update_affiliate_data;
+
+            return response()->json([
+                'message' => 'Realizado con exito',
+                'payload' => [
+                    'successfully' => true,
+                    'message_data' => $update_affiliate_data,
+                ],
+            ]);
+
+
+    }
 
 }

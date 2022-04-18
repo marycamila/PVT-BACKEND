@@ -332,6 +332,75 @@ AS $$
                        end;
                  $$ LANGUAGE 'plpgsql'
          ;");
+         
+         DB::statement("CREATE OR REPLACE FUNCTION public.tmp_update_affiliate_id_senasir_registration_and_identity_card(db_name_intext text)
+         RETURNS character varying
+         AS $$
+               declare
+               type_state varchar;
+               quantity integer := 1;
+              ------------------------------
+               cant varchar ;
+               affiliate_id_reg integer;
+              ------------------------------
+               count_loan integer := 0;
+               count_economic_complemet integer := 0;
+               count_retirement_fund integer := 0;
+               count_quota_aid_mortuary integer := 0;
+              ---------------------------------
+            count_update_six_criterion integer :=0;
+            count_update_seven_criterion integer :=0;
+              -- Declaración EXPLICITA del cursor
+                cur_payroll CURSOR for (select * from dblink(db_name_intext,'SELECT id,id_person_senasir,matricula_tit,carnet_tit,num_com_tit,concat_carnet_num_com_tit,
+                p_nombre_tit,s_nombre_tit,paterno_tit,materno_tit,ap_casada_tit,fecha_nacimiento_tit,
+            genero_tit,fec_fail_tit,matricula_dh,carnet_dh,num_com_dh,concat_carnet_num_com_dh,
+            p_nombre_dh,s_nombre_dh,paterno_dh,materno_dh,ap_casada_dh,fecha_nacimiento_dh,
+            genero_dh,fec_fail_dh,clase_renta_dh,state,observacion FROM copy_person_senasirs
+                where state = ''unrealized''')
+                as  copy_person_senasirs(id integer,id_person_senasir integer ,matricula_tit character varying(250),carnet_tit character varying(250),num_com_tit character varying(250),concat_carnet_num_com_tit character varying(250),
+                  p_nombre_tit character varying(250),s_nombre_tit character varying(250),paterno_tit character varying(250),materno_tit character varying(250),ap_casada_tit character varying(250),fecha_nacimiento_tit date,
+                  genero_tit character varying(250),fec_fail_tit date,matricula_dh character varying(250),carnet_dh character varying(250),num_com_dh character varying(250),concat_carnet_num_com_dh character varying(250),
+                  p_nombre_dh character varying(250),s_nombre_dh character varying(250),paterno_dh character varying(250),materno_dh character varying(250),ap_casada_dh character varying(250),fecha_nacimiento_dh date,
+                  genero_dh character varying(250),fec_fail_dh date,clase_renta_dh character varying(250),state character varying(250),observacion character varying));
+            begin
+                        --************************************************************
+                        --*Funcion actualizacion de ids, de acuerdo a 6 y 7 criterios matricula y carnet
+                        --************************************************************
+                        -- Procesa el cursor
+                FOR record_row IN cur_payroll loop
+                     ----Condicion que pregunta por el prim
+                    if (quantity_regitration(record_row.matricula_tit) = 1) then
+                      type_state:='6-MAT-REV-MANUAL';
+                      count_update_six_criterion:= count_update_six_criterion + 1;
+                         UPDATE public.affiliates
+                         SET id_person_senasir = record_row.id_person_senasir,
+                         updated_at = (select current_timestamp)
+                         WHERE affiliates.registration = record_row.matricula_tit and affiliates.id_person_senasir is null;
+                       ELSIF quantity_identity_card(record_row.concat_carnet_num_com_tit) = quantity and record_row.concat_carnet_num_com_tit != '0' THEN
+                       type_state:='7-CI-REV-MANUAL';
+                       count_update_seven_criterion:= count_update_seven_criterion + 1;
+                            UPDATE public.affiliates
+                           SET id_person_senasir = record_row.id_person_senasir,
+                            updated_at = (select current_timestamp)
+                            WHERE affiliates.identity_card = record_row.concat_carnet_num_com_tit and affiliates.id_person_senasir is null;
+                    END IF;
+
+                 --------------------------------------------------------------------------------------------------
+                       if exists (select id from affiliates where id_person_senasir = record_row.id_person_senasir) then
+                          affiliate_id_reg:= (select id from affiliates where id_person_senasir =record_row.id_person_senasir);
+                         ---- identificacion de tramites
+                          count_loan:= quantity_procedure_affiliate(affiliate_id_reg, 'l');
+                          count_economic_complemet:= quantity_procedure_affiliate(affiliate_id_reg, 'ec');
+                          count_retirement_fund:= quantity_procedure_affiliate(affiliate_id_reg,'rf');
+                          count_quota_aid_mortuary := quantity_procedure_affiliate(affiliate_id_reg,'qam');
+                          cant:=  (select dblink_exec(db_name_intext, 'UPDATE copy_person_senasirs SET state=''accomplished'',observacion='''||type_state||''', quantity_l='||count_loan||',quantity_ec='||count_economic_complemet||',quantity_rf='||count_retirement_fund||',quantity_qam='||count_quota_aid_mortuary||' WHERE copy_person_senasirs.id= '||record_row.id||''));                                  
+                          ---------------------
+                       END IF;
+                END LOOP;
+                return count_update_six_criterion||','||count_update_seven_criterion;
+             end;
+              $$ LANGUAGE plpgsql;");
+
     }
 
     /**

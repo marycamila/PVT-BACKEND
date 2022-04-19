@@ -3,15 +3,15 @@ version: '3'
 services:
     laravel.test:
         build:
-            context: ./vendor/laravel/sail/runtimes/8.0
+            context: ./docker/8.1
             dockerfile: Dockerfile
             args:
                 WWWGROUP: '${WWWGROUP}'
-        image: sail-8.0/app
+        image: sail-8.1/app
         extra_hosts:
             - 'host.docker.internal:host-gateway'
         ports:
-          - '${APP_PORT:-80}:80'
+            - '${APP_PORT:-80}:80'
         environment:
             WWWUSER: '${WWWUSER}'
             LARAVEL_SAIL: 1
@@ -28,9 +28,9 @@ services:
     redis:
         image: 'redis:alpine'
         ports:
-            - '${FORWARD_REDIS_PORT:-63791}:63791'
+            - '${FORWARD_REDIS_PORT:-6379}:6379'
         volumes:
-            - 'sailredis:/data'
+            - 'sail-redis:/data'
         networks:
             - sail
         healthcheck:
@@ -42,7 +42,7 @@ services:
         ports:
             - '${FORWARD_MEILISEARCH_PORT:-7700}:7700'
         volumes:
-            - 'sailmeilisearch:/data.ms'
+            - 'sail-meilisearch:/data.ms'
         networks:
             - sail
         healthcheck:
@@ -66,7 +66,7 @@ networks:
     sail:
         driver: bridge
 volumes:
-    sailredis:
+    sail-redis:
         driver: local
-    sailmeilisearch:
+    sail-meilisearch:
         driver: local

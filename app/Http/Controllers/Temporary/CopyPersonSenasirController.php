@@ -14,7 +14,7 @@ class CopyPersonSenasirController extends Controller
     * @OA\Post(
     *      path="/api/temporary/upload_copy_person_senasir",
     *      tags={"IMPORTACION-IDS-PERSONAS-SENASIR"},
-    *      summary="PASO 1 COPIADO DE DATOS IMPORTACION DE IDS SENASIR",
+    *      summary="PASO 1 COPIADO DE DATOS IMPORTACIÓN DE IDS SENASIR",
     *      operationId="upload_copy_person_senasir",
     *      description="Copiado de datos del archivo de afiliados senasir a la tabla copy_person_senasirs",
     *      @OA\RequestBody(
@@ -119,7 +119,7 @@ class CopyPersonSenasirController extends Controller
     * @OA\Post(
     *      path="/api/temporary/update_affiliate_id_senasir",
     *      tags={"IMPORTACION-IDS-PERSONAS-SENASIR"},
-    *      summary="PASO 2 ACTUALIZACIÓN DE IDS VERIFICACION BAJO 5 CRITERIOS BASE",
+    *      summary="PASO 2 ACTUALIZACIÓN DE IDS VERIFICACIÓN BAJO 5 CRITERIOS BASE",
     *      operationId="update_affiliate_id_senasir",
     *      description="Actualización  de ids senasir a la tabla affiliates bajo 5 criterios automaticos",
     *     security={
@@ -250,7 +250,7 @@ class CopyPersonSenasirController extends Controller
     * @OA\Post(
     *      path="/api/temporary/create_affiliate_spouse_senasir",
     *      tags={"IMPORTACION-IDS-PERSONAS-SENASIR"},
-    *      summary="PASO 4 CREACION DE AFILIADOS Y ESPOSAS SENASIR",
+    *      summary="PASO 4 CREACIÓN DE AFILIADOS Y ESPOSAS SENASIR",
     *      operationId="create_affiliate_spouse_senasir",
     *      description="Creación de afiliados y esposas senasir no encontrados en la tabla affiliates",
     *     security={

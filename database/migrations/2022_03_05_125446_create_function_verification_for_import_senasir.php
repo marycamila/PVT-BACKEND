@@ -50,24 +50,6 @@ class CreateFunctionVerificationForImportSenasir extends Migration
                END;
               $$;
        ");
-        DB::statement("CREATE OR REPLACE FUNCTION public.quantity_fullname(first_name_input character varying,last_name_input character varying,mothers_last_name_input character varying)
-        RETURNS numeric
-        LANGUAGE plpgsql
-       AS $$
-               DECLARE
-                      quantity integer;
-               begin
-                   select count(id) into quantity
-                   from affiliates a
-                   where a.first_name like first_name_input and a.last_name like last_name_input and a.mothers_last_name like mothers_last_name_input;
-
-                   IF quantity is NULL THEN
-                   return 0;
-                   else
-                   RETURN  quantity;
-                   END IF;
-               END;
-       $$;");
         DB::statement("CREATE OR REPLACE FUNCTION IIF(
             condition boolean, true_result TEXT, false_result TEXT
         ) RETURNS TEXT LANGUAGE plpgsql AS $$

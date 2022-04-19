@@ -416,17 +416,45 @@ class CopyPersonSenasirController extends Controller
 
    public function create_affiliate_spouse_senasir(Request $request){
     $connection_db_aux = Util::connection_db_aux();
-    $update_affiliate_id_person_senasir =  DB::select("select tmp_create_affiliate_senasir('$connection_db_aux')");
-    $update_affiliate_id_person_senasir = explode(',',$update_affiliate_id_person_senasir[0]->tmp_create_affiliate_senasir);
-    $update_affiliate_id_person_senasir_2 =  DB::select("select tmp_create_spouse_senasir('$connection_db_aux')");
-    $update_affiliate_id_person_senasir_2 = explode(',',$update_affiliate_id_person_senasir_2[0]->tmp_create_spouse_senasir);
+    $create_affiliate =  DB::select("select tmp_create_affiliate_senasir('$connection_db_aux')")[0]->tmp_create_affiliate_senasir;
+    $create_spouse =  DB::select("select tmp_create_spouse_senasir('$connection_db_aux')")[0]->tmp_create_spouse_senasir;
+
+    //total conteos
+    $count_copy_total_senasir = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps")[0]->count;
+
+        $count_unrealized_senasir =  DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion is null  and cps.state like 'unrealized'")[0]->count;
+        $count_update_by_criterion_one = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion like '1-CI-MAT-PN-AP-AM-FN' and cps.state like 'accomplished'")[0]->count;
+        $count_update_by_criterion_two = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion like '2-CI-PN-AP-AM-FN' and cps.state like 'accomplished'")[0]->count;
+        $count_update_by_criterion_three = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion like '3-CI-MAT-PN-AP-AM' and cps.state like 'accomplished'")[0]->count;
+        $count_update_by_criterion_four = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion like '4-MAT-PN-AP-AM-FN' and cps.state like 'accomplished'")[0]->count;
+        $count_update_by_criterion_five =  DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion like '5-CI-PN-AP-AM' and cps.state like 'accomplished'")[0]->count;
+        $count_update_by_criterion_six = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion like '6-MAT-REV-MANUAL' and cps.state like 'accomplished'")[0]->count;
+        $count_update_by_criterion_seven = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion like '7-CI-REV-MANUAL' and cps.state like 'accomplished'")[0]->count;
+        $count_create_affiliate = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion like 'AFILIADO_CREADO' and cps.state like 'accomplished'")[0]->count;
+        $count_total_affiliates_update = DB::select("select count(*) from affiliates a where a.id_person_senasir is not null")[0]->count;
+        $count_total_accomplished_senasir = $count_update_by_criterion_one +  $count_update_by_criterion_two + $count_update_by_criterion_three + $count_update_by_criterion_four + $count_update_by_criterion_five
+                                            + $count_update_by_criterion_six + $count_update_by_criterion_seven + $count_create_affiliate;
     return response()->json([
         'message' => 'Realizado con exito',
         'payload' => [
             'successfully' => true,
-            'count_create_affiliate' => (int)$update_affiliate_id_person_senasir[0],
-            'count_create_spouse' => (int)$update_affiliate_id_person_senasir_2[0],
-        ]
+            'count_create_affiliate' => (int)$create_affiliate,
+            'count_create_spouse' => (int)$create_spouse,
+        ],
+        'count_data_copy_person_senasir' => [
+            'count_copy_total_senasir' => $count_copy_total_senasir,
+            'count_unrealized_senasir' => $count_unrealized_senasir,
+            'count_update_by_1-CI-MAT-PN-AP-AM-FN' => $count_update_by_criterion_one,
+            'count_update_by_2-CI-PN-AP-AM-FN' => $count_update_by_criterion_two,
+            'count_update_by_3-CI-MAT-PN-AP-AM' => $count_update_by_criterion_three,
+            'count_update_by_4-MAT-PN-AP-AM-FN' => $count_update_by_criterion_four,
+            'count_update_by_5-CI-PN-AP-AM' => $count_update_by_criterion_five,
+            'count_update_by_6-MAT-REV-MANUAL' => $count_update_by_criterion_six,
+            'count_update_by_7-CI-REV-MANUAL' => $count_update_by_criterion_seven,
+            'count_create_affiliate' => $count_create_affiliate,
+            '_*count_total_accomplished_senasir' => $count_total_accomplished_senasir,
+            '_*count_total_affiliates_update'=> $count_total_affiliates_update,
+        ],
     ]);
     }
 

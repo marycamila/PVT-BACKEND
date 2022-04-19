@@ -389,4 +389,46 @@ class CopyPersonSenasirController extends Controller
 
     }
 
+      /**
+    * @OA\Post(
+    *      path="/api/temporary/create_affiliate_spouse_senasir",
+    *      tags={"IMPORTACION-IDS-PERSONAS-SENASIR"},
+    *      summary="PASO 4 CREACION DE AFILIADOS Y ESPOSAS SENASIR",
+    *      operationId="create_affiliate_spouse_senasir",
+    *      description="create_affiliate_spouse_senasir",
+    *     security={
+    *         {"bearerAuth": {}}
+    *     },
+    *      @OA\Response(
+    *          response=200,
+    *          description="Success",
+    *          @OA\JsonContent(
+    *            type="object"
+    *         )
+    *      )
+    * )
+    *
+    * Logs user into the system.
+    *
+    * @param Request $request
+    * @return void
+   */
+
+   public function create_affiliate_spouse_senasir(Request $request){
+    $connection_db_aux = Util::connection_db_aux();
+    $update_affiliate_id_person_senasir =  DB::select("select tmp_create_affiliate_senasir('$connection_db_aux')");
+    $update_affiliate_id_person_senasir = explode(',',$update_affiliate_id_person_senasir[0]->tmp_create_affiliate_senasir);
+    $update_affiliate_id_person_senasir_2 =  DB::select("select tmp_create_spouse_senasir('$connection_db_aux')");
+    $update_affiliate_id_person_senasir_2 = explode(',',$update_affiliate_id_person_senasir_2[0]->tmp_create_spouse_senasir);
+    return response()->json([
+        'message' => 'Realizado con exito',
+        'payload' => [
+            'successfully' => true,
+            'count_create_affiliate' => (int)$update_affiliate_id_person_senasir[0],
+            'count_create_spouse' => (int)$update_affiliate_id_person_senasir_2[0],
+        ]
+    ]);
+    }
+
+
 }

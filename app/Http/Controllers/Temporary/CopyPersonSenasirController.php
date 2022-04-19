@@ -14,7 +14,7 @@ class CopyPersonSenasirController extends Controller
     * @OA\Post(
     *      path="/api/temporary/upload_copy_person_senasir",
     *      tags={"IMPORTACION-IDS-PERSONAS-SENASIR"},
-    *      summary="PASO 1 COPIADO DE DATOS DE AFFILIADOS Y ESPOSAS SENASIR",
+    *      summary="PASO 1 COPIADO DE DATOS IMPORTACIÓN DE IDS SENASIR",
     *      operationId="upload_copy_person_senasir",
     *      description="Copiado de datos del archivo de afiliados senasir a la tabla copy_person_senasirs",
     *      @OA\RequestBody(
@@ -42,7 +42,6 @@ class CopyPersonSenasirController extends Controller
     * @param Request $request
     * @return void
    */
-   //copiado de datos de afiliados y esposas a la tabla copy_person_senasir
     public function upload_copy_person_senasir(request $request){
         $request->validate([
         'file' => 'required'
@@ -118,111 +117,11 @@ class CopyPersonSenasirController extends Controller
     }
     /**
     * @OA\Post(
-    *      path="/api/temporary/update_affiliate_id_person_senasir",
-    *      tags={"IMPORTACION-IDS-PERSONAS-SENASIR"},
-    *      summary="PASO 2 COPIADO DE ID DE PERSONAS SENASIR DE TIPO VIUDEDAD Y CREACION DE AFILIADOS",
-    *      operationId="data_senasir_type_spouses",
-    *      description="Importacion de afiliados y data de senasir ",
-    *     security={
-    *         {"bearerAuth": {}}
-    *     },
-    *      @OA\Response(
-    *          response=200,
-    *          description="Success",
-    *          @OA\JsonContent(
-    *            type="object"
-    *         )
-    *      )
-    * )
-    *
-    * Logs user into the system.
-    *
-    * @param Request $request
-    * @return void
-   */
-
-    public function update_affiliate_id_person_senasir(Request $request){
-    DB::beginTransaction();
-    try{
-        $connection_db_aux = Util::connection_db_aux();
-        $update_affiliate_id_person_senasir =  DB::select("select tmp_update_affiliate_id_person_senasir('$connection_db_aux')");
-
-        $update_affiliate_id_person_senasir = explode(',',$update_affiliate_id_person_senasir[0]->tmp_update_affiliate_id_person_senasir);
-
-        $count_copy_total_senasir = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps")[0]->count;
-        $count_identity_card_cero_senasir = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.concat_carnet_num_com_tit like '0'")[0]->count;
-        $count_unrealized_senasir =  DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion is null  and cps.state like 'unrealized'")[0]->count;
-        $count_update_by_registration_full_name = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion like 'ACTUALIZADO_POR_MATRICULA_NOMBRE_PM' and cps.state like 'accomplished'")[0]->count;
-        $count_update_by_registration = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion like 'ACTUALIZADO_POR_MATRICULA' and cps.state like 'accomplished'")[0]->count;
-        $count_update_by_identity = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion like 'ACTUALIZADO_POR_CARNET_NOMBRE_PM' and cps.state like 'accomplished'")[0]->count;
-        $count_update_by_identity_full_name = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion like 'ACTUALIZADO_POR_CARNET' and cps.state like 'accomplished'")[0]->count;
-        $count_created_affiliate =  DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion like 'AFILIADO_CREADO' and cps.state like 'accomplished'")[0]->count;
-        $count_total_affiliates_update = DB::select("select count(*) from affiliates a where a.id_person_senasir is not null")[0]->count;
-        $count_total_update_link =DB::connection('db_aux')->select("select count(*) from copy_person_senasirs cps where cps.observacion like 'LINK_AFFILIATE_ID_PERSON_SENASIR'")[0]->count;
-        $count_total_accomplished_senasir = $count_update_by_registration +  $count_update_by_identity + $count_created_affiliate + $count_total_update_link + $count_update_by_registration_full_name + $count_update_by_identity_full_name;
-
-        //conteo de datos de afiliados con tramites por tipo de tramites
-         $quantity_l = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs  where state = 'accomplished' and quantity_l > 0")[0]->count;
-         $quantity_ec = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs  where state = 'accomplished' and quantity_ec > 0")[0]->count;
-         $quantity_rf = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs  where state = 'accomplished' and quantity_rf > 0")[0]->count;
-         $quantity_qam = DB::connection('db_aux')->select("select count(*) from copy_person_senasirs  where state = 'accomplished' and quantity_qam > 0")[0]->count;
-
-
-        DB::commit();
-        return response()->json([
-            'message' => 'Realizado con exito',
-            'payload' => [
-                'successfully' => true,
-                'count_update_by_registration_fullname' => (int)$update_affiliate_id_person_senasir[0],
-                'count_update_by_registration' => (int)$update_affiliate_id_person_senasir[1],
-                'count_update_by_identity_fullname' => (int)$update_affiliate_id_person_senasir[2],
-                'count_update_by_identity' => (int)$update_affiliate_id_person_senasir[3],
-                'count_created_affiliate' => (int)$update_affiliate_id_person_senasir[4]
-            ],
-             'spouse'=> [
-                'count_update_spouse' => (int)$update_affiliate_id_person_senasir[5],
-                'count_create_spouse' => (int)$update_affiliate_id_person_senasir[6],
-                'count_not_create_spouse' => (int)$update_affiliate_id_person_senasir[7]-(int)$update_affiliate_id_person_senasir[6]-(int)$update_affiliate_id_person_senasir[5],
-                'count_total_spouse' => (int)$update_affiliate_id_person_senasir[7]
-            ],
-             'procedure_affiliate'=> [
-                'count_procedure_loans' => $quantity_l,
-                'count_procedure_economic_complements' => $quantity_ec,
-                'count_procedure_retirement_funds' => $quantity_rf,
-                'count_procedure_quota_aid' => $quantity_qam
-            ],
-            'count_data_copy_person_senasir' => [
-                'count_copy_total_senasir' => $count_copy_total_senasir,
-                'count_identity_card_cero_senasir' => $count_identity_card_cero_senasir,
-                'count_unrealized_senasir' => $count_unrealized_senasir,
-                'count_update_by_registration_full_name' => $count_update_by_registration_full_name,
-                'count_update_by_registration' => $count_update_by_registration,
-                'count_update_by_identity_full_name' => $count_update_by_identity_full_name,
-                'count_update_by_identity' => $count_update_by_identity,
-                'count_created_affiliate' => $count_created_affiliate,
-                'count_total_update_link' => $count_total_update_link,
-                '_count_total_affiliates_update'=> $count_total_affiliates_update,
-                '_count_total_accomplished_senasir' =>$count_total_accomplished_senasir
-            ],
-        ]);
-    } catch(Exception $e){
-        DB::rollBack();
-        return response()->json([
-            'message' => 'Error en la importación',
-            'payload' => [
-                'successfully' => false,
-                'error' => $e->getMessage(),
-            ],
-        ]);
-        }
-    }
-    /**
-    * @OA\Post(
     *      path="/api/temporary/update_affiliate_id_senasir",
     *      tags={"IMPORTACION-IDS-PERSONAS-SENASIR"},
-    *      summary="PASO 2 ACTUAIZACION DE CRITERIOS",
+    *      summary="PASO 2 ACTUALIZACIÓN DE IDS VERIFICACIÓN BAJO 5 CRITERIOS BASE",
     *      operationId="update_affiliate_id_senasir",
-    *      description="Importacion de afiliados y data de senasir ",
+    *      description="Actualización  de ids senasir a la tabla affiliates bajo 5 criterios automaticos",
     *     security={
     *         {"bearerAuth": {}}
     *     },
@@ -285,9 +184,9 @@ class CopyPersonSenasirController extends Controller
     * @OA\Post(
     *      path="/api/temporary/update_affiliate_id_senasir_registration_and_identity_card",
     *      tags={"IMPORTACION-IDS-PERSONAS-SENASIR"},
-    *      summary="PASO 3 ACTUAIZACION DE CRITERIOS 6 y 7 REVISION MANUAL",
+    *      summary="PASO 3 ACTUALIZACIÓN DE CRITERIOS 6 y 7 REVISION MANUAL",
     *      operationId="update_affiliate_id_senasir_registration_and_identity_card",
-    *      description="Importacion de afiliados y data de senasir ",
+    *      description="Actualización  de ids senasir a la tabla affiliates bajo 2 criterios de revisión manual",
     *     security={
     *         {"bearerAuth": {}}
     *     },
@@ -347,55 +246,13 @@ class CopyPersonSenasirController extends Controller
         }
 
     }
-         /**
-    * @OA\Post(
-    *      path="/api/temporary/update_affiliate_data",
-    *      tags={"IMPORTACION-IDS-PERSONAS-SENASIR"},
-    *      summary="PASO 5 ACTUAIZACION DE DATOS DEL AFILIADO",
-    *      operationId="update_affiliate_data",
-    *      description="Importacion de afiliados y data de senasir ",
-    *     security={
-    *         {"bearerAuth": {}}
-    *     },
-    *      @OA\Response(
-    *          response=200,
-    *          description="Success",
-    *          @OA\JsonContent(
-    *            type="object"
-    *         )
-    *      )
-    * )
-    *
-    * Logs user into the system.
-    *
-    * @param Request $request
-    * @return void
-   */
-
-  public function update_affiliate_data(Request $request){
-
-    $connection_db_aux = Util::connection_db_aux();
-
-            $update_affiliate_data =  DB::select("select tmp_update_affiliate_data('$connection_db_aux')")[0]->tmp_update_affiliate_data;
-
-            return response()->json([
-                'message' => 'Realizado con exito',
-                'payload' => [
-                    'successfully' => true,
-                    'message_data' => $update_affiliate_data,
-                ],
-            ]);
-
-
-    }
-
-      /**
+          /**
     * @OA\Post(
     *      path="/api/temporary/create_affiliate_spouse_senasir",
     *      tags={"IMPORTACION-IDS-PERSONAS-SENASIR"},
-    *      summary="PASO 4 CREACION DE AFILIADOS Y ESPOSAS SENASIR",
+    *      summary="PASO 4 CREACIÓN DE AFILIADOS Y ESPOSAS SENASIR",
     *      operationId="create_affiliate_spouse_senasir",
-    *      description="create_affiliate_spouse_senasir",
+    *      description="Creación de afiliados y esposas senasir no encontrados en la tabla affiliates",
     *     security={
     *         {"bearerAuth": {}}
     *     },
@@ -457,6 +314,43 @@ class CopyPersonSenasirController extends Controller
         ],
     ]);
     }
+         /**
+    * @OA\Post(
+    *      path="/api/temporary/update_affiliate_data",
+    *      tags={"IMPORTACION-IDS-PERSONAS-SENASIR"},
+    *      summary="PASO 5 ACTUALIZACIÓN DE DATOS DEL AFILIADO",
+    *      operationId="update_affiliate_data",
+    *      description="Actualización de datos del afiliado, matricula, fecha de nacimiento, fecha de fallecimiento, ente gestor, y el estado del afiliado",
+    *     security={
+    *         {"bearerAuth": {}}
+    *     },
+    *      @OA\Response(
+    *          response=200,
+    *          description="Success",
+    *          @OA\JsonContent(
+    *            type="object"
+    *         )
+    *      )
+    * )
+    *
+    * Logs user into the system.
+    *
+    * @param Request $request
+    * @return void
+   */
 
+  public function update_affiliate_data(Request $request){
 
+    $connection_db_aux = Util::connection_db_aux();
+
+    $update_affiliate_data =  DB::select("select tmp_update_affiliate_data('$connection_db_aux')")[0]->tmp_update_affiliate_data;
+
+        return response()->json([
+            'message' => 'Realizado con exito',
+             'payload' => [
+                'successfully' => true,
+                'message_data' => $update_affiliate_data,
+            ],
+        ]);
+    }
 }

@@ -19,7 +19,7 @@ class ContributionPassive extends Model
         'affiliate_id',
         'month_year',
         'quotable',
-        'rent',
+        'rent_pension',
         'dignity_rent',
         'interest',
         'total',

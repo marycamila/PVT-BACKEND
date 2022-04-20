@@ -22,7 +22,7 @@ class CreateContributionPassivesTable extends Migration
             $table->date('month_year')->comment('Periodo del aporte');
             $table->unique(['affiliate_id', 'month_year']);
             $table->decimal('quotable',13,2)->default(0)->comment('cotizable');
-            $table->decimal('rent',13,2)->default(0)->comment('Renta');
+            $table->decimal('rent_pension',13,2)->default(0)->comment('Monto de Renta o pension del sec pasivo');
             $table->decimal('dignity_rent',13,2)->default(0)->comment('Renta dignidad');
             $table->decimal('interest',13,2)->default(0)->comment('Interes');
             $table->decimal('total',13,2)->default(0)->comment('Total aporte');

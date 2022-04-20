@@ -248,36 +248,47 @@ AS $$
                             updated_at = (select current_timestamp)
                      WHERE affiliates.id = affiliate_id_reg and affiliates.pension_entity_id is null;
 
+                  ----- actualizacion de la fecha de fallecimiento del afiliado solo en caso de ser null y su estado este como fallecido
+                          UPDATE public.affiliates
+                         set date_death = record_row.fec_fail_tit,
+                             updated_at = (select current_timestamp)
+                      WHERE affiliates.id = affiliate_id_reg and record_row.fec_fail_tit is not null and affiliates.date_death is null ;
+                  ----actualizacion de fecha de fallecimiento solo en caso de que sea nulo
+                      UPDATE public.affiliates
+                         set birth_date =  record_row.fecha_nacimiento_tit,
+                             updated_at = (select current_timestamp)
+                       WHERE affiliates.id = affiliate_id_reg and affiliates.birth_date is null and record_row.fecha_nacimiento_tit is not null;
+
                   ------actualizacion del estado del afiliado
                      UPDATE public.affiliates
                         set affiliate_state_id =  (CASE WHEN record_row.clase_renta_dh='VIUDEDAD'  THEN affiliate_state_id_reg_fall ELSE affiliate_state_id_reg_jub end),
                             updated_at = (select current_timestamp)
                      WHERE affiliates.id = affiliate_id_reg and affiliates.affiliate_state_id is null;
 
-                  ------actualizacion solo en caso de que tenga su viuda y su estado del afiliado este diferente de fallecido 
-
-                     UPDATE public.affiliates
+                  ------actualizacion solo en caso de que la clase de renta sea viudedad su estado del afiliado este diferente de fallecido
+                        UPDATE public.affiliates
                         set affiliate_state_id =  affiliate_state_id_reg_fall,
                             updated_at = (select current_timestamp)
                         WHERE affiliates.id = affiliate_id_reg and affiliates.affiliate_state_id <> (CASE WHEN record_row.clase_renta_dh='VIUDEDAD'  THEN affiliate_state_id_reg_fall else affiliates.affiliate_state_id end);
-                   ----- actualizacion de la fecha de fallecimiento del afiliado solo en caso de ser null y su estado este como fallecido
 
+                  -----actualizar a fallecido en caso de que se tenga fecha de falleimiento
+                        UPDATE public.affiliates
+                        set affiliate_state_id =  affiliate_state_id_reg_fall,
+                            updated_at = (select current_timestamp)
+                         WHERE affiliates.id  = affiliate_id_reg and  affiliates.date_death is not null  and affiliates.affiliate_state_id <> affiliate_state_id_reg_fall and record_row.fec_fail_tit is not null;
+
+                  -----actualizar a jubilaado en caso de que la clase de renta sea igual a null y la fecha de fallecimiento sea null
                       UPDATE public.affiliates
-                         set date_death = record_row.fec_fail_tit,
-                             updated_at = (select current_timestamp)
-                      WHERE affiliates.id = affiliate_id_reg and record_row.fec_fail_tit is not null and affiliates.date_death is null ;
-                        ----actualizacion de fecha de fallecimiento solo en caso de que sea nulo
-                      UPDATE public.affiliates
-                         set birth_date =  record_row.fecha_nacimiento_tit,
-                             updated_at = (select current_timestamp)
-                       WHERE affiliates.id = affiliate_id_reg and affiliates.birth_date is null and record_row.fecha_nacimiento_tit is not null;
+                        set affiliate_state_id =  affiliate_state_id_reg_jub,
+                            updated_at = (select current_timestamp)
+                        WHERE affiliates.id  = affiliate_id_reg and affiliates.affiliate_state_id  in (1,2,3,7,8,9) and record_row.clase_renta_dh is null  and record_row.fec_fail_tit  is null;
               END IF;
        END LOOP;
        return 'Datos del afiliado actualizados';
     end;
      $$ LANGUAGE plpgsql;");
 
-   
+
 //
         DB::statement("CREATE OR REPLACE FUNCTION public.tmp_create_affiliate_senasir(db_name_intext text)
 RETURNS character varying

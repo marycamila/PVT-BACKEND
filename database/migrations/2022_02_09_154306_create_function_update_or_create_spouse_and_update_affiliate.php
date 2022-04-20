@@ -26,19 +26,19 @@ class CreateFunctionUpdateOrCreateSpouseAndUpdateAffiliate extends Migration
             --*******************************************************************************************
             id_pension_entity:=  (SELECT id FROM pension_entities WHERE name ='SENASIR');
             id_affiliate_state:=  (SELECT id FROM affiliate_states WHERE name ='Fallecido');
-            if exists(SELECT  * FROM payroll_senasirs ps WHERE ps.id = payroll_senasir_id and ps.clase_renta='VIUDEDAD' and fec_fail_tit is not null and affiliate_id= affiliate) then
+            if exists(SELECT  * FROM payroll_senasirs ps WHERE ps.id = payroll_senasir_id and ps.rent_class='VIUDEDAD' and date_death_a is not null and affiliate_id= affiliate) then
                 if exists(SELECT * FROM spouses WHERE affiliate_id = affiliate) then
                  message:= 'actualiza esposa';
                       UPDATE public.spouses
                       SET user_id = user_reg,
-                      registration = ps.mat_dh,
+                      registration = ps.registration_s,
                       updated_at = (select current_timestamp)
                       FROM (SELECT * FROM payroll_senasirs WHERE id = payroll_senasir_id) AS ps
                       WHERE spouses.affiliate_id = affiliate and (spouses.registration in ('','0') or spouses.registration is null);
 
                       UPDATE public.spouses
                       SET user_id = user_reg,
-                      birth_date = ps.fecha_nacimiento,
+                      birth_date = ps.birth_date,
                       updated_at = (select current_timestamp)
                       FROM (SELECT * FROM payroll_senasirs WHERE id = payroll_senasir_id) AS ps
                       WHERE spouses.affiliate_id = affiliate and spouses.birth_date is null;
@@ -46,7 +46,7 @@ class CreateFunctionUpdateOrCreateSpouseAndUpdateAffiliate extends Migration
                 else
                 message:=  'crear esposa';
                       INSERT INTO public.spouses(user_id, affiliate_id,identity_card,registration, last_name, mothers_last_name , first_name , second_name, created_at,updated_at, birth_date)
-                      SELECT user_reg as user_id, ps.affiliate_id, ps.carnet_num_com as identity_card, ps.mat_dh as registration, ps.paterno as last_name, ps.materno as mothers_last_name,ps.p_nombre as first_name, ps.s_nombre as second_name,(select current_timestamp as created_at),(select current_timestamp as updated_at), ps.fecha_nacimiento as birth_date
+                      SELECT user_reg as user_id, ps.affiliate_id, ps.identity_card as identity_card, ps.registration_s as registration, ps.last_name as last_name, ps.mothers_last_name as mothers_last_name,ps.first_name as first_name, ps.second_name as second_name,(select current_timestamp as created_at),(select current_timestamp as updated_at), ps.birth_date as birth_date
                       FROM payroll_senasirs ps
                       WHERE id=payroll_senasir_id;
                 end if;
@@ -54,7 +54,7 @@ class CreateFunctionUpdateOrCreateSpouseAndUpdateAffiliate extends Migration
 
                UPDATE public.affiliates
                SET user_id = user_reg,
-               date_death = ps.fec_fail_tit,
+               date_death = ps.date_death_a,
                updated_at = (select current_timestamp)
                FROM (SELECT * FROM payroll_senasirs WHERE id = payroll_senasir_id) AS ps
                WHERE affiliates.id = affiliate and affiliates.date_death is null;
@@ -69,7 +69,7 @@ class CreateFunctionUpdateOrCreateSpouseAndUpdateAffiliate extends Migration
             message:=  'Se actualiza afiliado';
                UPDATE public.affiliates
                SET user_id = user_reg,
-               birth_date = ps.fecha_nacimiento, updated_at = (select current_timestamp)
+               birth_date = ps.birth_date, updated_at = (select current_timestamp)
                FROM (SELECT * FROM payroll_senasirs WHERE id = payroll_senasir_id) AS ps
                WHERE affiliates.id = affiliate and affiliates.birth_date is null;
 

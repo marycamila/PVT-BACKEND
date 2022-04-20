@@ -85,9 +85,7 @@ class ImportContributionSenasirController extends Controller
         ]);
      }
 
-     public function data_count($mes,$a_o,$date_payroll_format){
-        $month = $mes;
-        $year = $a_o;
+     public function data_count($month,$year,$date_payroll_format){
         $data_count['num_total_data_copy'] = 0;
         $data_count['num_data_not_considered'] = 0;
         $data_count['num_data_considered'] = 0;
@@ -258,21 +256,20 @@ class ImportContributionSenasirController extends Controller
         and cp.month_year = '$date_contribution'
         and cp.contributionable_type = 'payroll_senasirs'";
                     $data_contribution_senasir = DB::select($data_contribution_senasir);
-                           
+
                             if(count($data_contribution_senasir)> 0){
                                 $message = "Excel";
                                 foreach ($data_contribution_senasir as $row){
                                     array_push($data_cabeceras, array($row->month_year ,$row->identity_card ,$row->registration, $row->first_name,
-                                    $row->second_name, $row->last_name, $row->mothers_last_name, $row->surname_husband , $row->quotable, $row->rent, $row->dignity_rent, $row->total,
-                                    $row->affiliate_rent_class));                               
+                                    $row->second_name, $row->last_name, $row->mothers_last_name, $row->surname_husband , $row->quotable, $row->rent_pension, $row->dignity_rent, $row->total,
+                                    $row->affiliate_rent_class));
                                 }
 
                                 $export = new ArchivoPrimarioExport($data_cabeceras);
                                 $file_name = "Aportes_Senasir";
                                 $extension = '.xls';
-                                return Excel::download($export, $file_name.$month.$year.$extension);                                
+                                return Excel::download($export, $file_name.$month.$year.$extension);
 
                             }
-    }       
-        
+    }
 }

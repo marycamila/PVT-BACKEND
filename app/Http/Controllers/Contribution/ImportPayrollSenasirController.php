@@ -317,7 +317,7 @@ class ImportPayrollSenasirController extends Controller
              {
                 $query = "delete
                         from payroll_senasirs
-                        where a_o = $year::INTEGER and mes = $month::INTEGER ";
+                        where year = $year::INTEGER and month = $month::INTEGER ";
                 $query = DB::select($query);
                 DB::commit();
                 return true;
@@ -578,7 +578,7 @@ class ImportPayrollSenasirController extends Controller
            'period_year' => 'required|date_format:"Y"',
        ]);
         $period_year = $request->get('period_year');
-        $query = "SELECT  distinct mes,a_o,  to_char( (to_date(a_o|| '-' ||mes, 'YYYY/MM/DD')), 'TMMonth') as period_month_name from payroll_senasirs where deleted_at  is null and a_o =$period_year group by mes, a_o ";
+        $query = "SELECT  distinct month_p,year_p,  to_char( (to_date(year_p|| '-' ||month_p, 'YYYY/MM/DD')), 'TMMonth') as period_month_name from payroll_senasirs where deleted_at  is null and year_p =$period_year group by month_p, year_p";
         $query = DB::select($query);
         $query_months = "select id as period_month ,name  as period_month_name from months order by id asc";
         $query_months = DB::select($query_months);
@@ -686,25 +686,24 @@ class ImportPayrollSenasirController extends Controller
 
         $date_payroll = Carbon::parse($request->date_payroll);
         $year = (int)$date_payroll->format("Y");
-        $month = (int)$date_payroll->format("m");     
-        $data_payroll_senasir = "select  * from  payroll_senasirs  where mes ='$month' and a_o='$year'";
+        $month = (int)$date_payroll->format("m");
+        $data_payroll_senasir = "select  * from  payroll_senasirs  where month_p ='$month' and year_p='$year'";
                     $data_payroll_senasir = DB::select($data_payroll_senasir);
                             if(count($data_payroll_senasir)> 0){
                                 $message = "Excel";
                                 foreach ($data_payroll_senasir as $row){
-                                    array_push($data_cabeceras, array($row->a_o ,$row->mes ,$row->matricula_titular ,$row->mat_dh ,
-                                    $row->departamento, $row->renta, $row->carnet_num_com, $row->paterno , $row->materno, $row->p_nombre, $row->s_nombre, $row->ap_casada,
-                                    $row->fecha_nacimiento, $row->clase_renta, $row->total_ganado, $row->total_descuentos, $row->liquido_pagable, $row->rentegro_r_basica, $row->renta_dignidad, $row->reintegro_renta_dignidad,
-                                    $row->reintegro_aguinaldo, $row->reintegro_importe_adicional, $row->reintegro_inc_gestion, $row->descuento_aporte_muserpol, $row->descuento_covipol, $row->descuento_prestamo_musepol, $row->carnet_num_com_tit, 
-                                    $row->pat_titular , $row->mat_titular , $row->p_nom_titular , $row->s_nombre_titular , $row->ap_casada_titular, $row->fecha_nac_titular, $row->clase_renta_tit, $row->fec_fail_tit 
-                                ));                               
+                                    array_push($data_cabeceras, array($row->year_p ,$row->month_p ,$row->registration_a ,$row->registration_s ,
+                                    $row->department, $row->rent, $row->identity_card, $row->last_name , $row->mothers_last_name, $row->first_name, $row->second_name, $row->surname_husband,
+                                    $row->birth_date, $row->rent_class, $row->total_won, $row->total_discounts, $row->payable_liquid, $row->refund_r_basic, $row->dignity_rent, $row->refund_dignity_rent,
+                                    $row->refund_bonus, $row->refund_additional_amount, $row->refund_inc_management, $row->discount_contribution_muserpol, $row->discount_covipol, $row->discount_loan_muserpol, $row->identity_card_a,
+                                    $row->last_name_a, $row->mothers_last_name_a , $row->first_name_a , $row->second_name_a , $row->surname_husband_a, $row->birth_date_a, $row->rent_class_a, $row->date_death_a
+                                ));
                                 }
 
                                 $export = new ArchivoPrimarioExport($data_cabeceras);
                                 $file_name = "Planilla_Senasir";
                                 $extension = '.xls';
-                                return Excel::download($export, $file_name.$month.$year.$extension);                                
-
+                                return Excel::download($export, $file_name.$month.$year.$extension);
                             }
-    }       
+    }
 }

@@ -29,8 +29,8 @@ class CreateFunctionContributionAffiliateSenasirCreateOrUpdate extends Migration
                    type_acction:= 'created';
 
                -- Creacion de un nuevo registro
-                   INSERT INTO public.contribution_passives(user_id, affiliate_id, month_year, quotable, rent, dignity_rent, interest, total, created_at,affiliate_rent_class,is_valid, contributionable_type, contributionable_id)
-                   SELECT user_reg as user_id, pvs.affiliate_id,year_copy as month_year, (pvs.liquido_pagable-pvs.renta_dignidad) as quotable, pvs.liquido_pagable as rent,pvs.renta_dignidad as dignity_rent, 0 as interest, pvs.descuento_aporte_muserpol as total,(select current_timestamp as created_at), CASE clase_renta
+                   INSERT INTO public.contribution_passives(user_id, affiliate_id, month_year, quotable, rent_pension, dignity_rent, interest, total, created_at,updated_at,affiliate_rent_class,is_valid, contributionable_type, contributionable_id)
+                   SELECT user_reg as user_id, pvs.affiliate_id,year_copy as month_year, (pvs.payable_liquid-pvs.dignity_rent) as quotable, pvs.payable_liquid as rent_pension,pvs.dignity_rent as dignity_rent, 0 as interest, pvs.discount_contribution_muserpol as total,(select current_timestamp as created_at),(select current_timestamp as updated_at), CASE rent_class
                         when 'VIUDEDAD' then 'VIUDEDAD'
                         else 'VEJEZ'
                         end
@@ -42,12 +42,12 @@ class CreateFunctionContributionAffiliateSenasirCreateOrUpdate extends Migration
             -- Actualizar datos en la contribucion
                UPDATE contribution_passives
                SET user_id = user_reg,
-               quotable = pvs.liquido_pagable-pvs.renta_dignidad,
-               rent = pvs.liquido_pagable,
-               dignity_rent= pvs.renta_dignidad,
-               total = pvs.descuento_aporte_muserpol,
+               quotable = pvs.payable_liquid-pvs.dignity_rent,
+               rent_pension = pvs.payable_liquid,
+               dignity_rent= pvs.dignity_rent,
+               total = pvs.discount_contribution_muserpol,
                updated_at = (select current_timestamp),
-               affiliate_rent_class = CASE pvs.clase_renta
+               affiliate_rent_class = CASE pvs.rent_class
                  when 'VIUDEDAD' then 'VIUDEDAD'
                  else 'VEJEZ'
                  end,

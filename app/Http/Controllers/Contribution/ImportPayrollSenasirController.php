@@ -298,9 +298,7 @@ class ImportPayrollSenasirController extends Controller
             }
         }
     // -------------metodo para verificar si existe datos en el paso 1 -----//
-    public function exists_data_payroll_copy_senasirs($mes,$a_o){
-        $month = $mes;
-        $year = $a_o;
+    public function exists_data_payroll_copy_senasirs($month,$year){
         $exists_data = true;
         $query = "select * from payroll_copy_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER;";
         $verify_data = DB::connection('db_aux')->select($query);
@@ -317,7 +315,7 @@ class ImportPayrollSenasirController extends Controller
              {
                 $query = "delete
                         from payroll_senasirs
-                        where year = $year::INTEGER and month = $month::INTEGER ";
+                        where year_p = $year::INTEGER and month_p = $month::INTEGER ";
                 $query = DB::select($query);
                 DB::commit();
                 return true;

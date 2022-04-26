@@ -17,14 +17,14 @@ class CreateFunctionUpdateOrCreateSpouseAndUpdateAffiliate extends Migration
         returns varchar
         as $$
         declare
+        declare
         message varchar;
-        id_pension_entity int;
         id_affiliate_state int;
         begin
             --*******************************************************************************************
             --Funcion par crear o actualizar datos de la esposa y actualizar algunos datos del afiliado--
             --*******************************************************************************************
-            id_pension_entity:=  (SELECT id FROM pension_entities WHERE name ='SENASIR');
+
             id_affiliate_state:=  (SELECT id FROM affiliate_states WHERE name ='Fallecido');
             if exists(SELECT  * FROM payroll_senasirs ps WHERE ps.id = payroll_senasir_id and ps.rent_class='VIUDEDAD' and date_death_a is not null and affiliate_id= affiliate) then
                 if exists(SELECT * FROM spouses WHERE affiliate_id = affiliate) then
@@ -63,23 +63,9 @@ class CreateFunctionUpdateOrCreateSpouseAndUpdateAffiliate extends Migration
                SET user_id = user_reg,
                affiliate_state_id = id_affiliate_state,
                updated_at = (select current_timestamp)
-               WHERE affiliates.id = affiliate and  affiliates.affiliate_state_id is null;
-
-            else
-            message:=  'Se actualiza afiliado';
-               UPDATE public.affiliates
-               SET user_id = user_reg,
-               birth_date = ps.birth_date, updated_at = (select current_timestamp)
-               FROM (SELECT * FROM payroll_senasirs WHERE id = payroll_senasir_id) AS ps
-               WHERE affiliates.id = affiliate and affiliates.birth_date is null;
+               WHERE affiliates.id = affiliate and  affiliates.affiliate_state_id <> id_affiliate_state;
 
            end if;
-               UPDATE affiliates
-               SET user_id = user_reg,
-               pension_entity_id = id_pension_entity,
-               updated_at = (select current_timestamp)
-               WHERE affiliates.id = affiliate and  affiliates.pension_entity_id is null;
-
             return  message;
         end
         $$ language 'plpgsql'

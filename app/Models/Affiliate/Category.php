@@ -4,6 +4,7 @@ namespace App\Models\Affiliate;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Contribution\Contribution;
 
 class Category extends Model
 {
@@ -22,4 +23,9 @@ class Category extends Model
     {
         return $this->hasMany(Affiliate::class);
     }
+    public function contributions()
+    {
+        return $this->hasMany(Contribution::class);
+    }
 }
+    

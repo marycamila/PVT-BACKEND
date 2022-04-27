@@ -4,6 +4,9 @@ namespace App\Models\Affiliate;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Contribution\Reimbursement;
+use App\Models\Contribution\Contribution;
+use App\Models\Affiliate\Affiliate;
 
 class Degree extends Model
 {
@@ -26,5 +29,14 @@ class Degree extends Model
     public function affiliates()
     {
         return $this->hasMany(Affiliate::class);
+    } 
+    
+    public function reimbursements()
+    {
+    return $this->hasMany(Reimbursement::class);
+    }
+    public function contributions()
+    {
+    return $this->hasMany(Contribution::class);
     }
 }

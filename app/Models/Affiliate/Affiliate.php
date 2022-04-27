@@ -4,8 +4,15 @@ namespace App\Models\Affiliate;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 use App\Models\FinancialEntity;
 use App\Models\Contribution\PayrollSenasir;
+use App\Models\Admin\User;
+use App\Models\Contribution\AidContribution;
+use App\Models\Contribution\AidReimbursement;
+use App\Models\Contribution\Contribution;
+use App\Models\Contribution\Reimbursement;
+use App\Models\Affiliate\Address;
 
 class Affiliate extends Model
 {
@@ -82,5 +89,17 @@ class Affiliate extends Model
     public function payroll_senasir()
     {
         return $this->hasMany(PayrollSenasir::class);
+    }
+    public function contributions()        
+    {
+      return $this->hasMany(Contribution::class);
+    }
+    public function reimbursements()
+    {
+        return $this->hasMany(Reimbursement::class);
+    }
+    public function addresses()
+    {
+        return $this->morphToMany(Address::class, 'addressable')->withTimestamps()->latest('updated_at');
     }
 }

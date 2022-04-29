@@ -29,6 +29,8 @@ class CreateContributionPassivesTable extends Migration
             $table->boolean('is_valid')->default(false)->comment('Si el aporte es valido');
             $table->enum('affiliate_rent_class', ['VEJEZ', 'VIUDEDAD'])->default('VEJEZ')->comment('Tipo de Afiliado que realizo el Aporte');
             $table->nullableMorphs('contributionable'); // Campo para contribuiciones de aportes directos y complemento economico
+            $table->unsignedBigInteger('contribution_type_id')->nullable()->comment('id de la clasificación de aportes');  // id usuario
+            $table->foreign('contribution_type_id')->references('id')->on('contribution_types');
             $table->timestamps();
             $table->softDeletes();
         });

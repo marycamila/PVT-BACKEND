@@ -4,6 +4,7 @@ namespace App\Models\Admin;
 
 use Laratrust\Models\LaratrustRole;
 use Fico7489\Laravel\Pivot\Traits\PivotEventTrait;
+use App\Models\Workflow\WfState;
 
 class Role extends LaratrustRole
 {
@@ -30,4 +31,10 @@ class Role extends LaratrustRole
     {
         return $this->morphMany(Record::class, 'recordable');
     }
+
+    public function wf_states()
+	{
+		return $this->hasMany(WfState::class);
+    }   
+
 }

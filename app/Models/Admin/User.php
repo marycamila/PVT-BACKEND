@@ -15,6 +15,9 @@ use App\Models\Contribution\Contribution;
 use App\Models\Contribution\ContributionProcess;
 use App\Models\Contribution\ContributionRate;
 use App\Models\Contribution\Reimbursement;
+use App\Models\Procedure\ProcedureRecord;
+use App\Models\Workflow\SequencesRecord;
+use App\Models\Workflow\WfRecord;
 
 class User extends Authenticatable
 {
@@ -101,4 +104,17 @@ class User extends Authenticatable
     {
         return $this->hasMany(AidContribution::class);
     }
+    public function procedure_records()
+	{
+		return $this->hasMany(ProcedureRecord::class);
+    }
+    public function sequences_records()
+	{
+		return $this->hasMany(SequencesRecord::class);
+    }
+    public function wf_records()
+	{
+		return $this->hasMany(WfRecord::class);
+    }
+
 }

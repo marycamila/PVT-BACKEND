@@ -24,7 +24,7 @@ class CreatePayrollCopyCommandsTable extends Migration
             $table->string('pat')->nullable()->comment('Apellido paterno');
             $table->string('mat')->nullable()->comment('Apellido materno');
             $table->string('apes')->nullable()->comment('Apellido esposo');
-            $table->string('nom')->->nullable()comment('Primer nombre');
+            $table->string('nom')->nullable()->comment('Primer nombre');
             $table->string('nom2')->nullable()->comment('Segundo nombre');
             $table->string('eciv')->comment('Estado civil');
             $table->string('niv')->comment('Nivel jerarquico');

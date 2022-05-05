@@ -978,13 +978,39 @@
                 ]
             }
         },
+        "/api/global/city": {
+            "get": {
+                "tags": [
+                    "CIUDAD"
+                ],
+                "summary": "LISTADO DE CIUDADES",
+                "operationId": "getCiudades",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/contribution/list_months_import_contribution_senasir": {
             "post": {
                 "tags": [
                     "IMPORTACION-APORTES-SENASIR"
                 ],
-                "summary": "LISTA LOS MESES QUE SE REALIZARON IMPORTACIONES A LA TABLA AID_CONTRIBUTION SENASIR EN BASE A UN AÑO DADO EJ:2021",
-                "description": "Lista los meses importados en la tabla aid_contributions enviando como parametro un año en especifico",
+                "summary": "LISTA LOS MESES QUE SE REALIZARON IMPORTACIONES A LA TABLA CONTRIBUTION PASSIVES SENASIR EN BASE A UN AÑO DADO EJ:2021",
+                "description": "Lista los meses importados en la tabla contribution_passives enviando como parametro un año en especifico",
                 "operationId": "list_senasir_months",
                 "requestBody": {
                     "description": "Provide auth credentials",
@@ -1029,7 +1055,7 @@
                     "IMPORTACION-APORTES-SENASIR"
                 ],
                 "summary": "PASO 3 IMPORTACIÓN REGISTRO O ACTUALIZACIÓN DE DATOS DE CONTRIBUCION SENASIR",
-                "description": "Creacion o actualizacion de aid_contributions y registro de la tabla tmp_registration_aid_contributions de contribuciones actualizadas",
+                "description": "Creacion o actualizacion de contribution_passives",
                 "operationId": "import_create_or_update_contribution_period_senasir",
                 "requestBody": {
                     "description": "Provide auth credentials",
@@ -1039,6 +1065,51 @@
                             "schema": {
                                 "properties": {
                                     "period_contribution_senasir": {
+                                        "description": "fecha de planilla required",
+                                        "type": "string",
+                                        "example": "2021-10-01"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/contribution/report_import_contribution_senasir": {
+            "post": {
+                "tags": [
+                    "IMPORTACION-APORTES-SENASIR"
+                ],
+                "summary": "GENERA REPORTE DE APORTES SENASIR IMPORTADAS",
+                "description": "Genera reporte de aportes SENASIR de la tabla contribution_passives de acuerdo a periodo",
+                "operationId": "report_import_contribution_senasir",
+                "requestBody": {
+                    "description": "Provide auth credentials",
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "date_contribution": {
                                         "description": "fecha de planilla required",
                                         "type": "string",
                                         "example": "2021-10-01"
@@ -1250,7 +1321,7 @@
                     "IMPORTACION-PLANILLA-SENASIR"
                 ],
                 "summary": "PASO 1 COPIADO DE DATOS PLANILLA SENASIR",
-                "description": "Copiado de datos del archivo de planillas senasir a la tabla aid_contribution_copy_payroll_senasir",
+                "description": "Copiado de datos del archivo de planillas senasir a la tabla contribution_passives_copy_payroll_senasir",
                 "operationId": "upload_copy_payroll_senasir",
                 "requestBody": {
                     "description": "Provide auth credentials",
@@ -1300,8 +1371,8 @@
                     "IMPORTACION-PLANILLA-SENASIR"
                 ],
                 "summary": "PASO 2 VALIDACION DE DATOS DE TITULARES SENASIR",
-                "description": "validacion de datos de titulares senasir a la tabla validation_aid_contribution_affiliate_payroll_senasir",
-                "operationId": "validation_aid_contribution_affiliate_payroll_senasir",
+                "description": "validacion de datos de titulares senasir a la tabla validation_contribution_passives_affiliate_payroll_senasir",
+                "operationId": "validation_contribution_passives_affiliate_payroll_senasir",
                 "requestBody": {
                     "description": "Provide auth credentials",
                     "required": true,
@@ -1546,6 +1617,51 @@
                 ]
             }
         },
+        "/api/contribution/report_payroll_senasir": {
+            "post": {
+                "tags": [
+                    "IMPORTACION-PLANILLA-SENASIR"
+                ],
+                "summary": "GENERA REPORTE EXCEL DE DATOS REMITIDOS POR SENASIR",
+                "description": "Genera el archivo excel de los datos remitidos por el SENASIR por mes y año",
+                "operationId": "report_import_senasir ",
+                "requestBody": {
+                    "description": "Provide auth credentials",
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "date_payroll": {
+                                        "description": "fecha de planilla required",
+                                        "type": "string",
+                                        "example": "2021-10-01"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/temporary/upload_copy_person_senasir": {
             "post": {
                 "tags": [
@@ -1599,6 +1715,114 @@
                 "summary": "PASO 2 COPIADO DE ID DE PERSONAS SENASIR DE TIPO VIUDEDAD Y CREACION DE AFILIADOS",
                 "description": "Importacion de afiliados y data de senasir ",
                 "operationId": "data_senasir_type_spouses",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/temporary/update_affiliate_id_senasir": {
+            "post": {
+                "tags": [
+                    "IMPORTACION-IDS-PERSONAS-SENASIR"
+                ],
+                "summary": "PASO 2 ACTUAIZACION DE CRITERIOS",
+                "description": "Importacion de afiliados y data de senasir ",
+                "operationId": "update_affiliate_id_senasir",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/temporary/update_affiliate_id_senasir_registration_and_identity_card": {
+            "post": {
+                "tags": [
+                    "IMPORTACION-IDS-PERSONAS-SENASIR"
+                ],
+                "summary": "PASO 3 ACTUAIZACION DE CRITERIOS 6 y 7 REVISION MANUAL",
+                "description": "Importacion de afiliados y data de senasir ",
+                "operationId": "update_affiliate_id_senasir_registration_and_identity_card",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/temporary/update_affiliate_data": {
+            "post": {
+                "tags": [
+                    "IMPORTACION-IDS-PERSONAS-SENASIR"
+                ],
+                "summary": "PASO 5 ACTUAIZACION DE DATOS DEL AFILIADO",
+                "description": "Importacion de afiliados y data de senasir ",
+                "operationId": "update_affiliate_data",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/temporary/create_affiliate_spouse_senasir": {
+            "post": {
+                "tags": [
+                    "IMPORTACION-IDS-PERSONAS-SENASIR"
+                ],
+                "summary": "PASO 4 CREACION DE AFILIADOS Y ESPOSAS SENASIR",
+                "description": "create_affiliate_spouse_senasir",
+                "operationId": "create_affiliate_spouse_senasir",
                 "responses": {
                     "200": {
                         "description": "Success",

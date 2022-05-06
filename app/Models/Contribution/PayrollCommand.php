@@ -6,10 +6,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Affiliate\Affiliate;
 use App\Models\Contribution\ContributionPassive;
+use App\Models\Contribution\PayrollCommand;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PayrollCommand extends Model
 {
+    protected $table = "payroll_commands";
     use HasFactory;
+    use SoftDeletes;
     public $timestamps = true;
     public $guarded = ['id'];
     protected $fillable = [

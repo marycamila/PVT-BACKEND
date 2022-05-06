@@ -16,6 +16,7 @@ Route::group([
         Route::post('/upload_copy_payroll_command', [App\Http\Controllers\Contribution\ImportPayrollCommandController::class, 'upload_copy_payroll_command']);
         Route::get('/command_payroll_period', [App\Http\Controllers\Contribution\ImportPayrollCommandController::class, 'command_payroll_period']);
         Route::post('/rollback_payroll_copy_command', [App\Http\Controllers\Contribution\ImportPayrollCommandController::class, 'rollback_payroll_copy_command']);
+        Route::post('/list_months_validate_command', [App\Http\Controllers\Contribution\ImportPayrollCommandController::class, 'list_months_validate_command']);
         Route::post('/import_payroll_command_progress_bar', [App\Http\Controllers\Contribution\ImportPayrollCommandController::class, 'import_payroll_command_progress_bar']);
         Route::post('/update_base_wages', [App\Http\Controllers\Contribution\ImportPayrollCommandController::class, 'update_base_wages']);
         Route::post('/upload_copy_payroll_senasir', [App\Http\Controllers\Contribution\ImportPayrollSenasirController::class, 'upload_copy_payroll_senasir']);
@@ -32,8 +33,7 @@ Route::group([
             Route::post('/list_months_validate_senasir', [App\Http\Controllers\Contribution\ImportPayrollSenasirController::class, 'list_months_validate_senasir']);
         });
         Route::post('/report_payroll_senasir', [App\Http\Controllers\Contribution\ImportPayrollSenasirController::class, 'report_payroll_senasir']);
-        Route::post('/report_import_contribution_senasir', [App\Http\Controllers\Contribution\ImportContributionSenasirController::class, 'report_import_contribution_senasir']);
-
+        Route::post('/report_import_contribution_senasir', [App\Http\Controllers\Contribution\ImportContributionSenasirController::class, 'report_import_contribution_senasir']);        
     });
 });
 

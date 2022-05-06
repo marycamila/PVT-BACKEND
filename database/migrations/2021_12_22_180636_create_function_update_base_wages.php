@@ -13,7 +13,7 @@ class CreateFunctionUpdateBaseWages extends Migration
      */
     public function up()
     {
-        DB::statement("CREATE OR REPLACE FUNCTION update_base_wages(month_base_wages integer,year_base_wage integer, user_id integer,date_base_wages date) RETURNS SETOF base_wages  AS
+      /*  DB::statement("CREATE OR REPLACE FUNCTION update_base_wages(month_base_wages integer,year_base_wage integer, user_id integer,date_base_wages date) RETURNS SETOF base_wages  AS
         $$
         DECLARE
             -- Declaración EXPLICITA del cursor
@@ -47,7 +47,7 @@ class CreateFunctionUpdateBaseWages extends Migration
                END LOOP;
            return query select * from base_wages bw  where month_year = date_base_wages;
           return;
-        END $$ LANGUAGE 'plpgsql';");
+        END $$ LANGUAGE 'plpgsql';");*/
     }
 
     /**
@@ -57,6 +57,6 @@ class CreateFunctionUpdateBaseWages extends Migration
      */
     public function down()
     {
-        DB::statement("DROP FUNCTION update_base_wages");
+       // DB::statement("DROP FUNCTION update_base_wages");
     }
 }

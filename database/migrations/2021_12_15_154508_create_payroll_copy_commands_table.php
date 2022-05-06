@@ -20,7 +20,7 @@ class CreatePayrollCopyCommandsTable extends Migration
             $table->integer('mes')->comment('Mes');
             $table->integer('a_o')->comment('Año');
             $table->string('car')->comment('Carnet');
-            $table->string('car_formato')->comment('Carnet formateado');
+            $table->string('car_formato')->nullable()->comment('Carnet formateado');
             $table->string('pat')->nullable()->comment('Apellido paterno');
             $table->string('mat')->nullable()->comment('Apellido materno');
             $table->string('apes')->nullable()->comment('Apellido esposo');

@@ -13,6 +13,7 @@ use App\Models\Contribution\AidReimbursement;
 use App\Models\Contribution\Contribution;
 use App\Models\Contribution\Reimbursement;
 use App\Models\Affiliate\Address;
+use App\Models\Contribution\PayrollCommand;
 
 class Affiliate extends Model
 {
@@ -101,5 +102,9 @@ class Affiliate extends Model
     public function addresses()
     {
         return $this->morphToMany(Address::class, 'addressable')->withTimestamps()->latest('updated_at');
+    }
+    public function payroll_command()
+    {
+        return $this->hasMany(PayrollSenasir::class);
     }
 }

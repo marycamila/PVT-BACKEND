@@ -300,4 +300,194 @@ class ImportPayrollCommandController extends Controller
 
         return  $data_count;
     }
+         /**
+     * @OA\Post(
+     *      path="/api/contribution/import_payroll_command_progress_bar",
+     *      tags={"IMPORTACION-PLANILLA-COMANDO"},
+     *      summary="INFORMACIÓN DE PROGRESO DE IMPORTACIÓN COMANDO",
+     *      operationId="import_payroll_command_progress_bar",
+     *      description="Muestra la información de la importación de Comando  (-1)Si existió algún error en algún paso, (100) Si todo fue exitoso, (30-60)Paso 1 y 2 (0)si esta iniciando la importación",
+     *      @OA\RequestBody(
+     *          description= "Provide auth credentials",
+     *          required=true,
+     *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
+     *             @OA\Property(property="date_payroll", type="string",description="fecha de planilla required",example= "2022-03-01")
+     *            )
+     *          ),
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     },
+     *      @OA\Response(
+     *          response=200,
+     *          description="Success",
+     *          @OA\JsonContent(
+     *            type="object"
+     *         )
+     *      )
+     * )
+     *
+     * Logs user into the system.
+     *
+     * @param Request $request
+     * @return void
+    */
+
+    public function import_payroll_command_progress_bar(Request $request){
+
+        $request->validate([
+            'date_payroll' => 'required|date_format:"Y-m-d"',
+          ]);
+
+        $date_payroll = Carbon::parse($request->date_payroll);
+        $year = (int)$date_payroll->format("Y");
+        $month = (int)$date_payroll->format("m");
+        $message = "Exito";
+
+        $result['file_exists'] = false;
+        $result['file_name'] = "";
+        $result['percentage'] = 0;
+        $result['query_step_1'] = false;
+        $result['query_step_2'] = false;
+
+        $result['query_step_1'] = $this->exists_data_payroll_copy_commands($month,$year);
+        //$result['query_step_2'] = PayrollCommand::data_period($month,$year)['exist_data'];
+        $date_payroll_format = $request->date_payroll;
+
+        //verificamos si existe el archivo de importación 
+        $date_month= strlen($month)==1?'0'.$month:$month;
+        $origin_name = 'comando-';
+        $new_file_name = "comando-".$date_month."-".$year.'.csv';
+        $base_path = 'planillas/planilla_comando'.'/'.$new_file_name;
+        if (Storage::disk('ftp')->has($base_path)) {
+            $result['file_name'] = $new_file_name;
+            $result['file_exists'] = true;
+        }
+
+        if($result['file_exists'] == true && $result['query_step_1'] == true && $result['query_step_2'] == true){
+            $result['percentage'] = 100;
+        }else{
+            if($result['file_exists'] == true && $result['query_step_1'] == true && $result['query_step_2'] == false){
+                $result['percentage'] = 50;
+            }else{
+                if ($result['query_step_1'] == false && $result['query_step_2'] == false) {
+                    $result['percentage'] = 0;
+                } else {
+                    $result['percentage'] = -1;
+                    $message = "Error! Algo salió mal en algún paso, por favor vuelva a iniciar la importación.";
+                }
+            }
+        }
+
+        return response()->json([
+            'message' => $message,
+            'payload' => [
+                'import_progress_bar' =>  $result,
+                'data_count' =>  $this->data_count_payroll_command($month,$year,$date_payroll_format)
+            ],
+        ]);
+    }
+    
+    //método para verificar si existe datos en el paso 1 
+
+    public function exists_data_payroll_copy_commands($month,$year){
+        $exists_data = true;
+        $query = "select * from payroll_copy_commands where mes = $month::INTEGER and a_o = $year::INTEGER;";
+        $verify_data = DB::connection('db_aux')->select($query);
+
+        if($verify_data == []) $exists_data = false;
+
+        return $exists_data;
+    }
+
+    //borrado de datos de la tabla payroll_copy_commands paso 1
+    public function delete_payroll_copy_commands($month, $year)
+    {
+             if($this->exists_data_payroll_copy_commands($month,$year))
+             {
+                $query = "delete from payroll_copy_commands where a_o = $year::INTEGER and mes = $month::INTEGER ";
+                $query = DB::connection('db_aux')->select($query);
+                DB::commit();
+                return true;
+             }
+             else
+                 return false;
+    }
+
+    /**
+     * @OA\Post(
+     *      path="/api/contribution/rollback_payroll_copy_command",
+     *      tags={"IMPORTACION-PLANILLA-COMANDO"},
+     *      summary="REHACER LOS PASOS DE PASO 1 IMPORTACIÓN COMANDO",
+     *      operationId="rollback_payroll_copy_command",
+     *      description="Para rehacer paso 1 de la importación Comando",
+     *      @OA\RequestBody(
+     *          description= "Provide auth credentials",
+     *          required=true,
+     *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
+     *             @OA\Property(property="date_payroll", type="string",description="fecha de planilla required",example= "2022-03-01")
+     *            )
+     *          ),
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     },
+     *      @OA\Response(
+     *          response=200,
+     *          description="Success",
+     *          @OA\JsonContent(
+     *            type="object"
+     *         )
+     *      )
+     * )
+     *
+     * Logs user into the system.
+     *
+     * @param Request $request
+     * @return void
+    */
+
+    public function rollback_payroll_copy_command(Request $request)
+    {
+       $request->validate([
+           'date_payroll' => 'required|date_format:"Y-m-d"',
+         ]);
+       DB::beginTransaction();
+       try{
+           $result['delete_step_1'] = false;
+           $valid_rollback = false;
+           $date_payroll = Carbon::parse($request->date_payroll);
+
+           $year = (int)$date_payroll->format("Y");
+           $month = (int)$date_payroll->format("m");
+    
+           if($this->exists_data_payroll_copy_commands($month,$year) && !PayrollCommand::data_period($month,$year)['exist_data']){
+               $result['delete_step_1'] = $this->delete_payroll_copy_commands($month,$year);
+
+               if($result['delete_step_1'] == true){
+                   $valid_rollback = true;
+                   $message = "Realizado con éxito!";
+               }
+           }else{
+               /*if(PayrollCommand::data_period($month,$year)['exist_data'])
+                   $message = "No se puede rehacer, por que ya realizó la validación del la planilla senasir";
+               else*/
+                   $message = "No existen datos para rehacer";
+           }
+
+           DB::commit();
+
+           return response()->json([
+               'message' => $message,
+               'payload' => [
+                   'valid_rollbackk' =>  $valid_rollback,
+                   'delete_step' =>  $result
+               ],
+           ]);
+       }catch (Exception $e)
+       {
+           DB::rollback();
+           return $e;
+       }
+    }
 }

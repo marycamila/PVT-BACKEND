@@ -7,11 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Affiliate\Affiliate;
 use App\Models\Contribution\ContributionPassive;
 use App\Models\Contribution\PayrollSenasir;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PayrollSenasir extends Model
 {
     protected $table = "payroll_senasirs";
     use HasFactory;
+    use SoftDeletes;
     public $timestamps = true;
     public $guarded = ['id'];
     protected $fillable = [

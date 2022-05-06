@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Contribution\ContributionCopyPayrollCommand;
+use App\Models\Contribution\PayrollCommand;
 use Carbon\Carbon;
 use DateTime;
 use DB;
@@ -351,7 +352,7 @@ class ImportPayrollCommandController extends Controller
         $result['query_step_2'] = false;
 
         $result['query_step_1'] = $this->exists_data_payroll_copy_commands($month,$year);
-        //$result['query_step_2'] = PayrollCommand::data_period($month,$year)['exist_data'];
+        $result['query_step_2'] = PayrollCommand::data_period($month,$year)['exist_data'];
         $date_payroll_format = $request->date_payroll;
 
         //verificamos si existe el archivo de importación 
@@ -469,9 +470,9 @@ class ImportPayrollCommandController extends Controller
                    $message = "Realizado con éxito!";
                }
            }else{
-               /*if(PayrollCommand::data_period($month,$year)['exist_data'])
-                   $message = "No se puede rehacer, por que ya realizó la validación del la planilla senasir";
-               else*/
+               if(PayrollCommand::data_period($month,$year)['exist_data'])
+                   $message = "No se puede rehacer, por que ya realizó la validación del la planilla de Comando General";
+               else
                    $message = "No existen datos para rehacer";
            }
 

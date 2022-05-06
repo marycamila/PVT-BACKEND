@@ -182,7 +182,7 @@ class ImportPayrollCommandController extends Controller
      * @return void
     */
 
-    public function upload_payroll_copy_command(request $request)
+    public function upload_copy_payroll_command(request $request)
     {
         $request->validate([
             'file' => 'required',

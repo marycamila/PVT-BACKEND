@@ -13,7 +13,7 @@ class CreateFunctionFormatAmountDecimal extends Migration
      */
     public function up()
     {
-        DB::statement(" CREATE OR REPLACE FUNCTION public.format_amount_decimal(value varchar)
+        DB::connection('db_aux')->statement(" CREATE OR REPLACE FUNCTION public.format_amount_decimal(value varchar)
         RETURNS numeric
         AS $$
         DECLARE 
@@ -39,6 +39,6 @@ class CreateFunctionFormatAmountDecimal extends Migration
      */
     public function down()
     {
-        DB::statement("DROP FUNCTION format_amount_decimal");
+        DB::connection('db_aux')->statement("DROP FUNCTION format_amount_decimal");
     }
 }

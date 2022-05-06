@@ -68,4 +68,13 @@ class PayrollCommand extends Model
 
         return  $data;
     }
+    public static function data_count($month,$year)
+    {
+        $data = collect([]);
+        $data['validated'] = PayrollCommand::whereMonth_p($month)->whereYear_p($year)->count();
+        $data['regular'] = PayrollCommand::whereMonth_p($month)->whereYear_p($year)->whereAffiliate_type('REGULAR')->count();
+        $data['new'] = PayrollCommand::whereMonth_p($month)->whereYear_p($year)->whereAffiliate_type('NUEVO')->count();
+
+        return  $data;
+    }
 }

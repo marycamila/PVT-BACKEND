@@ -549,7 +549,7 @@ class ImportPayrollSenasirController extends Controller
      *          description= "Provide auth credentials",
      *          required=true,
      *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
-     *             @OA\Property(property="period_year", type="integer",description="Año de contribucion a listar",example= "2021")
+     *             @OA\Property(property="period_year", type="integer",description="Año de contribucion a listar",example= "2022")
      *            )
      *          ),
      *     ),
@@ -583,8 +583,8 @@ class ImportPayrollSenasirController extends Controller
 
         foreach ($query_months as $month) {
            $month->state_importation = false;
-           foreach ($query as $month_contribution) {
-               if($month->period_month_name == $month_contribution->period_month_name){
+           foreach ($query as $month_payroll) {
+               if($month->period_month_name == $month_payroll->period_month_name){
                    $month->state_importation = true;
                    break;
                }

@@ -298,6 +298,12 @@ class ImportPayrollCommandController extends Controller
         $query_total_data = "SELECT * FROM payroll_copy_commands where mes = $month::INTEGER and a_o = $year::INTEGER;";
         $query_total_data = DB::connection('db_aux')->select($query_total_data);
         $data_count['num_total_data_copy'] = count($query_total_data);
+        // TOTAL VALIDADOS
+        $data_count['num_data_validated'] =PayrollCommand::data_count(3,2022)['validated'];
+        //CANTIDAD DE AFILIADOS REGULARES
+        $data_count['num_data_regular'] = PayrollCommand::data_count(3,2022)['regular'];
+        //CANTIDAD DE AFILIADOS NUEVOS
+        $data_count['num_data_new'] =PayrollCommand::data_count(3,2022)['new'];
 
         return  $data_count;
     }
@@ -538,8 +544,8 @@ class ImportPayrollCommandController extends Controller
 
         foreach ($query_months as $month) {
            $month->state_importation = false;
-           foreach ($query as $month_contribution) {
-               if($month->period_month_name == $month_contribution->period_month_name){
+           foreach ($query as $month_payroll) {
+               if($month->period_month_name == $month_payroll->period_month_name){
                    $month->state_importation = true;
                    break;
                }

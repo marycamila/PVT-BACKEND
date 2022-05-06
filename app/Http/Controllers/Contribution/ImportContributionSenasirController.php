@@ -79,8 +79,8 @@ class ImportContributionSenasirController extends Controller
          return response()->json([
             'message' => "Exito",
             'payload' => [
-                'list_senasir_months' =>  $query_months,
-                'count_senasir_months' =>  count($query)
+                'list_months' =>  $query_months,
+                'count_months' =>  count($query)
             ],
         ]);
      }

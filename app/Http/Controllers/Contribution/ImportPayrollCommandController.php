@@ -491,4 +491,72 @@ class ImportPayrollCommandController extends Controller
            return $e;
        }
     }
+
+    /**
+     * @OA\Post(
+     *      path="/api/contribution/list_months_validate_command",
+     *      tags={"IMPORTACION-PLANILLA-COMANDO"},
+     *      summary="LISTA LOS MESES QUE SE REALIZARON IMPORTACIONES PLANILLA COMANDO EN BASE A UN AÑO DADO EJ:2021",
+     *      operationId="list_months_validate_command",
+     *      description="Lista los meses importados en la tabla payroll_copy_commands enviando como parametro un año en especifico",
+     *      @OA\RequestBody(
+     *          description= "Provide auth credentials",
+     *          required=true,
+     *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
+     *             @OA\Property(property="period_year", type="integer",description="Año de contribucion a listar",example= "2021")
+     *            )
+     *          ),
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     },
+     *      @OA\Response(
+     *          response=200,
+     *          description="Success",
+     *          @OA\JsonContent(
+     *            type="object"
+     *         )
+     *      )
+     * )
+     *
+     * Logs user into the system.
+     *
+     * @param Request $request
+     * @return void
+    */
+
+    public function list_months_validate_command(Request $request)
+    {
+       $request->validate([
+           'period_year' => 'required|date_format:"Y"',
+       ]);
+        $period_year = $request->get('period_year');
+        $query = "SELECT  distinct month_p,year_p,  to_char( (to_date(year_p|| '-' ||month_p, 'YYYY/MM/DD')), 'TMMonth') as period_month_name from payroll_commands where deleted_at  is null and year_p =$period_year group by month_p, year_p";
+        $query = DB::select($query);
+        $query_months = "select id as period_month ,name  as period_month_name from months order by id asc";
+        $query_months = DB::select($query_months);
+
+        foreach ($query_months as $month) {
+           $month->state_importation = false;
+           foreach ($query as $month_contribution) {
+               if($month->period_month_name == $month_contribution->period_month_name){
+                   $month->state_importation = true;
+                   break;
+               }
+           }
+           $date_payroll_format = Carbon::parse($period_year.'-'.$month->period_month.'-'.'01')->toDateString();
+           $month->data_count = $this->data_count_payroll_command($month->period_month,$period_year,$date_payroll_format);
+        }
+
+        return response()->json([
+           'message' => "Exito",
+           'payload' => [
+               'list_months' =>  $query_months,
+               'count_months' =>  count($query)
+           ],
+       ]);
+    }
+  
+
+
 }

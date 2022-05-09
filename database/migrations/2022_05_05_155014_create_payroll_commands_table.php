@@ -17,8 +17,12 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('affiliate_id')->unsigned()->comment('Id del afiliado titular');
             $table->foreign('affiliate_id')->references('id')->on('affiliates');
-            $table->integer('unit_id')->comment('Unidad');
-            $table->integer('breakdown_id')->default(0)->comment('Desglose');
+            $table->unsignedBigInteger('unit_id')->comment('Unidad');
+            $table->foreign('unit_id')->references('id')->on('units');
+            $table->unsignedBigInteger('breakdown_id')->default(0)->comment('Desglose');
+            $table->foreign('breakdown_id')->references('id')->on('breakdowns');
+            $table->unsignedBigInteger('category_id')->comment('Categoría');
+            $table->foreign('category_id')->references('id')->on('categories');
             $table->integer('month_p')->comment('Mes');
             $table->integer('year_p')->comment('Año');
             $table->string('identity_card')->comment('Carnet');
@@ -28,8 +32,10 @@ return new class extends Migration
             $table->string('first_name')->comment('Primer nombre');
             $table->string('second_name')->nullable()->comment('Segundo nombre');
             $table->string('civil_status')->comment('Estado civil');
-            $table->string('nivel')->comment('Nivel jerarquico');
-            $table->string('grade')->comment('Grado');
+            $table->unsignedBigInteger('hierarchy_id')->comment('Nivel jerarquico');
+            $table->foreign('hierarchy_id')->references('id')->on('hierarchies');
+            $table->unsignedBigInteger('degree_id')->comment('Grado');
+            $table->foreign('degree_id')->references('id')->on('degrees');
             $table->string('gender')->comment('Género');
             $table->decimal('base_wage', 13, 2)->comment('Sueldo');            
             $table->decimal('seniority_bonus', 13, 2)->comment('Bono antiguedad');

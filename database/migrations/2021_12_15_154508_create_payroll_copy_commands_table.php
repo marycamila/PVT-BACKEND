@@ -15,7 +15,7 @@ class CreatePayrollCopyCommandsTable extends Migration
     {
         Schema::connection('db_aux')->create('payroll_copy_commands', function (Blueprint $table) {
             $table->id();
-            $table->integer('uni')->comment('Unidad');
+            $table->string('uni')->comment('Unidad');
             $table->integer('desg')->comment('Desglose');
             $table->integer('mes')->comment('Mes');
             $table->integer('a_o')->comment('Año');

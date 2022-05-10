@@ -54,9 +54,9 @@ class CreatePayrollCopyCommandsTable extends Migration
             $table->date('nac_formato')->nullable()->comment('Fecha de nacimiento formateado');
             $table->string('ing')->comment('Fecha de ingreso');
             $table->date('ing_formato')->nullable()->comment('Fecha de ingreso formateado');
-            $table->timestamps();
-            $table->softDeletes();   
             $table->boolean('is_validated')->default(false)->comment('Muestra si el registro fue validado');         
+            $table->timestamps();
+            $table->softDeletes();               
         });
     }
 

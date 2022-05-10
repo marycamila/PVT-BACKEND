@@ -8,6 +8,8 @@ use App\Models\Admin\User;
 use App\Models\Affiliate\Affiliate;
 use App\Models\Affiliate\Category;
 use App\Models\Affiliate\Degree;
+use App\Models\Contribution\PayrollCommand;
+use App\Models\Contribution\Contribution;
 
 class Contribution extends Model
 {
@@ -63,5 +65,28 @@ class Contribution extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+    public function contributionable()
+    {
+        return $this->morphTo();
+    }
+
+    public static function data_period_command($month_year)
+    {
+        $data = collect([]);
+        $exists_data = true;
+        $contribution =  Contribution::whereMonth_year($month_year)->whereContributionable_type('payroll_commands')->count();
+        if($contribution == 0) $exists_data = false;
+
+        $data['exist_data'] = $exists_data;
+        $data['count_data'] = $contribution;
+
+        return  $data;
+    }
+
+    public static function sum_total_command($month_year)
+    {
+        $contribution =  Contribution::whereMonth_year($month_year)->whereContributionable_type('payroll_commands')->sum('total');
+        return $contribution;
     }
 }

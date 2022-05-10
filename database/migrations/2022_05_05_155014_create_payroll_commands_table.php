@@ -17,11 +17,11 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('affiliate_id')->unsigned()->comment('Id del afiliado titular');
             $table->foreign('affiliate_id')->references('id')->on('affiliates');
-            $table->unsignedBigInteger('unit_id')->comment('Unidad');
+            $table->unsignedBigInteger('unit_id')->nullable()->comment('Unidad');
             $table->foreign('unit_id')->references('id')->on('units');
-            $table->unsignedBigInteger('breakdown_id')->default(0)->comment('Desglose');
+            $table->unsignedBigInteger('breakdown_id')->nullable()->comment('Desglose');
             $table->foreign('breakdown_id')->references('id')->on('breakdowns');
-            $table->unsignedBigInteger('category_id')->comment('Categoría');
+            $table->unsignedBigInteger('category_id')->nullable()->comment('Categoría');
             $table->foreign('category_id')->references('id')->on('categories');
             $table->integer('month_p')->comment('Mes');
             $table->integer('year_p')->comment('Año');
@@ -34,7 +34,7 @@ return new class extends Migration
             $table->string('civil_status')->comment('Estado civil');
             $table->unsignedBigInteger('hierarchy_id')->comment('Nivel jerarquico');
             $table->foreign('hierarchy_id')->references('id')->on('hierarchies');
-            $table->unsignedBigInteger('degree_id')->comment('Grado');
+            $table->unsignedBigInteger('degree_id')->nullable()->comment('Grado');
             $table->foreign('degree_id')->references('id')->on('degrees');
             $table->string('gender')->comment('Género');
             $table->decimal('base_wage', 13, 2)->comment('Sueldo');            
@@ -43,10 +43,10 @@ return new class extends Migration
             $table->decimal('position_bonus', 13, 2)->comment('Bono cargo');
             $table->decimal('border_bonus', 13, 2)->comment('Bono frontera');
             $table->decimal('east_bonus', 13, 2)->comment('Bono oriente');
-            $table->decimal('public_security_bonus', 13, 2)->comment('Bono seguridad');
+            $table->decimal('public_security_bonus', 13, 2)->nullable()->comment('Bono seguridad');
             $table->decimal('gain', 13, 2)->comment('Total ganado');
             $table->decimal('total', 13, 2)->comment('Total aporte');
-            $table->decimal('payable_liquid', 13, 2)->comment('Liquido pagado');
+            $table->decimal('payable_liquid', 13, 2)->nullable()->comment('Liquido pagado');
             $table->date('birth_date')->comment('Fecha de nacimiento');
             $table->date('date_entry')->comment('Fecha de ingreso');
             $table->enum('affiliate_type', ['REGULAR', 'NUEVO'])->default('REGULAR')->comment('Afiliado regular o nuevo');            

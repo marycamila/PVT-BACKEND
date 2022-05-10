@@ -5,7 +5,7 @@ namespace App\Models\Contribution;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Affiliate\Affiliate;
-use App\Models\Contribution\ContributionPassive;
+use App\Models\Contribution\Contribution;
 use App\Models\Contribution\PayrollCommand;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -47,10 +47,10 @@ class PayrollCommand extends Model
         'affiliate_type'
     ];
     
-    /*public function payroll_command_contribution()
+    public function payroll_command_contribution()
     {
-        return $this->morphMany(Contribution::class,'contributionable');
-    }*/
+        return $this->morphOne(Contribution::class,'contributionable');
+    }
     
     public function affiliate()
     {

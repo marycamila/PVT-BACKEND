@@ -341,47 +341,15 @@ class ImportPayrollSenasirController extends Controller
      }
 
 
-    /**
-     * @OA\Get(
-     *      path="/api/contribution/list_senasir_years",
-     *      tags={"METODOS-GLOBALES"},
-     *      summary="OBTIENE EL LISTADO DE AÑOS DE CONTRIBUCIONES DE SENASIR CONSECUTIVAMENTE ",
-     *      operationId="list_senasir_years",
-     *      description="Obtiene el listado de años de contribuciones de senasir de manera consecutiva hasta el año actual Ej 2022",
-     *     security={
-     *         {"bearerAuth": {}}
-     *     },
-     *      @OA\Response(
-     *          response=200,
-     *          description="Success",
-     *          @OA\JsonContent(
-     *            type="object"
-     *         )
-     *      )
-     * )
-     *
-     * Logs user into the system.
-     *
-     * @param Request $request
-     * @return void
-    */
-    public function list_senasir_years()
-     {
-        return response()->json([
-            'message' => "Exito",
-            'payload' => [
-                'list_years' =>  Util::list_years(1997)
-            ],
-        ]);
-     }
+    
 
     /**
      * @OA\Post(
      *      path="/api/contribution/rollback_payroll_copy_senasir",
      *      tags={"IMPORTACION-PLANILLA-SENASIR"},
-     *      summary="REHACER LOS PASOS DE PASO 1 Y 2 IMPORTACION SENASIR",
+     *      summary="REHACER PASO 1 IMPORTACION PLANILLA DE SENASIR",
      *      operationId="rollback_payroll_copy_senasir",
-     *      description="Para rehacer paso 1 y paso 2 de la importacion senasir",
+     *      description="Para rehacer paso 1 de la importacion de planilla de senasir",
      *      @OA\RequestBody(
      *          description= "Provide auth credentials",
      *          required=true,
@@ -455,7 +423,7 @@ class ImportPayrollSenasirController extends Controller
      * @OA\Post(
      *      path="/api/contribution/import_payroll_senasir_progress_bar",
      *      tags={"IMPORTACION-PLANILLA-SENASIR"},
-     *      summary="INFORMACION DE PROGRESO DE IMPORTACION SENASIR",
+     *      summary="INFORMACION DE PROGRESO DE IMPORTACION PLANILLA SENASIR",
      *      operationId="import_payroll_senasir_progress_bar",
      *      description="Muestra la informacion de la importación de senasir  (-1)Si exixtio al gun error en algun paso, (100)Si todo fue exitoso, (30-60)Paso 1 y 2 (0)si esta iniciando la importación",
      *      @OA\RequestBody(

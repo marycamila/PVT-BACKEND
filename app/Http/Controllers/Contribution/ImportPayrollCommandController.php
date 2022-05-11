@@ -695,6 +695,8 @@ class ImportPayrollCommandController extends Controller
                                 $file_name = "Afiliados_Nuevos_Comando";
                                 $extension = '.xls';
                                 return Excel::download($export, $file_name."_".$month."_".$year.$extension);
+                            }else{
+                                return abort(403, 'No existen afiliados nuevos en Comando para mostrar');
                             }
     }
 

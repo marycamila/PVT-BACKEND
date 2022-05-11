@@ -268,7 +268,7 @@ class ImportPayrollCommandController extends Controller
      * @OA\Post(
      *      path="/api/contribution/import_payroll_command_progress_bar",
      *      tags={"IMPORTACION-PLANILLA-COMANDO"},
-     *      summary="INFORMACIÓN DE PROGRESO DE IMPORTACIÓN COMANDO",
+     *      summary="INFORMACIÓN DE PROGRESO DE IMPORTACIÓN PLANILLA COMANDO",
      *      operationId="import_payroll_command_progress_bar",
      *      description="Muestra la información de la importación de Comando  (-1)Si existió algún error en algún paso, (100) Si todo fue exitoso, (30-60)Paso 1 y 2 (0)si esta iniciando la importación",
      *      @OA\RequestBody(
@@ -382,7 +382,7 @@ class ImportPayrollCommandController extends Controller
      * @OA\Post(
      *      path="/api/contribution/rollback_payroll_copy_command",
      *      tags={"IMPORTACION-PLANILLA-COMANDO"},
-     *      summary="REHACER PASO 1 IMPORTACIÓN COMANDO",
+     *      summary="REHACER PASO 1 IMPORTACIÓN PLANILLA COMANDO",
      *      operationId="rollback_payroll_copy_command",
      *      description="Para rehacer paso 1 de la importación Comando",
      *      @OA\RequestBody(

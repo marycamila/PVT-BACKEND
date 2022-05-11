@@ -423,7 +423,7 @@ class ImportPayrollSenasirController extends Controller
      * @OA\Post(
      *      path="/api/contribution/import_payroll_senasir_progress_bar",
      *      tags={"IMPORTACION-PLANILLA-SENASIR"},
-     *      summary="INFORMACION DE PROGRESO DE IMPORTACION SENASIR",
+     *      summary="INFORMACION DE PROGRESO DE IMPORTACION PLANILLA SENASIR",
      *      operationId="import_payroll_senasir_progress_bar",
      *      description="Muestra la informacion de la importación de senasir  (-1)Si exixtio al gun error en algun paso, (100)Si todo fue exitoso, (30-60)Paso 1 y 2 (0)si esta iniciando la importación",
      *      @OA\RequestBody(

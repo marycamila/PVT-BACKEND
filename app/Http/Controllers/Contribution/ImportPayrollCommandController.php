@@ -12,6 +12,8 @@ use DateTime;
 use DB;
 use Auth;
 use App\Helpers\Util;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\ArchivoPrimarioExport;
 
 class ImportPayrollCommandController extends Controller
 {
@@ -626,5 +628,74 @@ class ImportPayrollCommandController extends Controller
                 ]);
             }
         }
+/**
+     * @OA\Post(
+     *      path="/api/contribution/download_new_affiliates_payroll_command",
+     *      tags={"IMPORTACION-PLANILLA-COMANDO"},
+     *      summary="GENERA REPORTE EXCEL DE AFILIADOS NUEVOS REMITIDOS POR COMANDO",
+     *      operationId="download_new_affiliates_payroll_command",
+     *      description="Genera el archivo excel de afiliados nuevos remitidos por COMANDO por mes y año",
+     *      @OA\RequestBody(
+     *          description= "Provide auth credentials",
+     *          required=true,
+     *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
+     *             @OA\Property(property="date_payroll", type="string",description="fecha de planilla required",example= "2022-03-01")
+     *            )
+     *          ),
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     },
+     *      @OA\Response(
+     *          response=200,
+     *          description="Success",
+     *          @OA\JsonContent(
+     *            type="object"
+     *         )
+     *      )
+     * )
+     *
+     * Logs user into the system.
+     *
+     * @param Request $request
+     * @return void
+    */
+   
+    public function download_new_affiliates_payroll_command(request $request) {
+
+        $request->validate([
+            'date_payroll' => 'required|date_format:"Y-m-d"',
+        ]);
+
+        DB::beginTransaction();
+        $message = "No hay datos";
+        $data_cabeceras=array(array("ID_AFILIADO","ID_UNIDAD","ID_DESGLOSE","ID_CATEGORÍA","MES","AÑO","CARNET", 
+        "APELLIDO PATERNO","APELLIDO MATERNO","AP_CASADA","PRIMER NOMBRE","SEGUNDO NOMBRE","ESTADO CIVIL","ID_JERARQUÍA","ID_GRADO","SEXO",
+        "SUELDO BASE","BONO ANTIGUEDAD","BONO ESTUDIO","BONO A CARGO","BONO FRONTERA","BONO ORIENTE",
+        "BONO SEGURIDAD CIUDADANA","TOTAL GANADO","MUSERPOL","LÍQUIDO PAGABLE","FECHA DE NACIMIENTO",
+        "TIPO DE AFILIADO"));
+
+        $date_payroll = Carbon::parse($request->date_payroll);
+        $year = (int)$date_payroll->format("Y");
+        $month = (int)$date_payroll->format("m");
+        $data_payroll_senasir = "select  * from  payroll_commands  where month_p ='$month' and year_p='$year' and affiliate_type = 'NUEVO'";
+                    $data_payroll_senasir = DB::select($data_payroll_senasir);
+                            if(count($data_payroll_senasir)> 0){
+                                $message = "Excel";
+                                foreach ($data_payroll_senasir as $row){
+                                    array_push($data_cabeceras, array($row->affiliate_id ,$row->unit_id ,$row->breakdown_id ,$row->category_id ,
+                                    $row->month_p, $row->year_p, $row->identity_card, $row->last_name , $row->mothers_last_name, $row->surname_husband, $row->first_name, $row->second_name, 
+                                    $row->civil_status, $row->hierarchy_id, $row->degree_id, $row->gender, $row->base_wage, $row->seniority_bonus, $row->study_bonus, $row->position_bonus,
+                                    $row->border_bonus, $row->east_bonus, $row->public_security_bonus, $row->gain, $row->total, $row->payable_liquid, $row->birth_date,
+                                    $row->affiliate_type
+                                ));
+                                }
+
+                                $export = new ArchivoPrimarioExport($data_cabeceras);
+                                $file_name = "Afiliados_Nuevos_Comando";
+                                $extension = '.xls';
+                                return Excel::download($export, $file_name."_".$month."_".$year.$extension);
+                            }
+    }
 
 }

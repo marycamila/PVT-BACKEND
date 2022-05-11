@@ -678,11 +678,11 @@ class ImportPayrollCommandController extends Controller
         $date_payroll = Carbon::parse($request->date_payroll);
         $year = (int)$date_payroll->format("Y");
         $month = (int)$date_payroll->format("m");
-        $data_payroll_senasir = "select  * from  payroll_commands  where month_p ='$month' and year_p='$year' and affiliate_type = 'NUEVO'";
-                    $data_payroll_senasir = DB::select($data_payroll_senasir);
-                            if(count($data_payroll_senasir)> 0){
+        $data_payroll_command = "select  * from  payroll_commands  where month_p ='$month' and year_p='$year' and affiliate_type = 'NUEVO'";
+                    $data_payroll_command = DB::select($data_payroll_command);
+                            if(count($data_payroll_command)> 0){
                                 $message = "Excel";
-                                foreach ($data_payroll_senasir as $row){
+                                foreach ($data_payroll_command as $row){
                                     array_push($data_cabeceras, array($row->affiliate_id ,$row->unit_id ,$row->breakdown_id ,$row->category_id ,
                                     $row->month_p, $row->year_p, $row->identity_card, $row->last_name , $row->mothers_last_name, $row->surname_husband, $row->first_name, $row->second_name, 
                                     $row->civil_status, $row->hierarchy_id, $row->degree_id, $row->gender, $row->base_wage, $row->seniority_bonus, $row->study_bonus, $row->position_bonus,

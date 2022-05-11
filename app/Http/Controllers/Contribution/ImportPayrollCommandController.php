@@ -581,6 +581,11 @@ class ImportPayrollCommandController extends Controller
                             $update_validated ="update payroll_copy_commands set is_validated = true where mes =$month and a_o = $year";
                             $update_validated = DB::connection('db_aux')->select($update_validated);
                         }
+                        if(PayrollCommand::data_count($month,$year)['new']>0){
+                            $message = 'Excel';
+                        }else {
+                            $message = 'Exito';
+                        }
                         DB::commit();
                         $data_count= $this->data_count_payroll_command($month,$year,$date_payroll_format);
 

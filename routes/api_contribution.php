@@ -30,6 +30,7 @@ Route::group([
             Route::post('/validation_payroll_command', [App\Http\Controllers\Contribution\ImportPayrollCommandController::class, 'validation_payroll_command']);
             Route::post('/rollback_payroll_copy_command', [App\Http\Controllers\Contribution\ImportPayrollCommandController::class, 'rollback_payroll_copy_command']);
             Route::post('/import_payroll_command_progress_bar', [App\Http\Controllers\Contribution\ImportPayrollCommandController::class, 'import_payroll_command_progress_bar']);
+            Route::post('/download_new_affiliates_payroll_command', [App\Http\Controllers\Contribution\ImportPayrollCommandController::class, 'download_new_affiliates_payroll_command']);
         });
         Route::group([
             'middleware' => 'permission:download-report-payroll-senasir|download-report-payroll-command'

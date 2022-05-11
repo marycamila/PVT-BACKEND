@@ -15,50 +15,6 @@ use App\Helpers\Util;
 
 class ImportPayrollCommandController extends Controller
 {
-      /**
-     * @OA\Get(
-     *     path="/api/contribution/command_payroll_period",
-     *     tags={"CONTRIBUCION"},
-     *     summary="PERIODO DE LA CONTRIBUCION",
-     *     operationId="period_upload_command",
-     *     @OA\Response(
-     *         response=200,
-     *         description="Success",
-     *         @OA\JsonContent(
-     *         type="object"
-     *         )
-     *     ),
-     *     security={
-     *         {"bearerAuth": {}}
-     *     }
-     * )
-     *
-     * Get list of modules.
-     *
-     * @param Request $request
-     * @return void
-     */
-    public function command_payroll_period(request $request){
-        $last_iportation =  ContributionCopyPayrollCommand::orderBy('id')->get()->last();
-        if($last_iportation){
-            $last_year = $last_iportation->a_o;
-            $year = DateTime::createFromFormat('y', $last_year);
-            $last_date = Carbon::parse($year->format('Y').'-'.$last_iportation->mes);
-            $estimated_date = $last_date->addMonth();
-        }else{
-            $month_year="select max(month_year) as date from contributions";
-            $estimated_date = DB::select($month_year);
-            $estimated_date = $estimated_date[0]->date;
-            $estimated_date = Carbon::parse($estimated_date)->addMonth();
-        }
-        return response()->json([
-            'message' => 'Realizado con exito',
-            'payload' => [
-                'estimated_date' => $estimated_date
-          ]
-        ]); 
-    }
-
     /**
      * @OA\Post(
      *      path="/api/contribution/update_base_wages",
@@ -426,7 +382,7 @@ class ImportPayrollCommandController extends Controller
      * @OA\Post(
      *      path="/api/contribution/rollback_payroll_copy_command",
      *      tags={"IMPORTACION-PLANILLA-COMANDO"},
-     *      summary="REHACER LOS PASOS DE PASO 1 IMPORTACIÓN COMANDO",
+     *      summary="REHACER PASO 1 IMPORTACIÓN COMANDO",
      *      operationId="rollback_payroll_copy_command",
      *      description="Para rehacer paso 1 de la importación Comando",
      *      @OA\RequestBody(

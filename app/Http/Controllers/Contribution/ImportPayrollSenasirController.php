@@ -282,21 +282,34 @@ class ImportPayrollSenasirController extends Controller
             $request->validate([
                 'date_payroll' => 'required|date_format:"Y-m-d"',
             ]);
-
+            DB::beginTransaction();
+            $message = "No hay datos";
+            $data_cabeceras=array(array("AÑO","MES","MATRÍCULA TITULAR", "MATRÍCULA D_H","DEPARTAMENTO","CARNET", "APELLIDO PATERNO","APELLIDO MATERNO", "PRIMER NOMBRE","SEGUNDO NOMBRE",
+            "FECHA DE NACIMIENTO","CLASE DE RENTA","TOTAL GANADO","LIQUIDO PAGABLE","RENTA DIGNIDAD","DESCUENTO MUSERPOL","PATERNO TITULAR","MATERNO TITULAR"," PRIMER NOMBRE TITULAR",
+            "SEGUNDO NOMBRE TITULAR","CARNET TITULAR","FECHA DE FALLECIMIENTO TITULAR"));
             $date_payroll = Carbon::parse($request->date_payroll);
             $year = (int)$date_payroll->format("Y");
             $month = (int)$date_payroll->format("m");
-            $last_date = Carbon::parse($year.'-'.$month)->toDateString();
+            $data_payroll_copy_senasir = "select  * from  payroll_copy_senasirs  where mes ='$month' and a_o='$year' and is_validated = false and clase_renta not like 'ORFANDAD%'";
+            $data_payroll_copy_senasir = DB::connection('db_aux')->select($data_payroll_copy_senasir);
+            if(count($data_payroll_copy_senasir)> 0){
+                $message = "Excel";
+                foreach ($data_payroll_copy_senasir as $row){
+                    array_push($data_cabeceras, array($row->a_o ,$row->mes ,$row->matricula_titular ,$row->mat_dh ,
+                    $row->departamento ,$row->carnet ,$row->paterno , $row->materno , $row->p_nombre ,$row->s_nombre ,
+                    $row->fecha_nacimiento , $row->clase_renta , $row->total_ganado , $row->liquido_pagable , $row->renta_dignidad , $row->renta_dignidad ,
+                    $row->pat_titular , $row->mat_titular , $row->p_nom_titular , $row->s_nombre_titular , $row->carnet_tit , $row->fec_fail_tit 
+                ));
+                }
 
-            $file_name = 'no-encontrados-planilla-senasir'.'-'.$last_date.'.xls';
-            $base_path = 'planillas/no-encontrados-planilla-senasir/'.$file_name;
-
-            if(Storage::disk('ftp')->has($base_path.'/'.$file_name)){
-                return $file = Storage::disk('ftp')->download($base_path.'/'.$file_name);
+                $export = new ArchivoPrimarioExport($data_cabeceras);
+                $file_name = "no-encontrados-planilla-senasir";
+                $extension = '.xls';
+                return Excel::download($export, $file_name."_".$month."_".$year.$extension);
             }else{
                 return abort(403, 'No existe archivo de falla senasir para mostrar');
-            }
-        }
+            }        
+        }        
     // -------------metodo para verificar si existe datos en el paso 1 -----//
     public function exists_data_payroll_copy_senasirs($month,$year){
         $exists_data = true;

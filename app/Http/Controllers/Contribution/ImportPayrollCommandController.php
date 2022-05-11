@@ -11,6 +11,7 @@ use Carbon\Carbon;
 use DateTime;
 use DB;
 use Auth;
+use App\Helpers\Util;
 
 class ImportPayrollCommandController extends Controller
 {
@@ -221,7 +222,7 @@ class ImportPayrollCommandController extends Controller
                                 WITH DELIMITER ':' CSV header;";
                         $copy = DB::connection('db_aux')->select($copy);
                         $insert = "INSERT INTO payroll_copy_commands(uni,desg,mes,a_o,car,pat,mat,apes,nom,nom2,eciv,niv,gra,sex,sue,cat,est,carg,fro,ori,bseg,gan,mus,lpag,nac,ing,created_at,updated_at)
-                                   SELECT uni::INTEGER,desg::INTEGER,mes::INTEGER,a_o::INTEGER,car,pat,mat,apes,nom,nom2,eciv,niv,gra,sex,sue,cat,est,carg,fro,ori,bseg,gan,mus,lpag,nac,ing,current_timestamp,current_timestamp FROM payroll_copy_commands_tmp; ";
+                                   SELECT uni,desg::INTEGER,mes::INTEGER,a_o::INTEGER,car,pat,mat,apes,nom,nom2,eciv,niv,gra,sex,sue,cat,est,carg,fro,ori,bseg,gan,mus,lpag,nac,ing,current_timestamp,current_timestamp FROM payroll_copy_commands_tmp; ";
                         $insert = DB::connection('db_aux')->select($insert);
 
                         $update_year="UPDATE payroll_copy_commands set a_o = concat(20,'',a_o)::integer where mes =$month_format and a_o=$year_format";
@@ -562,7 +563,107 @@ class ImportPayrollCommandController extends Controller
            ],
        ]);
     }
-  
 
+ /**
+     * @OA\Post(
+     *      path="/api/contribution/validation_payroll_command",
+     *      tags={"IMPORTACION-PLANILLA-COMANDO"},
+     *      summary="PASO 2 VALIDACION DE DATOS PLANILLA COMANDO GENERAL",
+     *      operationId="validation_payroll_command",
+     *      description="validacion de datos  de planilla de comando general",
+     *      @OA\RequestBody(
+     *          description= "Provide auth credentials",
+     *          required=true,
+     *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
+     *             @OA\Property(property="date_payroll", type="string",description="fecha de planilla required",example= "2022-03-01")
+     *            )
+     *          ),
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     },
+     *      @OA\Response(
+     *          response=200,
+     *          description="Success",
+     *          @OA\JsonContent(
+     *            type="object"
+     *         )
+     *      )
+     * )
+     *
+     * Logs user into the system.
+     *
+     * @param Request $request
+     * @return void
+    */
+
+    public function validation_payroll_command(Request $request){
+        $request->validate([
+        'date_payroll' => 'required|date_format:"Y-m-d"',
+        ]);
+        try{
+                DB::beginTransaction();
+                $user_id = Auth::user()->id;
+                $message = "No hay datos";
+                $successfully =false;
+                $date_payroll_format = $request->date_payroll;
+                $date_payroll = Carbon::parse($request->date_payroll);
+                $year = (int)$date_payroll->format("Y");
+                $month = (int)$date_payroll->format("m");
+                $last_date = Carbon::parse($year.'-'.$month)->toDateString();
+                $num_data_no_validated = 0;
+                $connection_db_aux = Util::connection_db_aux();
+
+                if($this->exists_data_payroll_copy_commands($month,$year)){
+                    if(!PayrollCommand::data_period($month,$year)['exist_data']){
+
+                        $query = "select registration_payroll_command('$connection_db_aux',$month,$year,$user_id);";
+                        $data_validated = DB::select($query);
+
+                        if(PayrollCommand::data_period($month,$year)['exist_data']){
+                            $successfully =true;
+                            $update_validated ="update payroll_copy_commands set is_validated = true where mes =$month and a_o = $year";
+                            $update_validated = DB::connection('db_aux')->select($update_validated);
+                        }
+                        DB::commit();
+                        $data_count= $this->data_count_payroll_command($month,$year,$date_payroll_format);
+
+                        return response()->json([
+                            'message' => $message,
+                            'payload' => [
+                                'successfully' => $successfully,
+                                'data_count' =>  $data_count
+                            ],
+                        ]);
+                    }else{
+                        return response()->json([
+                            'message' => " Error! ya realizó la validación de datos",
+                            'payload' => [
+                                'successfully' => $successfully,
+                                'error' => 'Error! ya realizó la validación de datos.'
+                            ],
+                        ]);
+                    }
+
+                }else{
+                    return response()->json([
+                        'message' => "Error no existen datos en la tabla del copiado de datos",
+                        'payload' => [
+                            'successfully' => $successfully,
+                            'error' => 'Error el primer paso no esta concluido.'
+                        ],
+                    ]);
+                }
+            }catch(Exception $e){
+                DB::rollBack();
+                return response()->json([
+                'message' => 'Error en la busqueda de datos de titulares.',
+                'payload' => [
+                    'successfully' => false,
+                    'error' => $e->getMessage(),
+                ],
+                ]);
+            }
+        }
 
 }

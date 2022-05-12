@@ -116,7 +116,7 @@ class UserController extends Controller
         $per_page = $request->per_page ?? 10;
         $users = User::where('active',$active)->where($conditions)->paginate($per_page);
         return response()->json([
-            'message' => 'Realizado con exito',
+            'message' => 'Realizado con éxito',
             'payload' => [
                 'users' => $users
             ],
@@ -156,7 +156,7 @@ class UserController extends Controller
         }
         return $modules_objects;
       /*  return response()->json([
-            'message' => 'Realizado con exito',
+            'message' => 'Realizado con éxito',
             'payload' => [
                 'modules' => $modules_objects
             ],

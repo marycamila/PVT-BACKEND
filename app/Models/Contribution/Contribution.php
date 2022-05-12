@@ -10,6 +10,7 @@ use App\Models\Affiliate\Category;
 use App\Models\Affiliate\Degree;
 use App\Models\Contribution\PayrollCommand;
 use App\Models\Contribution\Contribution;
+use App\Models\Contribution\ContributionRate;
 
 class Contribution extends Model
 {
@@ -88,5 +89,9 @@ class Contribution extends Model
     {
         $contribution =  Contribution::whereMonth_year($month_year)->whereContributionable_type('payroll_commands')->sum('total');
         return $contribution;
+    }
+    public static function exist_contribution_rate($month_year)
+    {
+        return ContributionRate::whereMonth_year($month_year)->get()->first()? true:false;
     }
 }

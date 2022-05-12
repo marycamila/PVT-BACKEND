@@ -89,7 +89,7 @@ class CopyPersonSenasirController extends Controller
             $consult = "select  count(*) from copy_person_senasirs";
                         $consult = DB::connection('db_aux')->select($consult)[0]->count;
                         return response()->json([
-                            'message' => 'Realizado con exito',
+                            'message' => 'Realizado con éxito',
                             'payload' => [
                                 'successfully' => true,
                                 'copied_record' => $consult
@@ -157,7 +157,7 @@ class CopyPersonSenasirController extends Controller
         $count_total_affiliates_update = DB::select("select count(*) from affiliates a where a.id_person_senasir is not null")[0]->count;
         $count_total_accomplished_senasir = $count_update_by_criterion_one +  $count_update_by_criterion_two + $count_update_by_criterion_three + $count_update_by_criterion_four + $count_update_by_criterion_five;
         return response()->json([
-            'message' => 'Realizado con exito',
+            'message' => 'Realizado con éxito',
             'payload' => [
                 'successfully' => true,
                 'count_update_by_criterion_one' => (int)$update_affiliate_id_person_senasir[0],
@@ -221,7 +221,7 @@ class CopyPersonSenasirController extends Controller
 
             $count_total_accomplished_senasir = $count_update_by_criterion_six +  $count_update_by_criterion_seven;
             return response()->json([
-                'message' => 'Realizado con exito',
+                'message' => 'Realizado con éxito',
                 'payload' => [
                     'successfully' => true,
                     'count_update_by_criterion_six' => (int)$update_affiliate_id_person_senasir[0],
@@ -292,7 +292,7 @@ class CopyPersonSenasirController extends Controller
         $count_total_accomplished_senasir = $count_update_by_criterion_one +  $count_update_by_criterion_two + $count_update_by_criterion_three + $count_update_by_criterion_four + $count_update_by_criterion_five
                                             + $count_update_by_criterion_six + $count_update_by_criterion_seven + $count_create_affiliate;
     return response()->json([
-        'message' => 'Realizado con exito',
+        'message' => 'Realizado con éxito',
         'payload' => [
             'successfully' => true,
             'count_create_affiliate' => (int)$create_affiliate,
@@ -346,7 +346,7 @@ class CopyPersonSenasirController extends Controller
     $update_affiliate_data =  DB::select("select tmp_update_affiliate_data('$connection_db_aux')")[0]->tmp_update_affiliate_data;
 
         return response()->json([
-            'message' => 'Realizado con exito',
+            'message' => 'Realizado con éxito',
              'payload' => [
                 'successfully' => true,
                 'message_data' => $update_affiliate_data,

@@ -23,11 +23,11 @@ class ContributionPermissionSeedeer extends Seeder
             ],[
                 'action_id'=>Action::where('name','create')->first()->id,
                 'name' => 'create-import-senasir',
-                'display_name' => 'Crear importacion senasir'
+                'display_name' => 'Crear importación senasir'
             ], [
                 'action_id'=>Action::where('name','create')->first()->id,
                 'name' => 'create-import-command',
-                'display_name' => 'Crear importacion Comando'
+                'display_name' => 'Crear importación Comando'
             ], [
                 'action_id'=>Action::where('name','download')->first()->id,
                 'name' => 'download-report-senasir',

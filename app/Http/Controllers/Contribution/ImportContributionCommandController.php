@@ -21,14 +21,14 @@ class ImportContributionCommandController extends Controller
      * @OA\Post(
      *      path="/api/contribution/list_months_import_contribution_command",
      *      tags={"IMPORTACION-APORTES-COMANDO"},
-     *      summary="LISTA LOS MESES QUE SE REALIZARON IMPORTACIONES A LA TABLA CONTRIBUTIONS DE COMANDO EN BASE A UN AÑO DADO EJ:2021",
+     *      summary="LISTA LOS MESES QUE SE REALIZARON IMPORTACIONES A LA TABLA CONTRIBUTIONS DE COMANDO EN BASE A UN AÑO DADO EJ:2022",
      *      operationId="list_command_months",
      *      description="Lista los meses importados en la tabla contributions enviando como parámetro un año en específico",
      *      @OA\RequestBody(
      *          description= "Provide auth credentials",
      *          required=true,
      *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
-     *             @OA\Property(property="period_year", type="integer",description="Año de contribución a listar",example= "2021")
+     *             @OA\Property(property="period_year", type="integer",description="Año de contribución a listar",example= "2022")
      *            )
      *          ),
      *     ),
@@ -49,7 +49,7 @@ class ImportContributionCommandController extends Controller
      * @param Request $request
      * @return void
     */
-    
+
     public function list_months_import_contribution_command(Request $request)
     {
         $request->validate([
@@ -85,7 +85,7 @@ class ImportContributionCommandController extends Controller
             ],
         ]);
     }
-    
+
     public function data_count($month,$year,$date_payroll_format){
         $data_count['num_total_data_copy'] = 0;
         $data_count['num_data_validated'] = 0;
@@ -112,5 +112,82 @@ class ImportContributionCommandController extends Controller
         return  $data_count;
     }
 
-    
+    /**
+     * @OA\Post(
+     *      path="/api/contribution/import_contribution_command",
+     *      tags={"IMPORTACION-APORTES-COMANDO"},
+     *      summary="PASO 3 IMPORTACIÓN DE CONTRIBUCION COMANDO GENERAL",
+     *      operationId="import_contribution_command",
+     *      description="Importación de aportes de Comando general",
+     *      @OA\RequestBody(
+     *          description= "Provide auth credentials",
+     *          required=true,
+     *          @OA\JsonContent(
+     *              type="object",
+     *              @OA\Property(property="period_contribution_command", type="string",description="fecha de aporte required",example= "2022-03-01")
+     *            )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     },
+     *      @OA\Response(
+     *          response=200,
+     *          description="Success",
+     *          @OA\JsonContent(
+     *            type="object"
+     *         )
+     *      )
+     * )
+     *
+     * Logs user into the system.
+     *
+     * @param Request $request
+     * @return void
+    */
+    public function import_contribution_command(Request $request){
+        $request->validate([
+        'period_contribution_command' => 'required|date_format:"Y-m-d"',
+        ]);
+     try{
+        DB::beginTransaction();
+        $user_id = Auth::user()->id;
+        $message ='No realizado la importación!';
+        $count_created = 0;
+        $successfully = false;
+        $period_contribution_command = Carbon::parse($request->period_contribution_command);
+        $year = (int)$period_contribution_command->format("Y");
+        $month = (int)$period_contribution_command->format("m");
+        $count_registered = Contribution::data_period_command($request->period_contribution_command)['count_data'];
+        if((int)$count_registered > 0){
+            $message ="Error al realizar la importación, el periodo ya fue importado.";
+        }else{
+            if(Contribution::exist_contribution_rate($request->period_contribution_command)){
+                $query ="select import_period_contribution_command('$request->period_contribution_command',$user_id,$year,$month)";
+                $query = DB::select($query);
+                $count_created = Contribution::data_period_command($request->period_contribution_command)['count_data'];
+                DB::commit();
+                $successfully = true;
+                $message ="Realizado con éxito!";
+            }else{
+                $message ="No existe la taza de contribución para el periodo : ".$request->period_contribution_command.", el dato es requerido para continuar.";
+            }
+        }
+        return response()->json([
+            'message' => $message,
+            'payload' => [
+                'successfully' => $successfully,
+                'num_created' => $count_created,
+            ],
+        ]);
+     }catch(Exception $e){
+        DB::rollBack();
+        return response()->json([
+            'message' => 'Error al realizar la importación',
+            'payload' => [
+                'successfully' => false,
+                'error' => $e->getMessage(),
+            ],
+        ]);
+     }
+    }
 }

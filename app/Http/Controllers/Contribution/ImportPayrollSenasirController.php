@@ -159,199 +159,183 @@ class ImportPayrollSenasirController extends Controller
     */
 
     public function validation_payroll_senasir(Request $request){
-    $request->validate([
-    'date_payroll' => 'required|date_format:"Y-m-d"',
-    ]);
-    try{
-            DB::beginTransaction();
-            $message = "No hay datos";
-            $successfully =false;
-            $date_payroll_format = $request->date_payroll;
-            $data_cabeceraS=array(array("AÑO","MES","MATRÍCULA TITULAR", "MATRÍCULA D_H","DEPARTAMENTO","CARNET", "APELLIDO PATERNO","APELLIDO MATERNO", "PRIMER NOMBRE","SEGUNDO NOMBRE",
-            "FECHA DE NACIMIENTO","CLASE DE RENTA","TOTAL GANADO","LIQUIDO PAGABLE","RENTA DIGNIDAD","DESCUENTO MUSERPOL","PATERNO TITULAR","MATERNO TITULAR"," PRIMER NOMBRE TITULAR",
-            "SEGUNDO NOMBRE TITULAR","CARNET TITULAR","FECHA DE FALLECIMIENTO TITULAR"));
-
-            $date_payroll = Carbon::parse($request->date_payroll);
-            $year = (int)$date_payroll->format("Y");
-            $month = (int)$date_payroll->format("m");
-            $last_date = Carbon::parse($year.'-'.$month)->toDateString();
-            $num_data_no_validated = 0;
-            $connection_db_aux = Util::connection_db_aux();
-
-            if($this->exists_data_payroll_copy_senasirs($month,$year)){
-                if(!PayrollSenasir::data_period($month,$year)['exist_data']){
-
-                    $query = "select registration_payroll_senasir('$connection_db_aux','$month','$year');";
-                    $data_validated = DB::select($query);
-
-                        if($data_validated[0]->registration_payroll_senasir > 0){
-                            $message = "Realizado con éxito";
-                            $successfully = true;
-                            $data_payroll_copy_senasir = "select  * from  payroll_copy_senasirs  where mes ='$month' and a_o='$year' and is_validated = false and clase_renta not like 'ORFANDAD%'";
-                            $data_payroll_copy_senasir = DB::connection('db_aux')->select($data_payroll_copy_senasir);
-                            if(count($data_payroll_copy_senasir)> 0){
-                                $message = "Excel";
-                                foreach ($data_payroll_copy_senasir as $row){
-                                    array_push($data_cabeceraS, array($row->a_o ,$row->mes ,$row->matricula_titular ,$row->mat_dh ,
-                                    $row->departamento ,$row->carnet ,$row->paterno , $row->materno , $row->p_nombre ,$row->s_nombre ,
-                                    $row->fecha_nacimiento , $row->clase_renta , $row->total_ganado , $row->liquido_pagable , $row->renta_dignidad , $row->renta_dignidad ,
-                                    $row->pat_titular , $row->mat_titular , $row->p_nom_titular , $row->s_nombre_titular , $row->carnet_tit , $row->fec_fail_tit 
-                                ));
-                                $num_data_no_validated++;
+        $request->validate([
+        'date_payroll' => 'required|date_format:"Y-m-d"',
+        ]);
+        try{
+                DB::beginTransaction();
+                $message = "No hay datos";
+                $successfully =false;
+                $date_payroll_format = $request->date_payroll;
+                $date_payroll = Carbon::parse($request->date_payroll);
+                $year = (int)$date_payroll->format("Y");
+                $month = (int)$date_payroll->format("m");
+                $last_date = Carbon::parse($year.'-'.$month)->toDateString();
+                $num_data_no_validated = 0;
+                $connection_db_aux = Util::connection_db_aux();
+    
+                if($this->exists_data_payroll_copy_senasirs($month,$year)){
+                    if(!PayrollSenasir::data_period($month,$year)['exist_data']){
+    
+                        $query = "select registration_payroll_senasir('$connection_db_aux','$month','$year');";
+                        $data_validated = DB::select($query);
+    
+                            if($data_validated[0]->registration_payroll_senasir > 0){
+                                $message = "Realizado con exito";
+                                $successfully = true;
+                                $data_payroll_copy_senasir = "select  * from  payroll_copy_senasirs  where mes ='$month' and a_o='$year' and is_validated = false and clase_renta not like 'ORFANDAD%'";
+                                $data_payroll_copy_senasir = DB::connection('db_aux')->select($data_payroll_copy_senasir);
+                                if(count($data_payroll_copy_senasir)> 0){
+                                    $message = "Excel";                            
                                 }
-                                $export = new ArchivoPrimarioExport($data_cabeceraS);
-                                $file_name = 'no-encontrados-planilla-senasir'.'-'.$last_date.'.xls';
-                                $base_path = 'planillas/no-encontrados-planilla-senasir/'.$file_name;
-                                Excel::store($export,$base_path.'/'.$file_name, 'ftp');
                             }
-                        }
-                    DB::commit();
-                    $data_count= $this->data_count_payroll_senasir($month,$year,$date_payroll_format);
-                    return response()->json([
-                        'message' => $message,
-                        'payload' => [
-                            'successfully' => $successfully,
-                            'data_count' =>  $data_count
-                        ],
-                    ]);
+                        DB::commit();
+                        $data_count= $this->data_count_payroll_senasir($month,$year,$date_payroll_format);
+                        return response()->json([
+                            'message' => $message,
+                            'payload' => [
+                                'successfully' => $successfully,
+                                'data_count' =>  $data_count
+                            ],
+                        ]);
+                    }else{
+                        return response()->json([
+                            'message' => " Error! ya realizó la validación de datos",
+                            'payload' => [
+                                'successfully' => $successfully,
+                                'error' => 'Error! ya realizó la validación de datos.'
+                            ],
+                        ]);
+                    }
+    
                 }else{
                     return response()->json([
-                        'message' => " Error! ya realizó la validación de datos",
+                        'message' => "Error no existen datos en la tabla del copiado de datos",
                         'payload' => [
                             'successfully' => $successfully,
-                            'error' => 'Error! ya realizó la validación de datos.'
+                            'error' => 'Error el primer paso no esta concluido.'
                         ],
                     ]);
                 }
-
-            }else{
+    
+            }catch(Exception $e){
+                DB::rollBack();
                 return response()->json([
-                    'message' => "Error no existen datos en la tabla del copiado de datos",
-                    'payload' => [
-                        'successfully' => $successfully,
-                        'error' => 'Error el primer paso no esta concluido.'
-                    ],
+                'message' => 'Error en la busqueda de datos de titulares.',
+                'payload' => [
+                    'successfully' => false,
+                    'error' => $e->getMessage(),
+                ],
                 ]);
             }
-
-        }catch(Exception $e){
-            DB::rollBack();
-            return response()->json([
-            'message' => 'Error en la busqueda de datos de titulares.',
-            'payload' => [
-                'successfully' => false,
-                'error' => $e->getMessage(),
-            ],
-            ]);
         }
-    }
-         /**
-     * @OA\Post(
-     *      path="/api/contribution/download_fail_not_found_payroll_senasir",
-     *      tags={"IMPORTACION-PLANILLA-SENASIR"},
-     *      summary="DESCARGA DE ARCHIVO DE NO ENCONTRADOS DEL PASO 2 DE VALIDACION DE DATOS AFILIADO TITULAR ",
-     *      operationId="download_fail_not_found_payroll_senasir",
-     *      description="Descarga el archivo de falla del paso 2 de validacion de datos del afiliado titular",
-     *      @OA\RequestBody(
-     *          description= "Provide auth credentials",
-     *          required=true,
-     *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
-     *             @OA\Property(property="date_payroll", type="string",description="fecha de planilla required",example= "2021-10-01")
-     *            )
-     *          ),
-     *     ),
-     *     security={
-     *         {"bearerAuth": {}}
-     *     },
-     *      @OA\Response(
-     *          response=200,
-     *          description="Success",
-     *          @OA\JsonContent(
-     *            type="object"
-     *         )
-     *      )
-     * )
-     *
-     * Logs user into the system.
-     *
-     * @param Request $request
-     * @return void
-    */
-        public function download_fail_not_found_payroll_senasir(Request $request){
-
-            $request->validate([
-                'date_payroll' => 'required|date_format:"Y-m-d"',
-            ]);
-            DB::beginTransaction();
-            $message = "No hay datos";
-            $data_cabeceras=array(array("AÑO","MES","MATRÍCULA TITULAR", "MATRÍCULA D_H","DEPARTAMENTO","CARNET", "APELLIDO PATERNO","APELLIDO MATERNO", "PRIMER NOMBRE","SEGUNDO NOMBRE",
-            "FECHA DE NACIMIENTO","CLASE DE RENTA","TOTAL GANADO","LIQUIDO PAGABLE","RENTA DIGNIDAD","DESCUENTO MUSERPOL","PATERNO TITULAR","MATERNO TITULAR"," PRIMER NOMBRE TITULAR",
-            "SEGUNDO NOMBRE TITULAR","CARNET TITULAR","FECHA DE FALLECIMIENTO TITULAR"));
-            $date_payroll = Carbon::parse($request->date_payroll);
-            $year = (int)$date_payroll->format("Y");
-            $month = (int)$date_payroll->format("m");
-            $data_payroll_copy_senasir = "select  * from  payroll_copy_senasirs  where mes ='$month' and a_o='$year' and is_validated = false and clase_renta not like 'ORFANDAD%'";
-            $data_payroll_copy_senasir = DB::connection('db_aux')->select($data_payroll_copy_senasir);
-            if(count($data_payroll_copy_senasir)> 0){
-                $message = "Excel";
-                foreach ($data_payroll_copy_senasir as $row){
-                    array_push($data_cabeceras, array($row->a_o ,$row->mes ,$row->matricula_titular ,$row->mat_dh ,
-                    $row->departamento ,$row->carnet ,$row->paterno , $row->materno , $row->p_nombre ,$row->s_nombre ,
-                    $row->fecha_nacimiento , $row->clase_renta , $row->total_ganado , $row->liquido_pagable , $row->renta_dignidad , $row->renta_dignidad ,
-                    $row->pat_titular , $row->mat_titular , $row->p_nom_titular , $row->s_nombre_titular , $row->carnet_tit , $row->fec_fail_tit 
-                ));
-                }
-
-                $export = new ArchivoPrimarioExport($data_cabeceras);
-                $file_name = "no-encontrados-planilla-senasir";
-                $extension = '.xls';
-                return Excel::download($export, $file_name."_".$month."_".$year.$extension);
-            }else{
-                return abort(403, 'No existe archivo de falla senasir para mostrar');
+             /**
+         * @OA\Post(
+         *      path="/api/contribution/download_fail_not_found_payroll_senasir",
+         *      tags={"IMPORTACION-PLANILLA-SENASIR"},
+         *      summary="DESCARGA DE ARCHIVO DE NO ENCONTRADOS DEL PASO 2 DE VALIDACION DE DATOS AFILIADO TITULAR ",
+         *      operationId="download_fail_not_found_payroll_senasir",
+         *      description="Descarga el archivo de falla del paso 2 de validacion de datos del afiliado titular",
+         *      @OA\RequestBody(
+         *          description= "Provide auth credentials",
+         *          required=true,
+         *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
+         *             @OA\Property(property="date_payroll", type="string",description="fecha de planilla required",example= "2021-10-01")
+         *            )
+         *          ),
+         *     ),
+         *     security={
+         *         {"bearerAuth": {}}
+         *     },
+         *      @OA\Response(
+         *          response=200,
+         *          description="Success",
+         *          @OA\JsonContent(
+         *            type="object"
+         *         )
+         *      )
+         * )
+         *
+         * Logs user into the system.
+         *
+         * @param Request $request
+         * @return void
+        */
+            public function download_fail_not_found_payroll_senasir(Request $request){
+    
+                $request->validate([
+                    'date_payroll' => 'required|date_format:"Y-m-d"',
+                ]);
+                DB::beginTransaction();
+                $message = "No hay datos";
+                $data_cabeceras=array(array("ID_PERSONA_TITULAR","AÑO","MES","MATRÍCULA TITULAR", "MATRÍCULA D_H","DEPARTAMENTO","CARNET", "APELLIDO PATERNO","APELLIDO MATERNO", "PRIMER NOMBRE","SEGUNDO NOMBRE",
+                "FECHA DE NACIMIENTO","CLASE DE RENTA","TOTAL GANADO","LIQUIDO PAGABLE","RENTA DIGNIDAD","DESCUENTO MUSERPOL","PATERNO TITULAR","MATERNO TITULAR"," PRIMER NOMBRE TITULAR",
+                "SEGUNDO NOMBRE TITULAR","CARNET TITULAR","FECHA DE FALLECIMIENTO TITULAR"));
+                $date_payroll = Carbon::parse($request->date_payroll);
+                $year = (int)$date_payroll->format("Y");
+                $month = (int)$date_payroll->format("m");
+                $data_payroll_copy_senasir = "select  * from  payroll_copy_senasirs  where mes ='$month' and a_o='$year' and is_validated = false and clase_renta not like 'ORFANDAD%'";
+                $data_payroll_copy_senasir = DB::connection('db_aux')->select($data_payroll_copy_senasir);
+                if(count($data_payroll_copy_senasir)> 0){
+                    $message = "Excel";
+                    foreach ($data_payroll_copy_senasir as $row){
+                        array_push($data_cabeceras, array($row->id_person_titular, $row->a_o ,$row->mes ,$row->matricula_titular ,$row->mat_dh ,
+                        $row->departamento ,$row->carnet ,$row->paterno , $row->materno , $row->p_nombre ,$row->s_nombre ,
+                        $row->fecha_nacimiento , $row->clase_renta , $row->total_ganado , $row->liquido_pagable , $row->renta_dignidad , $row->renta_dignidad ,
+                        $row->pat_titular , $row->mat_titular , $row->p_nom_titular , $row->s_nombre_titular , $row->carnet_tit , $row->fec_fail_tit 
+                    ));
+                    }
+    
+                    $export = new ArchivoPrimarioExport($data_cabeceras);
+                    $file_name = "no-encontrados-planilla-senasir";
+                    $extension = '.xls';
+                    return Excel::download($export, $file_name."_".$month."_".$year.$extension);
+                }else{
+                    return abort(403, 'No existe archivo de falla senasir para mostrar');
+                }        
             }        
-        }        
-    // -------------metodo para verificar si existe datos en el paso 1 -----//
-    public function exists_data_payroll_copy_senasirs($month,$year){
-        $exists_data = true;
-        $query = "select * from payroll_copy_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER;";
-        $verify_data = DB::connection('db_aux')->select($query);
-
-        if($verify_data == []) $exists_data = false;
-
-        return $exists_data;
-    }
-
-     //-----------borrado de datos de la tabla payroll_senasirs paso 2
-     public function delete_payroll_senasirs($month, $year)
-     {
-             if(PayrollSenasir::data_period($month,$year)['exist_data'])
-             {
-                $query = "delete
-                        from payroll_senasirs
-                        where year_p = $year::INTEGER and month_p = $month::INTEGER ";
-                $query = DB::select($query);
-                DB::commit();
-                return true;
-             }
-             else
-                 return false;
-     }
-
-     //------------borrado de datos de la tabla payroll_copy_senasirs paso 1
-     public function delete_payroll_copy_senasirs($month, $year)
-     {
-             if($this->exists_data_payroll_copy_senasirs($month,$year))
-             {
-                $query = "delete
-                        from payroll_copy_senasirs
-                        where a_o = $year::INTEGER and mes = $month::INTEGER ";
-                $query = DB::connection('db_aux')->select($query);
-                DB::commit();
-                return true;
-             }
-             else
-                 return false;
-     }
+        // -------------metodo para verificar si existe datos en el paso 1 -----//
+        public function exists_data_payroll_copy_senasirs($month,$year){
+            $exists_data = true;
+            $query = "select * from payroll_copy_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER;";
+            $verify_data = DB::connection('db_aux')->select($query);
+    
+            if($verify_data == []) $exists_data = false;
+    
+            return $exists_data;
+        }
+    
+         //-----------borrado de datos de la tabla payroll_senasirs paso 2
+         public function delete_payroll_senasirs($month, $year)
+         {
+                 if(PayrollSenasir::data_period($month,$year)['exist_data'])
+                 {
+                    $query = "delete
+                            from payroll_senasirs
+                            where year_p = $year::INTEGER and month_p = $month::INTEGER ";
+                    $query = DB::select($query);
+                    DB::commit();
+                    return true;
+                 }
+                 else
+                     return false;
+         }
+    
+         //------------borrado de datos de la tabla payroll_copy_senasirs paso 1
+         public function delete_payroll_copy_senasirs($month, $year)
+         {
+                 if($this->exists_data_payroll_copy_senasirs($month,$year))
+                 {
+                    $query = "delete
+                            from payroll_copy_senasirs
+                            where a_o = $year::INTEGER and mes = $month::INTEGER ";
+                    $query = DB::connection('db_aux')->select($query);
+                    DB::commit();
+                    return true;
+                 }
+                 else
+                     return false;
+         }
 
 
     

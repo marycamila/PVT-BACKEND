@@ -41,9 +41,10 @@ Route::group([
             'middleware' => 'permission:read-import-contribution|create-import-senasir|create-import-command'
         ], function () {
             Route::post('/list_months_import_contribution_senasir', [App\Http\Controllers\Contribution\ImportContributionSenasirController::class, 'list_months_import_contribution_senasir']);
-            Route::post('/import_create_or_update_contribution_period_senasir ', [App\Http\Controllers\Contribution\ImportContributionSenasirController::class, 'import_create_or_update_contribution_period_senasir']);
+            Route::post('/import_create_or_update_contribution_period_senasir', [App\Http\Controllers\Contribution\ImportContributionSenasirController::class, 'import_create_or_update_contribution_period_senasir']);
 
             Route::post('/list_months_import_contribution_command', [App\Http\Controllers\Contribution\ImportContributionCommandController::class, 'list_months_import_contribution_command']);
+            Route::post('/import_contribution_command', [App\Http\Controllers\Contribution\ImportContributionCommandController::class, 'import_contribution_command']);
         });
         Route::group([
             'middleware' => 'permission:download-report-senasir|download-report-command'

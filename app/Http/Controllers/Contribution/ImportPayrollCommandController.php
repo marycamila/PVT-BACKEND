@@ -75,7 +75,7 @@ class ImportPayrollCommandController extends Controller
             $update_base_wages = DB::select($query);
 
             if($update_base_wages != []){
-                $message = "Realizado con exito la actualización de sueldos base";
+                $message = "Realizado con éxito la actualización de sueldos base";
                 $successfully = true;
             }
 
@@ -195,7 +195,7 @@ class ImportPayrollCommandController extends Controller
 
 
                         if($data_format != []){
-                            $message = "Realizado con exito";
+                            $message = "Realizado con éxito";
                             $successfully = true;
                         }
 

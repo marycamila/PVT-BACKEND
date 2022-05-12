@@ -169,7 +169,7 @@ class ImportContributionSenasirController extends Controller
         $count_registered = ContributionPassive::data_period_senasir($request->period_contribution_senasir)['count_data'];
         if((int)$count_registered > 0){
             return response()->json([
-                'message' => "Error al realizar la importacion, el periodo ya fue importado.",
+                'message' => "Error al realizar la importación, el periodo ya fue importado.",
                 'payload' => [
                     'successfully' => $successfully
                 ],
@@ -181,7 +181,7 @@ class ImportContributionSenasirController extends Controller
             DB::commit();
             $successfully = true;
             return response()->json([
-                'message' => "Realizado con exito!",
+                'message' => "Realizado con éxito!",
                 'payload' => [
                     'successfully' => $successfully,
                     'num_created' => $count_created,
@@ -191,7 +191,7 @@ class ImportContributionSenasirController extends Controller
      }catch(Exception $e){
         DB::rollBack();
         return response()->json([
-            'message' => 'Error al realizar la importacion',
+            'message' => 'Error al realizar la importación',
             'payload' => [
                 'successfully' => false,
                 'error' => $e->getMessage(),

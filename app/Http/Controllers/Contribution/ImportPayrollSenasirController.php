@@ -89,7 +89,7 @@ class ImportPayrollSenasirController extends Controller
                          DB::commit();
 
                          return response()->json([
-                             'message' => 'Realizado con exito',
+                             'message' => 'Realizado con éxito',
                              'payload' => [
                                  'successfully' => true,
                                 'data_count' =>  $this->data_count_payroll_senasir($month,$year,$date_payroll_format)
@@ -185,7 +185,7 @@ class ImportPayrollSenasirController extends Controller
                     $data_validated = DB::select($query);
 
                         if($data_validated[0]->registration_payroll_senasir > 0){
-                            $message = "Realizado con exito";
+                            $message = "Realizado con éxito";
                             $successfully = true;
                             $data_payroll_copy_senasir = "select  * from  payroll_copy_senasirs  where mes ='$month' and a_o='$year' and is_validated = false and clase_renta not like 'ORFANDAD%'";
                             $data_payroll_copy_senasir = DB::connection('db_aux')->select($data_payroll_copy_senasir);
@@ -362,7 +362,7 @@ class ImportPayrollSenasirController extends Controller
      *      tags={"IMPORTACION-PLANILLA-SENASIR"},
      *      summary="REHACER PASO 1 IMPORTACION PLANILLA DE SENASIR",
      *      operationId="rollback_payroll_copy_senasir",
-     *      description="Para rehacer paso 1 de la importacion de planilla de senasir",
+     *      description="Para rehacer paso 1 de la importación de planilla de senasir",
      *      @OA\RequestBody(
      *          description= "Provide auth credentials",
      *          required=true,
@@ -408,7 +408,7 @@ class ImportPayrollSenasirController extends Controller
 
                 if($result['delete_step_1'] == true){
                     $valid_rollback = true;
-                    $message = "Realizado con exito!";
+                    $message = "Realizado con éxito!";
                 }
             }else{
                 if(PayrollSenasir::data_period($month,$year)['exist_data'])

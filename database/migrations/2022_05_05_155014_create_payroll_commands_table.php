@@ -17,6 +17,8 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('affiliate_id')->unsigned()->comment('Id del afiliado titular');
             $table->foreign('affiliate_id')->references('id')->on('affiliates');
+            $table->unsignedBigInteger('affiliate_state_id')->unsigned()->comment('Id del estado del afiliado');
+            $table->foreign('affiliate_state_id')->references('id')->on('affiliate_states');            
             $table->unsignedBigInteger('unit_id')->nullable()->comment('Unidad');
             $table->foreign('unit_id')->references('id')->on('units');
             $table->unsignedBigInteger('breakdown_id')->nullable()->comment('Desglose');

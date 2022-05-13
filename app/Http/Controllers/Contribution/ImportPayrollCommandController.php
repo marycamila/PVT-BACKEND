@@ -203,7 +203,7 @@ class ImportPayrollCommandController extends Controller
                             'message' => $message,
                             'payload' => [
                                 'successfully' => $successfully,
-                                'copied_record' => $this->data_count_payroll_command($month_format,$year)
+                                'data_count' => $this->data_count_payroll_command($month_format,$year)
                             ],
                         ]);
                     } else {

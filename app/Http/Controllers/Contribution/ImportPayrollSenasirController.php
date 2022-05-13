@@ -640,7 +640,7 @@ class ImportPayrollSenasirController extends Controller
         DB::beginTransaction();
         $message = "No hay datos";
         $date_payroll_format = $request->date_payroll;
-        $data_cabeceras=array(array("AÑO","MES","MATRÍCULA TITULAR","MATRÍCULA D_H","DEPARTAMENTO","RENTA","CARNET", 
+        $data_cabeceras=array(array("ID_AFILIADO","ID_PERSONA_SENASIR","AÑO","MES","MATRÍCULA TITULAR","MATRÍCULA D_H","DEPARTAMENTO","RENTA","CARNET", 
         "APELLIDO PATERNO","APELLIDO MATERNO","PRIMER NOMBRE","SEGUNDO NOMBRE","AP_CASADA","FECHA DE NACIMIENTO","CLASE DE RENTA","TOTAL GANADO",
         "TOTAL DESCUENTOS","LIQUIDO PAGABLE","REINTEGRO RENTA BASICA","RENTA DIGNIDAD","REINTEGRO RENTA DIGNIDAD","REINTEGRO AGUINALDO",
         "REINTEGRO IMPORTE ADICIONAL","REINTEGRO INCREMENTO DE GESTION","DESCUENTO MUSERPOL","DESCUENTO COVIPOL","DESCUENTO PRESTAMO MUSERPOL",
@@ -655,7 +655,7 @@ class ImportPayrollSenasirController extends Controller
                             if(count($data_payroll_senasir)> 0){
                                 $message = "Excel";
                                 foreach ($data_payroll_senasir as $row){
-                                    array_push($data_cabeceras, array($row->year_p ,$row->month_p ,$row->registration_a ,$row->registration_s ,
+                                    array_push($data_cabeceras, array($row->affiliate_id, $row->id_person_senasir, $row->year_p ,$row->month_p ,$row->registration_a ,$row->registration_s ,
                                     $row->department, $row->rent, $row->identity_card, $row->last_name , $row->mothers_last_name, $row->first_name, $row->second_name, $row->surname_husband,
                                     $row->birth_date, $row->rent_class, $row->total_won, $row->total_discounts, $row->payable_liquid, $row->refund_r_basic, $row->dignity_rent, $row->refund_dignity_rent,
                                     $row->refund_bonus, $row->refund_additional_amount, $row->refund_inc_management, $row->discount_contribution_muserpol, $row->discount_covipol, $row->discount_loan_muserpol, $row->identity_card_a,
@@ -667,6 +667,11 @@ class ImportPayrollSenasirController extends Controller
                                 $file_name = "Planilla_Senasir";
                                 $extension = '.xls';
                                 return Excel::download($export, $file_name.$month.$year.$extension);
-                            }
+                            }else{
+                                return response()->json([
+                                    'message' => "Error no existe archivo Senasir del periodo indicado para mostrar",                                    
+                                    ],
+                                );
+                            }       
     }
 }

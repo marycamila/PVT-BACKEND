@@ -242,7 +242,7 @@ class ImportContributionSenasirController extends Controller
         $message = "No hay datos";
         $date_contribution_format = $request->date_contribution;
 
-        $data_cabeceras=array(array("FECHA","CARNET","MATRÍCULA","PRIMER NOMBRE","SEGUNDO NOMBRE","APELLIDO PATERNO","APELLIDO MATERNO", 
+        $data_cabeceras=array(array("ID_AFILIADO","FECHA","CARNET","MATRÍCULA","PRIMER NOMBRE","SEGUNDO NOMBRE","APELLIDO PATERNO","APELLIDO MATERNO", 
         "APELLIDO CASADA","COTIZABLE","RENTA","RENTA DIGNIDAD","APORTE","CLASE DE RENTA"));
 
         $date_contribution = Carbon::parse($request->date_contribution);
@@ -260,7 +260,7 @@ class ImportContributionSenasirController extends Controller
                             if(count($data_contribution_senasir)> 0){
                                 $message = "Excel";
                                 foreach ($data_contribution_senasir as $row){
-                                    array_push($data_cabeceras, array($row->month_year ,$row->identity_card ,$row->registration, $row->first_name,
+                                    array_push($data_cabeceras, array($row->affiliate_id ,$row->month_year ,$row->identity_card ,$row->registration, $row->first_name,
                                     $row->second_name, $row->last_name, $row->mothers_last_name, $row->surname_husband , $row->quotable, $row->rent_pension, $row->dignity_rent, $row->total,
                                     $row->affiliate_rent_class));
                                 }
@@ -270,6 +270,11 @@ class ImportContributionSenasirController extends Controller
                                 $extension = '.xls';
                                 return Excel::download($export, $file_name.$month.$year.$extension);
 
-                            }
+                            }else{
+                                return response()->json([
+                                    'message' => "Error no existe archivo Senasir del periodo indicado para mostrar",                                    
+                                    ],
+                                );
+                            }         
     }
 }

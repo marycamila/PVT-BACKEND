@@ -36,6 +36,7 @@ Route::group([
             'middleware' => 'permission:download-report-payroll-senasir|download-report-payroll-command'
         ], function () {
             Route::post('/report_payroll_senasir', [App\Http\Controllers\Contribution\ImportPayrollSenasirController::class, 'report_payroll_senasir']);
+            Route::post('/report_payroll_command', [App\Http\Controllers\Contribution\ImportPayrollCommandController::class, 'report_payroll_command']);
         });
         Route::group([
             'middleware' => 'permission:read-import-contribution|create-import-senasir|create-import-command'

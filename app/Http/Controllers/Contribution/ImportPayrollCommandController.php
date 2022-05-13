@@ -700,4 +700,80 @@ class ImportPayrollCommandController extends Controller
                             }
     }
 
+
+    /**
+     * @OA\Post(
+     *      path="/api/contribution/report_payroll_command",
+     *      tags={"IMPORTACION-PLANILLA-COMANDO"},
+     *      summary="GENERA REPORTE EXCEL DE DATOS REMITIDOS POR COMANDO",
+     *      operationId="report_import_command",
+     *      description="Genera el archivo excel de los datos remitidos por COMANDO por mes y año",
+     *      @OA\RequestBody(
+     *          description= "Provide auth credentials",
+     *          required=true,
+     *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
+     *             @OA\Property(property="date_payroll", type="string",description="fecha de planilla required",example= "2022-03-01")
+     *            )
+     *          ),
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     },
+     *      @OA\Response(
+     *          response=200,
+     *          description="Success",
+     *          @OA\JsonContent(
+     *            type="object"
+     *         )
+     *      )
+     * )
+     *
+     * Logs user into the system.
+     *
+     * @param Request $request
+     * @return void
+    */
+   
+    public function report_payroll_command(request $request) {
+
+        $request->validate([
+            'date_payroll' => 'required|date_format:"Y-m-d"',
+        ]);
+
+        DB::beginTransaction();
+        $message = "No hay datos";
+
+        ini_set('max_execution_time', '300');
+        
+        $date_payroll_format = $request->date_payroll;
+        $data_cabeceras=array(array("ID","ID AFILIADO","UNIDAD","DESGLOSE","CATEGORIA","MES","AÑO","CARNET","APELLIDO PATERNO","APELLIDO MATERNO",
+        "AP_CASADA","PRIMER NOMBRE","SEGUNDO NOMBRE","ESTADO CIVIL","JERARQUIA","GRADO","GENERO","SUELDO BASE","BONO ANTIGUEDAD","BONO ESTUDIO",
+        "BONO POSICIÓN","BONO FRONTERA","BONO ESTE","BONO SEGURIDAD PÚBLICA","GANANCIA","TOTAL","LIQUIDO PAGABLE","FECHA DE NACIMIENTO",
+        "FECHA DE INGRESO","TIPO DE AFILIADO"
+    ));
+
+        $date_payroll = Carbon::parse($request->date_payroll);
+        $year = (int)$date_payroll->format("Y");
+        $month = (int)$date_payroll->format("m");
+        $data_payroll_command = "select  * from  payroll_commands  where month_p ='$month' and year_p='$year'";
+                    $data_payroll_command = DB::select($data_payroll_command);
+                            if(count($data_payroll_command)> 0){
+                                $message = "Excel";
+                                foreach ($data_payroll_command as $row){
+                                    array_push($data_cabeceras, array($row->id,$row->affiliate_id,$row->unit_id,$row->breakdown_id, $row->category_id,
+                                    $row->month_p, $row->year_p, $row->identity_card, $row->last_name, $row->mothers_last_name, $row->surname_husband, 
+                                    $row->first_name, $row->second_name, $row->civil_status, $row->civil_status, $row->degree_id, $row->gender, 
+                                    $row->base_wage, $row->seniority_bonus, $row->study_bonus, $row->position_bonus, $row->border_bonus, $row->east_bonus,
+                                    $row->public_security_bonus, $row->gain, $row->total, $row->payable_liquid, $row->birth_date, $row->date_entry,
+                                    $row->affiliate_type
+                                ));
+                                }
+
+                                $export = new ArchivoPrimarioExport($data_cabeceras);
+                                $file_name = "Planilla_Comando";
+                                $extension = '.xls';
+                                return Excel::download($export, $file_name.$month.$year.$extension);
+                            }
+    }
+
 }

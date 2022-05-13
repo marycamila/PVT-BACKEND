@@ -124,7 +124,7 @@ class ImportContributionCommandController extends Controller
      *          required=true,
      *          @OA\JsonContent(
      *              type="object",
-     *              @OA\Property(property="period_contribution_command", type="string",description="fecha de aporte required",example= "2022-03-01")
+     *              @OA\Property(property="period_contribution", type="string",description="fecha de aporte required",example= "2022-03-01")
      *            )
      *     ),
      *     security={
@@ -146,7 +146,7 @@ class ImportContributionCommandController extends Controller
     */
     public function import_contribution_command(Request $request){
         $request->validate([
-        'period_contribution_command' => 'required|date_format:"Y-m-d"',
+        'period_contribution' => 'required|date_format:"Y-m-d"',
         ]);
      try{
         DB::beginTransaction();
@@ -154,22 +154,22 @@ class ImportContributionCommandController extends Controller
         $message ='No realizado la importación!';
         $count_created = 0;
         $successfully = false;
-        $period_contribution_command = Carbon::parse($request->period_contribution_command);
-        $year = (int)$period_contribution_command->format("Y");
-        $month = (int)$period_contribution_command->format("m");
-        $count_registered = Contribution::data_period_command($request->period_contribution_command)['count_data'];
+        $period_contribution = Carbon::parse($request->period_contribution);
+        $year = (int)$period_contribution->format("Y");
+        $month = (int)$period_contribution->format("m");
+        $count_registered = Contribution::data_period_command($request->period_contribution)['count_data'];
         if((int)$count_registered > 0){
             $message ="Error al realizar la importación, el periodo ya fue importado.";
         }else{
-            if(Contribution::exist_contribution_rate($request->period_contribution_command)){
-                $query ="select import_period_contribution_command('$request->period_contribution_command',$user_id,$year,$month)";
+            if(Contribution::exist_contribution_rate($request->period_contribution)){
+                $query ="select import_period_contribution_command('$request->period_contribution',$user_id,$year,$month)";
                 $query = DB::select($query);
-                $count_created = Contribution::data_period_command($request->period_contribution_command)['count_data'];
+                $count_created = Contribution::data_period_command($request->period_contribution)['count_data'];
                 DB::commit();
                 $successfully = true;
                 $message ="Realizado con éxito!";
             }else{
-                $message ="No existe la taza de contribución para el periodo : ".$request->period_contribution_command.", el dato es requerido para continuar.";
+                $message ="No existe la taza de contribución para el periodo : ".$request->period_contribution.", el dato es requerido para continuar.";
             }
         }
         return response()->json([

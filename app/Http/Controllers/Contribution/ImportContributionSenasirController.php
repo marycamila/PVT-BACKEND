@@ -135,7 +135,7 @@ class ImportContributionSenasirController extends Controller
      *          required=true,
      *          @OA\JsonContent(
      *              type="object",
-     *              @OA\Property(property="period_contribution_senasir", type="string",description="fecha de planilla required",example= "2021-10-01")
+     *              @OA\Property(property="period_contribution", type="string",description="fecha de planilla required",example= "2021-10-01")
      *            )
      *     ),
      *     security={
@@ -157,16 +157,16 @@ class ImportContributionSenasirController extends Controller
     */
     public function import_create_or_update_contribution_period_senasir(Request $request){
         $request->validate([
-        'period_contribution_senasir' => 'required|date_format:"Y-m-d"',
+        'period_contribution' => 'required|date_format:"Y-m-d"',
         ]);
      try{
             DB::beginTransaction();
         $user_id = Auth::user()->id;
         $successfully = false;
-        $period_contribution_senasir = Carbon::parse($request->period_contribution_senasir);
-        $year = (int)$period_contribution_senasir->format("Y");
-        $month = (int)$period_contribution_senasir->format("m");
-        $count_registered = ContributionPassive::data_period_senasir($request->period_contribution_senasir)['count_data'];
+        $period_contribution = Carbon::parse($request->period_contribution);
+        $year = (int)$period_contribution->format("Y");
+        $month = (int)$period_contribution->format("m");
+        $count_registered = ContributionPassive::data_period_senasir($request->period_contribution)['count_data'];
         if((int)$count_registered > 0){
             return response()->json([
                 'message' => "Error al realizar la importación, el periodo ya fue importado.",
@@ -175,9 +175,9 @@ class ImportContributionSenasirController extends Controller
                 ],
             ]);
         }else{
-            $query ="select import_period_contribution_senasir('$request->period_contribution_senasir',$user_id,$year,$month)";
+            $query ="select import_period_contribution_senasir('$request->period_contribution',$user_id,$year,$month)";
             $query = DB::select($query);
-            $count_created = ContributionPassive::data_period_senasir($request->period_contribution_senasir)['count_data'];
+            $count_created = ContributionPassive::data_period_senasir($request->period_contribution)['count_data'];
             DB::commit();
             $successfully = true;
             return response()->json([

@@ -19,16 +19,17 @@ return new class extends Migration
        AS $$
                declare
                          ----variables----
-                        num_validated int := 0;
+                        num_validated bigint := 0;
                         is_validated_update boolean := TRUE;
                         record_row RECORD;
-                        affiliate_id_into int:=0;
-                        affiliate_id_into2 int:=0;
+                        affiliate_id_into bigint:=0;
+                        affiliate_id_into2 bigint:=0;
                         breakdown_id_into int:=0;
                         unit_id_into int:=0;
                         hierarchy_id_into int:=0;
                         degree_id_into int:=0;
                         category_id_into int:=0;
+                        affiliate_state_id_into int:=0;
                         message varchar := 'REGULAR';
                        -------------------------------------------------------------------------
                        ----FUNCIÓN PARA REGISTRAR LOS DATOS VALIDADOS DE PLANILLA DE COMANDO----
@@ -57,6 +58,7 @@ return new class extends Migration
                   hierarchy_id_into := (select get_hierarchy_id(record_row.niv,record_row.gra));
                   degree_id_into := (select get_degree_id(hierarchy_id_into,record_row.gra));
                   category_id_into := (select get_category_id(record_row.cat_formato,record_row.sue_formato));
+                  affiliate_state_id_into := (select get_affiliate_state_id(record_row.desg));
 
                   if affiliate_id_into <=0 then
                           INSERT INTO affiliates (
@@ -77,7 +79,7 @@ return new class extends Migration
                       insert_text(record_row.apes),insert_text(record_row.nom),insert_text(record_row.nom2),record_row.nac_formato,record_row.ing_formato));
 
                       INSERT INTO payroll_commands
-                      VALUES (default,affiliate_id_into2,unit_id_into,breakdown_id_into,category_id_into, record_row.mes,
+                      VALUES (default,affiliate_id_into2,affiliate_state_id_into,unit_id_into,breakdown_id_into,category_id_into, record_row.mes,
                       record_row.a_o, record_row.car_formato, replace_character(insert_text(record_row.pat)),replace_character(insert_text(record_row.mat)),
                       replace_character(insert_text(record_row.apes)),replace_character(insert_text(record_row.nom)), replace_character(insert_text(record_row.nom2)),
                       record_row.eciv,hierarchy_id_into,degree_id_into,record_row.sex,record_row.sue_formato,

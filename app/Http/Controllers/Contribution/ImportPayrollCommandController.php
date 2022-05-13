@@ -562,7 +562,7 @@ class ImportPayrollCommandController extends Controller
         try{
                 DB::beginTransaction();
                 $user_id = Auth::user()->id;
-                $message = "No hay datos";
+                $message = "No hay datos por validar";
                 $successfully =false;
                 $date_payroll_format = $request->date_payroll;
                 $date_payroll = Carbon::parse($request->date_payroll);
@@ -582,11 +582,10 @@ class ImportPayrollCommandController extends Controller
                             $successfully =true;
                             $update_validated ="update payroll_copy_commands set is_validated = true where mes =$month and a_o = $year";
                             $update_validated = DB::connection('db_aux')->select($update_validated);
+                            $message = 'Exito';
                         }
                         if(PayrollCommand::data_count($month,$year)['new']>0){
                             $message = 'Excel';
-                        }else {
-                            $message = 'Exito';
                         }
                         DB::commit();
                         $data_count= $this->data_count_payroll_command($month,$year,$date_payroll_format);

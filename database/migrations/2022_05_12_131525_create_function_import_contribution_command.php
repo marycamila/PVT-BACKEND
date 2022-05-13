@@ -24,7 +24,6 @@ return new class extends Migration
                  num_import int:=0;
                          -- Declaración EXPLICITA del cursor
                          cur_contribution CURSOR FOR select * from payroll_commands where year_p = year_period and month_p = month_period and base_wage >0;
-                        --select count(*) from payroll_commands where year_p = 2022 and month_p = 3 and base_wage >0
                          record_row payroll_commands%ROWTYPE;
                      begin
                         --***************************************

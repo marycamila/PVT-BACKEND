@@ -7,6 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Affiliate\Affiliate;
 use App\Models\Contribution\Contribution;
 use App\Models\Contribution\PayrollCommand;
+use App\Models\Affiliate\Unit;
+use App\Models\Affiliate\Degree;
+use App\Models\Affiliate\Breakdown;
+use App\Models\Affiliate\Category;
+use App\Models\Affiliate\Hierarchy;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PayrollCommand extends Model
@@ -55,6 +60,26 @@ class PayrollCommand extends Model
     public function affiliate()
     {
         return $this->belongsTo(Affiliate::class);
+    }
+    public function unit()
+    {
+        return $this->belongsTo(Unit::class);
+    }
+    public function degree()
+    {
+        return $this->belongsTo(Degree::class);
+    }
+    public function breakdown()
+    {
+        return $this->belongsTo(Breakdown::class);
+    }
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+    public function hierarchy()
+    {
+        return $this->belongsTo(Hierarchy::class);
     }
     public static function data_period($month,$year)
     {

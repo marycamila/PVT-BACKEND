@@ -4,6 +4,7 @@ namespace App\Models\Affiliate;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Contribution\PayrollCommand;
 
 class Hierarchy extends Model
 {
@@ -18,5 +19,9 @@ class Hierarchy extends Model
     public function degrees()
     {
         return $this->hasMany(Degree::class);
+    }
+    public function payroll_commands()
+    {
+        return $this->hasMany(PayrollCommand::class);
     }
 }

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Contribution\Reimbursement;
 use App\Models\Contribution\Contribution;
 use App\Models\Affiliate\Affiliate;
+use App\Models\Contribution\PayrollCommand;
 
 class Degree extends Model
 {
@@ -33,10 +34,14 @@ class Degree extends Model
     
     public function reimbursements()
     {
-    return $this->hasMany(Reimbursement::class);
+        return $this->hasMany(Reimbursement::class);
     }
     public function contributions()
     {
-    return $this->hasMany(Contribution::class);
+        return $this->hasMany(Contribution::class);
+    }
+    public function payroll_commands()
+    {
+        return $this->hasMany(PayrollCommand::class);
     }
 }

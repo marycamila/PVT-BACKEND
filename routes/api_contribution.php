@@ -51,6 +51,7 @@ Route::group([
             'middleware' => 'permission:download-report-senasir|download-report-command'
         ], function () {
             Route::post('/report_import_contribution_senasir', [App\Http\Controllers\Contribution\ImportContributionSenasirController::class, 'report_import_contribution_senasir']);
+            Route::post('/report_import_contribution_command', [App\Http\Controllers\Contribution\ImportContributionCommandController::class, 'report_import_contribution_command']);
         });
         Route::post('/update_base_wages', [App\Http\Controllers\Contribution\ImportPayrollCommandController::class, 'update_base_wages']);
     });

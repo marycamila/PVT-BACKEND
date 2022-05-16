@@ -231,6 +231,7 @@ class ImportContributionCommandController extends Controller
 
         DB::beginTransaction();
         $message = "No hay datos";
+        ini_set('max_execution_time', '300');
         $date_contribution_format = $request->date_contribution;
 
         $data_cabeceras=array(array("PERIODO","TIPO","ID_AFILIADO","CÉDULA_DE_IDENTIDAD","UNIDAD","DESGLOSE","PATERNO",

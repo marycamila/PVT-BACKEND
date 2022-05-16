@@ -583,6 +583,8 @@ class ImportPayrollCommandController extends Controller
                             $update_validated ="update payroll_copy_commands set is_validated = true where mes =$month and a_o = $year";
                             $update_validated = DB::connection('db_aux')->select($update_validated);
                             $message = 'Exito';
+                            $update_affiliate ="select update_affiliate_command('$date_payroll_format',$user_id,$year,$month)";
+                            $update_affiliate = DB::select($update_affiliate);
                         }
                         if(PayrollCommand::data_count($month,$year)['new']>0){
                             $message = 'Excel';
@@ -732,7 +734,7 @@ class ImportPayrollCommandController extends Controller
      * @param Request $request
      * @return void
     */
-   
+
     public function report_payroll_command(request $request) {
 
         $request->validate([
@@ -743,7 +745,7 @@ class ImportPayrollCommandController extends Controller
         $message = "No hay datos";
 
         ini_set('max_execution_time', '300');
-        
+
         $date_payroll_format = $request->date_payroll;
         $data_cabeceras=array(array("ID","UNIDAD","DESGLOSE","CATEGORÍA","MES","AÑO","CARNET","APELLIDO PATERNO","APELLIDO MATERNO",
         "AP_CASADA","PRIMER NOMBRE","SEGUNDO NOMBRE","ESTADO CIVIL","JERARQUIA","GRADO","GENERO","SUELDO BASE","BONO ANTIGÜEDAD","BONO ESTUDIO",

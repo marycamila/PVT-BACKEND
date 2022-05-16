@@ -30,6 +30,7 @@ class ContributionRolePermissionSeeder extends Seeder
 
         $permissions_payroll = ['read-import-payroll','create-import-payroll-senasir','download-report-payroll-senasir','create-import-payroll-command','download-report-payroll-command'];//
         $permissions_senasir = ['read-import-contribution','create-import-senasir','download-report-senasir'];
+        $permissions_command = ['read-import-contribution','create-import-command','download-report-command'];
         $permissions_global = ['read-import-contribution'];
 
         $sequence_permissions = ['update-affiliate-secondary', 'show-affiliate', 'show-loan', 'update-address', 'update-loan','show-history-loan'];
@@ -45,7 +46,7 @@ class ContributionRolePermissionSeeder extends Seeder
             if (in_array($role['display_name'], ['Importación planilla'])) {
                 $role->syncPermissions(array_merge($permissions_payroll));
             }  elseif (in_array($role['display_name'], ['Importación aportes'])) {
-                $role->syncPermissions(array_merge($permissions_senasir));
+                $role->syncPermissions(array_merge($permissions_senasir,$permissions_command));
             }else {
                 $role->syncPermissions($permissions_global);
             }

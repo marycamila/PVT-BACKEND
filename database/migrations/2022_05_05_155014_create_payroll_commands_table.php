@@ -45,7 +45,6 @@ return new class extends Migration
             $table->decimal('position_bonus', 13, 2)->comment('Bono cargo');
             $table->decimal('border_bonus', 13, 2)->comment('Bono frontera');
             $table->decimal('east_bonus', 13, 2)->comment('Bono oriente');
-            $table->decimal('public_security_bonus', 13, 2)->nullable()->comment('Bono seguridad');
             $table->decimal('gain', 13, 2)->comment('Total ganado');
             $table->decimal('total', 13, 2)->comment('Total aporte');
             $table->decimal('payable_liquid', 13, 2)->nullable()->comment('Liquido pagado');

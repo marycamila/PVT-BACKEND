@@ -40,12 +40,12 @@ return new class extends Migration
                 from dblink(conection_db_aux,
                             'select id,uni,desg,mes,a_o,car,car_formato,pat,mat,apes,nom,nom2,eciv,niv,gra,sex,
                sue,sue_formato,cat,cat_formato,est,est_formato,carg,carg_formato,fro,fro_formato,ori,ori_formato,
-               bseg,bseg_formato,gan,gan_formato,mus,mus_formato,lpag,lpag_formato,nac,nac_formato,ing,ing_formato,is_validated FROM payroll_copy_commands
+               gan,gan_formato,mus,mus_formato,lpag,lpag_formato,nac,nac_formato,ing,ing_formato,is_validated FROM payroll_copy_commands
                ') 
                AS payroll_copy_commands(id bigint,uni varchar,desg integer,mes integer,a_o integer,car varchar,
                car_formato varchar,pat varchar,mat varchar,apes varchar,nom varchar,nom2 varchar,eciv varchar,niv varchar,
                gra varchar,sex varchar,sue varchar,sue_formato NUMERIC(13,2),cat varchar,cat_formato NUMERIC(13,2),est varchar,est_formato NUMERIC(13,2),
-               carg varchar,carg_formato NUMERIC(13,2),fro varchar,fro_formato NUMERIC(13,2),ori varchar,ori_formato NUMERIC(13,2),bseg varchar,bseg_formato NUMERIC(13,2),
+               carg varchar,carg_formato NUMERIC(13,2),fro varchar,fro_formato NUMERIC(13,2),ori varchar,ori_formato NUMERIC(13,2),
                gan varchar,gan_formato NUMERIC(13,2),mus varchar,mus_formato NUMERIC(13,2),lpag varchar,lpag_formato NUMERIC(13,2),nac varchar,
                nac_formato date,ing varchar,ing_formato date,is_validated boolean)
                where mes = month_copy and a_o = year_copy and is_validated = false
@@ -84,7 +84,7 @@ return new class extends Migration
                       replace_character(insert_text(record_row.apes)),replace_character(insert_text(record_row.nom)), replace_character(insert_text(record_row.nom2)),
                       record_row.eciv,hierarchy_id_into,degree_id_into,record_row.sex,record_row.sue_formato,
                       record_row.cat_formato,record_row.est_formato,record_row.carg_formato,record_row.fro_formato,
-                      record_row.ori_formato, record_row.bseg_formato,record_row.gan_formato,record_row.mus_formato,
+                      record_row.ori_formato,record_row.gan_formato,record_row.mus_formato,
                       record_row.lpag_formato,record_row.nac_formato,record_row.ing_formato,message,
                       current_timestamp,current_timestamp);
                       num_validated:=num_validated+1;

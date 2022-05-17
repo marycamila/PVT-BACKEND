@@ -40,7 +40,7 @@ return new class extends Migration
                            user_id,affiliate_id,degree_id,unit_id,breakdown_id,
                            category_id,month_year,type,base_wage,seniority_bonus,
                            study_bonus,position_bonus,border_bonus,east_bonus,
-                           public_security_bonus,gain,payable_liquid,quotable,
+                           gain,payable_liquid,quotable,
                            retirement_fund,mortuary_quota,total,
                            created_at,updated_at,contributionable_type,contributionable_id)
                              VALUES (
@@ -58,7 +58,6 @@ return new class extends Migration
                              record_row.position_bonus,
                              record_row.border_bonus,
                              record_row.east_bonus,
-                             record_row.public_security_bonus,
                              record_row.gain,
                              record_row.payable_liquid,
                              quotable,

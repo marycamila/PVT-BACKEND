@@ -42,8 +42,6 @@ class CreatePayrollCopyCommandsTable extends Migration
             $table->decimal('fro_formato', 13, 2)->nullable()->comment('Bono frontera formateado');
             $table->string('ori')->comment('Bono oriente');
             $table->decimal('ori_formato', 13, 2)->nullable()->comment('Bono oriente formateado');
-            $table->string('bseg')->comment('Bono seguridad');
-            $table->decimal('bseg_formato', 13, 2)->nullable()->comment('Bono seguridad formateado');
             $table->string('gan')->comment('Ganado');
             $table->decimal('gan_formato', 13, 2)->nullable()->comment('Ganado formateado');
             $table->string('mus')->comment('Total');

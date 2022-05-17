@@ -236,7 +236,7 @@ class ImportContributionCommandController extends Controller
 
         $data_cabeceras=array(array("PERIODO","TIPO","ID_AFILIADO","CÉDULA_DE_IDENTIDAD","UNIDAD","DESGLOSE","PATERNO",
         "MATERNO","AP_CASADA", "P_NOMBRE","S_NOMBRE","ESTADO_CIVIL","GRADO", "CATEGORÍA","SUELDO_BASE","BONO_ANTIGÜEDAD", "BONO_ESTUDIO",
-        "BONO_A_CARGO","BONO_FRONTERA","BONO_ORIENTE","BONO_SEGURIDAD_CIUDADANA","TOTAL_GANADO","LÍQUIDO_PAGABLE","COTIZABLE","FONDO_DE_RETIRO",
+        "BONO_A_CARGO","BONO_FRONTERA","BONO_ORIENTE","TOTAL_GANADO","LÍQUIDO_PAGABLE","COTIZABLE","FONDO_DE_RETIRO",
         "CUOTA_MORTUORIA","TOTAL_APORTE"));
 
         $date_contribution = Carbon::parse($request->date_contribution);
@@ -246,7 +246,7 @@ class ImportContributionCommandController extends Controller
         $date_contribution = $year.'-'.$month.'-'.$day;     
         $data_contribution_command = "select c.month_year, c.type, a.id, a.identity_card, u.name, b.name as breakdown, a.last_name, a.mothers_last_name, 
         a.surname_husband, a.first_name, a.second_name, a.civil_status, d.name as degree, c3.name as category, c.base_wage, c.seniority_bonus,c.study_bonus, 
-        c.position_bonus, c.border_bonus, c.east_bonus,c.public_security_bonus, c.gain, c.payable_liquid, c.quotable, c.retirement_fund, c.mortuary_quota, c.total
+        c.position_bonus, c.border_bonus, c.east_bonus, c.gain, c.payable_liquid, c.quotable, c.retirement_fund, c.mortuary_quota, c.total
         from contributions c 
         inner join affiliates a 
         on c.affiliate_id = a.id
@@ -268,7 +268,7 @@ class ImportContributionCommandController extends Controller
                                     array_push($data_cabeceras, array($row->month_year ,$row->type ,$row->id ,$row->identity_card,
                                     $row->name, $row->breakdown, $row->last_name , $row->mothers_last_name ,$row->surname_husband, $row->first_name,
                                     $row->second_name,$row->civil_status,$row->degree,$row->category,$row->base_wage,$row->seniority_bonus,$row->study_bonus,$row->position_bonus,
-                                    $row->border_bonus, $row->east_bonus, $row->public_security_bonus,$row->gain, $row->payable_liquid,$row->quotable,
+                                    $row->border_bonus, $row->east_bonus,$row->gain, $row->payable_liquid,$row->quotable,
                                     $row->retirement_fund,$row->mortuary_quota,$row->total));
                                 }
 

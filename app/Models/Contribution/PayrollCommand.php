@@ -43,7 +43,6 @@ class PayrollCommand extends Model
         'position_bonus',
         'border_bonus',
         'east_bonus',
-        'public_security_bonus',
         'gain',
         'total',
         'payable_liquid',

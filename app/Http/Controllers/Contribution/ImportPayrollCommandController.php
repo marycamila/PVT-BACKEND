@@ -170,17 +170,17 @@ class ImportPayrollCommandController extends Controller
                         $file_path = Storage::disk('ftp')->putFileAs($base_path,$request->file,$file_name);
                         $base_path ='ftp://'.env('FTP_HOST').env('FTP_ROOT').$file_path;
 
-                        $temporary_payroll = "create temporary table payroll_copy_commands_tmp(uni varchar,desg varchar, mes varchar, a_o varchar,che varchar,item varchar,car varchar,pat varchar,mat varchar,apes varchar,nom varchar,nom2 varchar,eciv varchar,niv varchar,gra varchar,sex varchar,sue varchar,cat varchar,est varchar,carg varchar,fro varchar,ori varchar,bseg varchar,
-                                      dfu varchar, nat varchar,lac varchar, pre varchar, sub varchar,gan varchar, mus varchar, ode varchar,lpag varchar,nac varchar,ing varchar, c31 varchar)";
+                        $temporary_payroll = "create temporary table payroll_copy_commands_tmp(uni varchar,desg varchar, mes varchar, a_o varchar,car varchar,pat varchar,mat varchar,apes varchar,nom varchar,nom2 varchar,eciv varchar,niv varchar,gra varchar,sex varchar,sue varchar,cat varchar,est varchar,carg varchar,fro varchar,ori varchar,
+                                      gan varchar, mus varchar,lpag varchar,nac varchar,ing varchar)";
                         $temporary_payroll = DB::connection('db_aux')->select($temporary_payroll);
 
-                        $copy = "copy payroll_copy_commands_tmp(uni,desg,mes,a_o,che,item,car,pat,mat,apes,nom,nom2,eciv,niv,gra,sex,sue,cat,est,carg,fro,ori,bseg,   
-                                dfu, nat,lac, pre, sub,gan, mus, ode,lpag,nac,ing,c31)
+                        $copy = "copy payroll_copy_commands_tmp(uni,desg,mes,a_o,car,pat,mat,apes,nom,nom2,eciv,niv,gra,sex,sue,cat,est,carg,fro,ori,
+                                gan, mus,lpag,nac,ing)
                                 FROM PROGRAM 'wget -q -O - $@  --user=$username --password=$password $base_path'
                                 WITH DELIMITER ':' CSV header;";
                         $copy = DB::connection('db_aux')->select($copy);
-                        $insert = "INSERT INTO payroll_copy_commands(uni,desg,mes,a_o,car,pat,mat,apes,nom,nom2,eciv,niv,gra,sex,sue,cat,est,carg,fro,ori,bseg,gan,mus,lpag,nac,ing,created_at,updated_at)
-                                   SELECT uni,desg::INTEGER,mes::INTEGER,a_o::INTEGER,car,pat,mat,apes,nom,nom2,eciv,niv,gra,sex,sue,cat,est,carg,fro,ori,bseg,gan,mus,lpag,nac,ing,current_timestamp,current_timestamp FROM payroll_copy_commands_tmp; ";
+                        $insert = "INSERT INTO payroll_copy_commands(uni,desg,mes,a_o,car,pat,mat,apes,nom,nom2,eciv,niv,gra,sex,sue,cat,est,carg,fro,ori,gan,mus,lpag,nac,ing,created_at,updated_at)
+                                   SELECT uni,desg::INTEGER,mes::INTEGER,a_o::INTEGER,car,pat,mat,apes,nom,nom2,eciv,niv,gra,sex,sue,cat,est,carg,fro,ori,gan,mus,lpag,nac,ing,current_timestamp,current_timestamp FROM payroll_copy_commands_tmp; ";
                         $insert = DB::connection('db_aux')->select($insert);
 
                         $update_year="UPDATE payroll_copy_commands set a_o = concat(20,'',a_o)::integer where mes =$month_format and a_o=$year_format";
@@ -673,7 +673,7 @@ class ImportPayrollCommandController extends Controller
         $data_cabeceras=array(array("ID_AFILIADO","ID_UNIDAD","ID_DESGLOSE","ID_CATEGORÍA","MES","AÑO","CARNET", 
         "APELLIDO PATERNO","APELLIDO MATERNO","AP_CASADA","PRIMER NOMBRE","SEGUNDO NOMBRE","ESTADO CIVIL","ID_JERARQUÍA","ID_GRADO","SEXO",
         "SUELDO BASE","BONO ANTIGUEDAD","BONO ESTUDIO","BONO A CARGO","BONO FRONTERA","BONO ORIENTE",
-        "BONO SEGURIDAD CIUDADANA","TOTAL GANADO","MUSERPOL","LÍQUIDO PAGABLE","FECHA DE NACIMIENTO",
+        "TOTAL GANADO","MUSERPOL","LÍQUIDO PAGABLE","FECHA DE NACIMIENTO",
         "TIPO DE AFILIADO"));
 
         $date_payroll = Carbon::parse($request->date_payroll);
@@ -687,7 +687,7 @@ class ImportPayrollCommandController extends Controller
                                     array_push($data_cabeceras, array($row->affiliate_id ,$row->unit_id ,$row->breakdown_id ,$row->category_id ,
                                     $row->month_p, $row->year_p, $row->identity_card, $row->last_name , $row->mothers_last_name, $row->surname_husband, $row->first_name, $row->second_name, 
                                     $row->civil_status, $row->hierarchy_id, $row->degree_id, $row->gender, $row->base_wage, $row->seniority_bonus, $row->study_bonus, $row->position_bonus,
-                                    $row->border_bonus, $row->east_bonus, $row->public_security_bonus, $row->gain, $row->total, $row->payable_liquid, $row->birth_date,
+                                    $row->border_bonus, $row->east_bonus, $row->gain, $row->total, $row->payable_liquid, $row->birth_date,
                                     $row->affiliate_type
                                 ));
                                 }
@@ -749,14 +749,14 @@ class ImportPayrollCommandController extends Controller
         $date_payroll_format = $request->date_payroll;
         $data_cabeceras=array(array("ID","UNIDAD","DESGLOSE","CATEGORÍA","MES","AÑO","CARNET","APELLIDO PATERNO","APELLIDO MATERNO",
         "AP_CASADA","PRIMER NOMBRE","SEGUNDO NOMBRE","ESTADO CIVIL","JERARQUIA","GRADO","GENERO","SUELDO BASE","BONO ANTIGÜEDAD","BONO ESTUDIO",
-        "BONO A CARGO","BONO FRONTERA","BONO ORIENTE","BONO SEGURIDAD CIUDADANA","TOTAL GANADO","TOTAL APORTE","LIQUIDO PAGABLE","FECHA DE NACIMIENTO",
+        "BONO A CARGO","BONO FRONTERA","BONO ORIENTE","TOTAL GANADO","TOTAL APORTE","LIQUIDO PAGABLE","FECHA DE NACIMIENTO",
         "FECHA DE INGRESO","TIPO DE AFILIADO"
     ));
 
         $date_payroll = Carbon::parse($request->date_payroll);
         $year = (int)$date_payroll->format("Y");
         $month = (int)$date_payroll->format("m");
-        $data_payroll_command = PayrollCommand::whereMonth_p(3)->whereYear_p(2022)->get();
+        $data_payroll_command = PayrollCommand::whereMonth_p($month)->whereYear_p($year)->get();
 
         $message = "Excel";
             foreach ($data_payroll_command as $row){
@@ -764,7 +764,7 @@ class ImportPayrollCommandController extends Controller
                 $row->month_p, $row->year_p, $row->identity_card, $row->last_name, $row->mothers_last_name, $row->surname_husband, 
                 $row->first_name, $row->second_name, $row->civil_status, $row->hierarchy->name, $row->degree->name, $row->gender, 
                 $row->base_wage, $row->seniority_bonus, $row->study_bonus, $row->position_bonus, $row->border_bonus, $row->east_bonus,
-                $row->public_security_bonus, $row->gain, $row->total, $row->payable_liquid, $row->birth_date, $row->date_entry,
+                $row->gain, $row->total, $row->payable_liquid, $row->birth_date, $row->date_entry,
                 $row->affiliate_type
               ));
             }

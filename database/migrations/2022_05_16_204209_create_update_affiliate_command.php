@@ -76,8 +76,8 @@ return new class extends Migration
                               surname_husband = record_row.pc_surname_husband,first_name = record_row.pc_first_name,second_name = record_row.pc_second_name,updated_at=current_timestamp
                              where id = record_row.id;
 
-                              message_into:= concat('Afiliado cambio de nombre(s) o apellido(s) de ',record_row.last_name,' a ',record_row.pc_last_name,' ; ',record_row.mothers_last_name,' a ',record_row.pc_mothers_last_name,' ; ',
-                              record_row.surname_husband,' a ',record_row.pc_surname_husband,' ; ',record_row.first_name,' a ',record_row.pc_first_name,' ; ',record_row.second_name,' a ',record_row.pc_second_name);
+                              message_into:= concat('Afiliado cambio de nombre(s) o apellido(s) de ','AP1: ',record_row.last_name,' a ',record_row.pc_last_name,' ; AP2: ',record_row.mothers_last_name,' a ',record_row.pc_mothers_last_name,' ; APES:',
+                              record_row.surname_husband,' a ',record_row.pc_surname_husband,' ; PN: ',record_row.first_name,' a ',record_row.pc_first_name,' ; SN: ',record_row.second_name,' a ',record_row.pc_second_name);
                               type_id :=8;
                               insert into affiliate_records(user_id,affiliate_id,type_id,message,created_at,updated_at) values(user_id_into,record_row.id,type_id,message_into,current_timestamp,current_timestamp);
                                 count_update:= count_update+1;

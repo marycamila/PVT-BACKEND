@@ -32,7 +32,6 @@ class CreateFunctionFormatPayrollCopyCommands extends Migration
                        carg_formato = format_amount_decimal(record_row.carg),
                        fro_formato = format_amount_decimal(record_row.fro),
                        ori_formato = format_amount_decimal(record_row.ori),
-                       bseg_formato = format_amount_decimal(record_row.bseg),
                        gan_formato = format_amount_decimal(record_row.gan),
                        mus_formato = format_amount_decimal(record_row.mus),
                        lpag_formato = format_amount_decimal(record_row.lpag),

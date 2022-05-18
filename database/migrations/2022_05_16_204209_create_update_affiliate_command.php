@@ -49,7 +49,7 @@ return new class extends Migration
                           where year_p = year_period and month_p = month_period
 
                   loop
-                      if(record_row.pc_affiliate_type ='REGULAR') then
+                      if((record_row.pc_affiliate_type ='REGULAR') and (record_row.affiliate_state_id = 1 or record_row.affiliate_state_id = 2 or record_row.affiliate_state_id = 3 or record_row.affiliate_state_id is null)) then
                               if record_row.identity_card <> record_row.pc_identity_card then
                               update affiliates set identity_card = record_row.pc_identity_card, updated_at = current_timestamp where id = record_row.id;
                               message_into:= concat('Afiliado cambio de número de carnet de ', record_row.identity_card,' a ',record_row.pc_identity_card);

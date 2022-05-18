@@ -49,7 +49,7 @@ return new class extends Migration
                           where year_p = year_period and month_p = month_period
 
                   loop
-                      if(record_row.pc_affiliate_type ='REGULAR') then
+                      if((record_row.pc_affiliate_type ='REGULAR') and (record_row.affiliate_state_id = 1 or record_row.affiliate_state_id = 2 or record_row.affiliate_state_id = 3 or record_row.affiliate_state_id is null)) then
                               if record_row.identity_card <> record_row.pc_identity_card then
                               update affiliates set identity_card = record_row.pc_identity_card, updated_at = current_timestamp where id = record_row.id;
                               message_into:= concat('Afiliado cambio de número de carnet de ', record_row.identity_card,' a ',record_row.pc_identity_card);
@@ -76,7 +76,7 @@ return new class extends Migration
                               surname_husband = record_row.pc_surname_husband,first_name = record_row.pc_first_name,second_name = record_row.pc_second_name,updated_at=current_timestamp
                              where id = record_row.id;
 
-                              message_into:= concat('Afiliado cambio de nombre(s) o apellido(s) de ','AP1: ',record_row.last_name,' a ',record_row.pc_last_name,' ; AP2: ',record_row.mothers_last_name,' a ',record_row.pc_mothers_last_name,' ; APES:',
+                              message_into:= concat('Afiliado cambio de nombre(s) o apellido(s) de  AP1: ',record_row.last_name,' a ',record_row.pc_last_name,' ; AP2: ',record_row.mothers_last_name,' a ',record_row.pc_mothers_last_name,' ; APES: ',
                               record_row.surname_husband,' a ',record_row.pc_surname_husband,' ; PN: ',record_row.first_name,' a ',record_row.pc_first_name,' ; SN: ',record_row.second_name,' a ',record_row.pc_second_name);
                               type_id :=8;
                               insert into affiliate_records(user_id,affiliate_id,type_id,message,created_at,updated_at) values(user_id_into,record_row.id,type_id,message_into,current_timestamp,current_timestamp);

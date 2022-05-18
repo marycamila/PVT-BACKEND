@@ -17,54 +17,30 @@ return new class extends Migration
         RETURNS numeric
         LANGUAGE plpgsql
        AS $$
-             declare
-                 cr_retirement_fund numeric:=0;
-                 retirement_fund_into numeric:=0;
-                 cr_mortuary_quota numeric:=0;
+                    declare
+                        cr_retirement_fund numeric:=0;
+                        retirement_fund_into numeric:=0;
+                        cr_mortuary_quota numeric:=0;
+       
+                    begin
+                    --*********************************************--
+                    --Funcion para obtener monto de fondo de retiro--
+                    --*********************************************--
+                         select retirement_fund into cr_retirement_fund from contribution_rates cr where month_year = date_period limit 1;
+                        select mortuary_quota into cr_mortuary_quota from contribution_rates cr where month_year = date_period limit 1;
+       
+                         if (percentage = round(cr_retirement_fund+cr_mortuary_quota,2)) then
+                            retirement_fund_into:= total * cr_retirement_fund/percentage;
+                         elsif (percentage = round(cr_mortuary_quota,2)) THEN
+                             retirement_fund_into:=0;
+                         else
+                            RAISE exception '(%)', 'Unknown percentage of contribution!';
+                         end if;
+                    return round(retirement_fund_into,2);
+                    end;
+                $$
+       ;");
 
-             begin
-             --*********************************************--
-             --Funcion para obtener monto de fondo de retiro--
-             --*********************************************--
-                  select retirement_fund into cr_retirement_fund from contribution_rates cr where month_year = date_period limit 1;
-                 select mortuary_quota into cr_mortuary_quota from contribution_rates cr where month_year = date_period limit 1;
-
-                  if (percentage = round(cr_retirement_fund+cr_mortuary_quota,2)) then
-                      retirement_fund_into:= (total * cr_retirement_fund)/percentage;
-                  elsif (percentage = round(cr_mortuary_quota,2)) THEN
-                      retirement_fund_into:=0;
-                  else
-                     RAISE exception '(%)', 'Unknown percentage of contribution!';
-                  end if;
-             return retirement_fund_into;
-             end;
-         $$;");
-        DB::statement("CREATE OR REPLACE FUNCTION public.get_mortuary_quota_amount(date_period date,percentage numeric, total numeric)
-        RETURNS numeric
-        LANGUAGE plpgsql
-       AS $$
-             declare
-                 cr_retirement_fund numeric:=0;
-                 mortuary_quota_into numeric:=0;
-                 cr_mortuary_quota numeric:=0;
-
-             begin
-             --*********************************************--
-             --Funcion para obtener monto de cuota mortuaria--
-             --*********************************************--
-                  select retirement_fund into cr_retirement_fund from contribution_rates cr where month_year = date_period limit 1;
-                 select mortuary_quota into cr_mortuary_quota from contribution_rates cr where month_year = date_period limit 1;
-
-                  if (percentage = round(cr_retirement_fund+cr_mortuary_quota,2)) then
-                      mortuary_quota_into:= (total * cr_mortuary_quota)/percentage;
-                  elsif (percentage = round(cr_mortuary_quota,2)) THEN
-                      mortuary_quota_into:= (total * cr_mortuary_quota)/percentage;
-                  else
-                     RAISE exception '(%)', 'Unknown percentage of contribution!'; 
-                  end if;
-             return mortuary_quota_into;
-             end;
-         $$;");
         DB::statement("CREATE OR REPLACE FUNCTION public.identified_affiliate_command(identity_card_into character varying, last_name_into character varying, mothers_last_name_into character varying, surname_husband_into character varying, first_name_into character varying, second_name_into character varying, birth_date_into date, date_entry_into date)
         RETURNS numeric
         LANGUAGE plpgsql

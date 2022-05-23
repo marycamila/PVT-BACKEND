@@ -48,7 +48,7 @@ class CreateFunctionUpdateOrCreateSpouseAndUpdateAffiliate extends Migration
                       INSERT INTO public.spouses(user_id, affiliate_id,identity_card,registration, last_name, mothers_last_name , first_name , second_name, created_at,updated_at, birth_date)
                       SELECT user_reg as user_id, ps.affiliate_id, ps.identity_card as identity_card, ps.registration_s as registration, ps.last_name as last_name, ps.mothers_last_name as mothers_last_name,ps.first_name as first_name, ps.second_name as second_name,(select current_timestamp as created_at),(select current_timestamp as updated_at), ps.birth_date as birth_date
                       FROM payroll_senasirs ps
-                      WHERE id=payroll_senasir_id;
+                      WHERE id = payroll_senasir_id and ps.identity_card is not null;
                 end if;
                message:= 'Se actualizar afiliado y '||message;
 

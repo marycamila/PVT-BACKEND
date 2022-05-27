@@ -18,6 +18,7 @@ Route::group([
         Route::post('update_affiliate_id_senasir_registration_and_identity_card', [App\Http\Controllers\Temporary\CopyPersonSenasirController::class, 'update_affiliate_id_senasir_registration_and_identity_card']);
         Route::post('create_affiliate_spouse_senasir', [App\Http\Controllers\Temporary\CopyPersonSenasirController::class, 'create_affiliate_spouse_senasir']);
         Route::post('update_affiliate_data', [App\Http\Controllers\Temporary\CopyPersonSenasirController::class, 'update_affiliate_data']);
+        Route::post('tmp_import_contribution_eco_com', [App\Http\Controllers\Temporary\TmpImportContributionEcoComController::class, 'tmp_import_contribution_eco_com']);
     });
 });
 

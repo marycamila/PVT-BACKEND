@@ -38,6 +38,33 @@ return new class extends Migration
        END;
        $$
        ;");
+     DB::statement("CREATE OR REPLACE FUNCTION public.discount_amount_month(discount_id bigint)
+     returns numeric
+      language plpgsql
+     as $$
+     declare
+     amount_semester numeric := 0;
+
+     amount_month numeric := 0;
+
+     begin
+     --*********************************************************************************************--
+     --Función para obtener monto por mes aporte del complemento económico para el auxilio mortuorio--
+     --*********************************************************************************************--
+         select
+         amount
+     into
+         amount_semester
+     from
+         discount_type_economic_complement
+     where
+         id = discount_id;
+
+     amount_month := round(amount_semester / 6, 2);
+
+     return amount_month;
+     end;
+     $$;");
     }
 
     /**

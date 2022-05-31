@@ -65,7 +65,7 @@ class CreateFunctionTmpContributionEcoCom extends Migration
             ecm.id = ec.eco_com_modality_id
         where
             dtec.discount_type_id = 7
-            and ec.eco_com_state_id in (1, 2, 17, 21, 26)
+            and ec.eco_com_state_id in (1, 2, 17, 18, 21, 26)
             and ec.deleted_at is null);
 
         begin

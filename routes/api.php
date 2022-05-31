@@ -20,12 +20,11 @@ Route::group([
     // Rutas abiertas
     // Rutas autenticadas con token
     Route::group([
-        'middleware' => ['auth:sanctum']
+        'middleware' => ['auth']
     ], function () {
-        Route::get('/profile', function(Request $request) {
+        Route::get('/user', function(Request $request) {
             return auth()->user();
         });
 
     });
 });
-

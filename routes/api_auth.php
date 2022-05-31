@@ -12,7 +12,7 @@ Route::group([
     Route::post('/login', [App\Http\Controllers\Auth\AuthController::class, 'login']);
     // Rutas autenticadas con token
     Route::group([
-        'middleware' => ['auth:sanctum']
+        'middleware' => ['auth']
     ], function () {
         Route::post('/logout', [App\Http\Controllers\Auth\AuthController::class, 'logout']);
         Route::get('/auth_user', [App\Http\Controllers\Auth\AuthController::class,'index']);

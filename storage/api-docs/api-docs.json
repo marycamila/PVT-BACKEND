@@ -854,6 +854,91 @@
                 ]
             }
         },
+        "/api/affiliate/affiliate": {
+            "get": {
+                "tags": [
+                    "AFILIADO"
+                ],
+                "summary": "LISTADO DE AFILIADOS",
+                "operationId": "getAffiliates",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Página a mostrar",
+                        "required": false,
+                        "example": 1
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Por Página",
+                        "required": false,
+                        "example": 10
+                    },
+                    {
+                        "name": "sortDesc",
+                        "in": "query",
+                        "description": "Vector de orden descendente(0) o ascendente(1)",
+                        "required": false,
+                        "example": 1
+                    },
+                    {
+                        "name": "id_affiliate",
+                        "in": "query",
+                        "description": "Filtro por id del Afiliado",
+                        "required": false
+                    },
+                    {
+                        "name": "identity_card_affiliate",
+                        "in": "query",
+                        "description": "Filtro por Cédula de Identidad",
+                        "required": false
+                    },
+                    {
+                        "name": "registration_affiliate",
+                        "in": "query",
+                        "description": "Filtro por Matrícula",
+                        "required": false
+                    },
+                    {
+                        "name": "full_name_affiliate",
+                        "in": "query",
+                        "description": "Filtro por Nombre o Apellido",
+                        "required": false
+                    },
+                    {
+                        "name": "name_degree",
+                        "in": "query",
+                        "description": "Filtro por grado del Afiliado",
+                        "required": false
+                    },
+                    {
+                        "name": "name_affiliate_state",
+                        "in": "query",
+                        "description": "Filtro por estado del Afiliado",
+                        "required": false
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/auth/auth_user": {
             "get": {
                 "tags": [
@@ -1004,6 +1089,141 @@
                 ]
             }
         },
+        "/api/contribution/list_months_import_contribution_command": {
+            "post": {
+                "tags": [
+                    "IMPORTACION-APORTES-COMANDO"
+                ],
+                "summary": "LISTA LOS MESES QUE SE REALIZARON IMPORTACIONES A LA TABLA CONTRIBUTIONS DE COMANDO EN BASE A UN AÑO DADO EJ:2022",
+                "description": "Lista los meses importados en la tabla contributions enviando como parámetro un año en específico",
+                "operationId": "list_command_months",
+                "requestBody": {
+                    "description": "Provide auth credentials",
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "period_year": {
+                                        "description": "Año de contribución a listar",
+                                        "type": "integer",
+                                        "example": "2022"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/contribution/import_contribution_command": {
+            "post": {
+                "tags": [
+                    "IMPORTACION-APORTES-COMANDO"
+                ],
+                "summary": "PASO 3 IMPORTACIÓN DE CONTRIBUCION COMANDO GENERAL",
+                "description": "Importación de aportes de Comando general",
+                "operationId": "import_contribution_command",
+                "requestBody": {
+                    "description": "Provide auth credentials",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "period_contribution": {
+                                        "description": "fecha de aporte required",
+                                        "type": "string",
+                                        "example": "2022-03-01"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/contribution/report_import_contribution_command": {
+            "post": {
+                "tags": [
+                    "IMPORTACION-APORTES-COMANDO"
+                ],
+                "summary": "GENERA REPORTE DE APORTES COMANDO IMPORTADAS",
+                "description": "Genera reporte de aportes COMANDO de la tabla contribution de acuerdo a periodo de planilla",
+                "operationId": "report_import_contribution_command",
+                "requestBody": {
+                    "description": "Provide auth credentials",
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "date_contribution": {
+                                        "description": "fecha de planilla required",
+                                        "type": "string",
+                                        "example": "2022-03-01"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/contribution/list_months_import_contribution_senasir": {
             "post": {
                 "tags": [
@@ -1064,7 +1284,7 @@
                         "application/json": {
                             "schema": {
                                 "properties": {
-                                    "period_contribution_senasir": {
+                                    "period_contribution": {
                                         "description": "fecha de planilla required",
                                         "type": "string",
                                         "example": "2021-10-01"
@@ -1113,82 +1333,6 @@
                                         "description": "fecha de planilla required",
                                         "type": "string",
                                         "example": "2021-10-01"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/api/contribution/command_payroll_period": {
-            "get": {
-                "tags": [
-                    "CONTRIBUCION"
-                ],
-                "summary": "PERIODO DE LA CONTRIBUCION",
-                "operationId": "period_upload_command",
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/api/contribution/format_payroll_data_type_command": {
-            "post": {
-                "tags": [
-                    "CONTRIBUCION"
-                ],
-                "summary": "PASO 2 FORMATEO DE DATOS",
-                "description": "Formateo de datos de la tabla contribution_copy_payroll_commands",
-                "operationId": "formatData",
-                "requestBody": {
-                    "description": "Provide auth credentials",
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "month": {
-                                        "description": "mes required",
-                                        "type": "integer",
-                                        "example": 11
-                                    },
-                                    "year": {
-                                        "description": "año required",
-                                        "type": "integer",
-                                        "example": 2021
                                     }
                                 },
                                 "type": "object"
@@ -1268,10 +1412,10 @@
         "/api/contribution/upload_copy_payroll_command": {
             "post": {
                 "tags": [
-                    "CONTRIBUCION"
+                    "IMPORTACION-PLANILLA-COMANDO"
                 ],
                 "summary": "PASO 1 COPIADO DE DATOS PLANILLA COMANDO",
-                "description": "Copiado de datos del archivo de planillas comando a la tabla contribution_copy_payroll_commands",
+                "description": "Copiado de datos del archivo de planillas comando a la tabla payroll_copy_commands",
                 "operationId": "upload_copy_payroll_command",
                 "requestBody": {
                     "description": "Provide auth credentials",
@@ -1288,7 +1432,277 @@
                                     "date_payroll": {
                                         "description": "fecha de planilla required",
                                         "type": "string",
-                                        "example": "2021-11-01"
+                                        "example": "2022-03-01"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/contribution/import_payroll_command_progress_bar": {
+            "post": {
+                "tags": [
+                    "IMPORTACION-PLANILLA-COMANDO"
+                ],
+                "summary": "INFORMACIÓN DE PROGRESO DE IMPORTACIÓN PLANILLA COMANDO",
+                "description": "Muestra la información de la importación de Comando  (-1)Si existió algún error en algún paso, (100) Si todo fue exitoso, (30-60)Paso 1 y 2 (0)si esta iniciando la importación",
+                "operationId": "import_payroll_command_progress_bar",
+                "requestBody": {
+                    "description": "Provide auth credentials",
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "date_payroll": {
+                                        "description": "fecha de planilla required",
+                                        "type": "string",
+                                        "example": "2022-03-01"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/contribution/rollback_payroll_copy_command": {
+            "post": {
+                "tags": [
+                    "IMPORTACION-PLANILLA-COMANDO"
+                ],
+                "summary": "REHACER PASO 1 IMPORTACIÓN PLANILLA COMANDO",
+                "description": "Para rehacer paso 1 de la importación Comando",
+                "operationId": "rollback_payroll_copy_command",
+                "requestBody": {
+                    "description": "Provide auth credentials",
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "date_payroll": {
+                                        "description": "fecha de planilla required",
+                                        "type": "string",
+                                        "example": "2022-03-01"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/contribution/list_months_validate_command": {
+            "post": {
+                "tags": [
+                    "IMPORTACION-PLANILLA-COMANDO"
+                ],
+                "summary": "LISTA LOS MESES QUE SE REALIZARON IMPORTACIONES PLANILLA COMANDO EN BASE A UN AÑO DADO EJ:2021",
+                "description": "Lista los meses importados en la tabla payroll_copy_commands enviando como parametro un año en especifico",
+                "operationId": "list_months_validate_command",
+                "requestBody": {
+                    "description": "Provide auth credentials",
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "period_year": {
+                                        "description": "Año de contribucion a listar",
+                                        "type": "integer",
+                                        "example": "2021"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/contribution/validation_payroll_command": {
+            "post": {
+                "tags": [
+                    "IMPORTACION-PLANILLA-COMANDO"
+                ],
+                "summary": "PASO 2 VALIDACION DE DATOS PLANILLA COMANDO GENERAL",
+                "description": "validacion de datos  de planilla de comando general",
+                "operationId": "validation_payroll_command",
+                "requestBody": {
+                    "description": "Provide auth credentials",
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "date_payroll": {
+                                        "description": "fecha de planilla required",
+                                        "type": "string",
+                                        "example": "2022-03-01"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/contribution/download_new_affiliates_payroll_command": {
+            "post": {
+                "tags": [
+                    "IMPORTACION-PLANILLA-COMANDO"
+                ],
+                "summary": "GENERA REPORTE EXCEL DE AFILIADOS NUEVOS REMITIDOS POR COMANDO",
+                "description": "Genera el archivo excel de afiliados nuevos remitidos por COMANDO por mes y año",
+                "operationId": "download_new_affiliates_payroll_command",
+                "requestBody": {
+                    "description": "Provide auth credentials",
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "date_payroll": {
+                                        "description": "fecha de planilla required",
+                                        "type": "string",
+                                        "example": "2022-03-01"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/contribution/report_payroll_command": {
+            "post": {
+                "tags": [
+                    "IMPORTACION-PLANILLA-COMANDO"
+                ],
+                "summary": "GENERA REPORTE EXCEL DE DATOS REMITIDOS POR COMANDO",
+                "description": "Genera el archivo excel de los datos remitidos por COMANDO por mes y año",
+                "operationId": "report_import_command",
+                "requestBody": {
+                    "description": "Provide auth credentials",
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "date_payroll": {
+                                        "description": "fecha de planilla required",
+                                        "type": "string",
+                                        "example": "2022-03-01"
                                     }
                                 },
                                 "type": "object"
@@ -1455,40 +1869,13 @@
                 ]
             }
         },
-        "/api/contribution/list_senasir_years": {
-            "get": {
-                "tags": [
-                    "METODOS-GLOBALES"
-                ],
-                "summary": "OBTIENE EL LISTADO DE AÑOS DE CONTRIBUCIONES DE SENASIR CONSECUTIVAMENTE ",
-                "description": "Obtiene el listado de años de contribuciones de senasir de manera consecutiva hasta el año actual Ej 2022",
-                "operationId": "list_senasir_years",
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
         "/api/contribution/rollback_payroll_copy_senasir": {
             "post": {
                 "tags": [
                     "IMPORTACION-PLANILLA-SENASIR"
                 ],
-                "summary": "REHACER LOS PASOS DE PASO 1 Y 2 IMPORTACION SENASIR",
-                "description": "Para rehacer paso 1 y paso 2 de la importacion senasir",
+                "summary": "REHACER PASO 1 IMPORTACION PLANILLA DE SENASIR",
+                "description": "Para rehacer paso 1 de la importación de planilla de senasir",
                 "operationId": "rollback_payroll_copy_senasir",
                 "requestBody": {
                     "description": "Provide auth credentials",
@@ -1532,7 +1919,7 @@
                 "tags": [
                     "IMPORTACION-PLANILLA-SENASIR"
                 ],
-                "summary": "INFORMACION DE PROGRESO DE IMPORTACION SENASIR",
+                "summary": "INFORMACION DE PROGRESO DE IMPORTACION PLANILLA SENASIR",
                 "description": "Muestra la informacion de la importación de senasir  (-1)Si exixtio al gun error en algun paso, (100)Si todo fue exitoso, (30-60)Paso 1 y 2 (0)si esta iniciando la importación",
                 "operationId": "import_payroll_senasir_progress_bar",
                 "requestBody": {
@@ -1590,7 +1977,7 @@
                                     "period_year": {
                                         "description": "Año de contribucion a listar",
                                         "type": "integer",
-                                        "example": "2021"
+                                        "example": "2022"
                                     }
                                 },
                                 "type": "object"
@@ -1662,12 +2049,39 @@
                 ]
             }
         },
+        "/api/contribution/list_years": {
+            "get": {
+                "tags": [
+                    "METODOS-GLOBALES-IMPORTACION"
+                ],
+                "summary": "OBTIENE EL LISTADO DE AÑOS CONSECUTIVAMENTE ",
+                "description": "Obtiene el listado de años de contribuciones de senasir de manera consecutiva hasta el año actual Ej 2022",
+                "operationId": "list_years",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/temporary/upload_copy_person_senasir": {
             "post": {
                 "tags": [
                     "IMPORTACION-IDS-PERSONAS-SENASIR"
                 ],
-                "summary": "PASO 1 COPIADO DE DATOS DE AFFILIADOS Y ESPOSAS SENASIR",
+                "summary": "PASO 1 COPIADO DE DATOS IMPORTACIÓN DE IDS SENASIR",
                 "description": "Copiado de datos del archivo de afiliados senasir a la tabla copy_person_senasirs",
                 "operationId": "upload_copy_person_senasir",
                 "requestBody": {
@@ -1707,40 +2121,13 @@
                 ]
             }
         },
-        "/api/temporary/update_affiliate_id_person_senasir": {
-            "post": {
-                "tags": [
-                    "IMPORTACION-IDS-PERSONAS-SENASIR"
-                ],
-                "summary": "PASO 2 COPIADO DE ID DE PERSONAS SENASIR DE TIPO VIUDEDAD Y CREACION DE AFILIADOS",
-                "description": "Importacion de afiliados y data de senasir ",
-                "operationId": "data_senasir_type_spouses",
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
         "/api/temporary/update_affiliate_id_senasir": {
             "post": {
                 "tags": [
                     "IMPORTACION-IDS-PERSONAS-SENASIR"
                 ],
-                "summary": "PASO 2 ACTUAIZACION DE CRITERIOS",
-                "description": "Importacion de afiliados y data de senasir ",
+                "summary": "PASO 2 ACTUALIZACIÓN DE IDS VERIFICACIÓN BAJO 5 CRITERIOS BASE",
+                "description": "Actualización  de ids senasir a la tabla affiliates bajo 5 criterios automaticos",
                 "operationId": "update_affiliate_id_senasir",
                 "responses": {
                     "200": {
@@ -1766,36 +2153,9 @@
                 "tags": [
                     "IMPORTACION-IDS-PERSONAS-SENASIR"
                 ],
-                "summary": "PASO 3 ACTUAIZACION DE CRITERIOS 6 y 7 REVISION MANUAL",
-                "description": "Importacion de afiliados y data de senasir ",
+                "summary": "PASO 3 ACTUALIZACIÓN DE CRITERIOS 6 y 7 REVISION MANUAL",
+                "description": "Actualización  de ids senasir a la tabla affiliates bajo 2 criterios de revisión manual",
                 "operationId": "update_affiliate_id_senasir_registration_and_identity_card",
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/api/temporary/update_affiliate_data": {
-            "post": {
-                "tags": [
-                    "IMPORTACION-IDS-PERSONAS-SENASIR"
-                ],
-                "summary": "PASO 5 ACTUAIZACION DE DATOS DEL AFILIADO",
-                "description": "Importacion de afiliados y data de senasir ",
-                "operationId": "update_affiliate_data",
                 "responses": {
                     "200": {
                         "description": "Success",
@@ -1820,9 +2180,36 @@
                 "tags": [
                     "IMPORTACION-IDS-PERSONAS-SENASIR"
                 ],
-                "summary": "PASO 4 CREACION DE AFILIADOS Y ESPOSAS SENASIR",
-                "description": "create_affiliate_spouse_senasir",
+                "summary": "PASO 4 CREACIÓN DE AFILIADOS Y ESPOSAS SENASIR",
+                "description": "Creación de afiliados y esposas senasir no encontrados en la tabla affiliates",
                 "operationId": "create_affiliate_spouse_senasir",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/temporary/update_affiliate_data": {
+            "post": {
+                "tags": [
+                    "IMPORTACION-IDS-PERSONAS-SENASIR"
+                ],
+                "summary": "PASO 5 ACTUALIZACIÓN DE DATOS DEL AFILIADO",
+                "description": "Actualización de datos del afiliado, matricula, fecha de nacimiento, fecha de fallecimiento, ente gestor, y el estado del afiliado",
+                "operationId": "update_affiliate_data",
                 "responses": {
                     "200": {
                         "description": "Success",

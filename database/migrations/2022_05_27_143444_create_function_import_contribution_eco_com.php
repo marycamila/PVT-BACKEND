@@ -65,7 +65,7 @@ return new class extends Migration
      return amount_month;
      end;
      $$;");
-  
+
   DB::statement("CREATE OR REPLACE FUNCTION public.change_state_valid(id_economic_complements bigint)
   returns character varying
   language plpgsql
@@ -74,23 +74,26 @@ return new class extends Migration
    count_reg numeric:= 0;
    message varchar;
    cur_contribution cursor for (
-   select
-       ec.id,
-       cp.id as contribution_id
-   from
-       economic_complements ec
-   inner join discount_type_economic_complement dtec
-   on
-       ec.id = dtec.economic_complement_id
-   inner join contribution_passives cp
-   on
-       cp.contributionable_id = dtec.id
-       and cp.contributionable_type = 'discount_type_economic_complement'
-   where
-       dtec.discount_type_id = 7
-       and ec.eco_com_state_id in (1, 2, 17, 18, 21, 26)
-       and is_valid is false
-       and ec.id = id_economic_complements);
+    select
+	    ec.id,
+	    cp.id as contribution_id
+    from
+    	economic_complements ec
+    inner join discount_type_economic_complement dtec
+    on
+    	ec.id = dtec.economic_complement_id
+    inner join eco_com_states ecs
+    on
+    	ec.eco_com_state_id = ecs.id
+    inner join contribution_passives cp
+    on
+    	cp.contributionable_id = dtec.id
+    	and cp.contributionable_type = 'discount_type_economic_complement'
+    where
+    	dtec.discount_type_id = 7
+    	and ecs.eco_com_state_type_id =1
+    	and is_valid is false
+    	and ec.id = id_economic_complements);
 
    begin
     --******************************************************************************--

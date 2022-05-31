@@ -65,6 +65,55 @@ return new class extends Migration
      return amount_month;
      end;
      $$;");
+  
+  DB::statement("CREATE OR REPLACE FUNCTION public.change_state_valid(id_economic_complements bigint)
+  returns character varying
+  language plpgsql
+   as $$
+   declare
+   count_reg numeric:= 0;
+   message varchar;
+   cur_contribution cursor for (
+   select
+       ec.id,
+       cp.id as contribution_id
+   from
+       economic_complements ec
+   inner join discount_type_economic_complement dtec
+   on
+       ec.id = dtec.economic_complement_id
+   inner join contribution_passives cp
+   on
+       cp.contributionable_id = dtec.id
+       and cp.contributionable_type = 'discount_type_economic_complement'
+   where
+       dtec.discount_type_id = 7
+       and ec.eco_com_state_id in (1, 2, 17, 18, 21, 26)
+       and is_valid is false
+       and ec.id = id_economic_complements);
+
+   begin
+    --******************************************************************************--
+    --Función para validar la contribución is_valid true tabla contribution_passives--
+    --******************************************************************************--
+
+      for record_row in cur_contribution loop
+
+   update
+       public.contribution_passives
+   set
+       user_id = 1,
+       is_valid = true,
+       updated_at = current_timestamp
+   where
+       contribution_passives.id = record_row.contribution_id;
+   count_reg:= count_reg + 1;
+   end loop;
+   message:=concat('Los aporte validados son: ',count_reg);
+   return message ;
+   end;
+   $$
+   ;");
     }
 
     /**

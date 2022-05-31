@@ -63,9 +63,12 @@ class CreateFunctionTmpContributionEcoCom extends Migration
         inner join eco_com_modalities ecm
         on
             ecm.id = ec.eco_com_modality_id
+        inner join eco_com_states ecs
+        on
+	        ec.eco_com_state_id = ecs.id
         where
             dtec.discount_type_id = 7
-            and ec.eco_com_state_id in (1, 2, 17, 18, 21, 26)
+            and ecs.eco_com_state_type_id = 1
             and ec.deleted_at is null);
 
         begin

@@ -10,7 +10,7 @@ Route::group([
 ], function () {
     // Rutas autenticadas con token
     Route::group([
-        'middleware' => ['auth:sanctum']
+        'middleware' => ['auth']
     ], function () {
         Route::apiResource('city', App\Http\Controllers\CityController::class)->only(['index', 'show']);
     });

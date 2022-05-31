@@ -15,7 +15,7 @@ Route::group([
     // Rutas abiertas
     // Rutas autenticadas con token
     Route::group([
-        'middleware' => ['auth:sanctum']
+        'middleware' => ['auth']
     ], function () {
         Route::get('update_users_ci', [App\Http\Controllers\Admin\UserController::class, 'update_users_ci']);//EJECUCION SOLO UNA VEZ
         Route::apiResource('/role', App\Http\Controllers\Admin\RoleController::class)->only(['index', 'show']);

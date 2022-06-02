@@ -118,7 +118,7 @@ return new class extends Migration
    $$
    ;");
 
-DB::statement("CREATE OR REPLACE FUNCTION public.contribution_eco_com(eco_com_procedure int)
+DB::statement("CREATE OR REPLACE FUNCTION public.import_contribution_eco_com(eco_com_procedure int)
 RETURNS character varying
 LANGUAGE plpgsql
 AS $$

@@ -117,6 +117,150 @@ return new class extends Migration
    end;
    $$
    ;");
+
+DB::statement("CREATE OR REPLACE FUNCTION public.import_contribution_eco_com(eco_com_procedure int)
+RETURNS character varying
+LANGUAGE plpgsql
+AS $$
+       declare
+       amount_semester numeric := 0;
+       sum_amount numeric;
+       amount_month numeric := 0;
+       quotable_amount numeric := 0;
+       amount_dignity_rent numeric := 0;
+       contribution_id int ;
+       rent_class varchar;
+       array_length_months integer;
+       _periods date[] := array[]::date[];
+       data_base_name varchar = 'discount_type_economic_complement';
+       message varchar;
+          dates varchar;
+       month_row RECORD;
+     
+   --Declaración del cursor
+       cur_discounts cursor for (
+       select
+           ec.id as eco_com_id,
+           ec.affiliate_id,
+           ec.total_rent,
+           ec.dignity_pension,
+           ec.eco_com_modality_id,
+           ec.eco_com_procedure_id ,
+           dtec.id as id_discont_type,
+           dtec.amount,
+           ecm.procedure_modality_id
+           from discount_type_economic_complement dtec
+               inner join economic_complements ec
+                   on ec.id = dtec.economic_complement_id
+               inner join eco_com_modalities ecm
+                   on ecm.id = ec.eco_com_modality_id
+           where  dtec.discount_type_id = 7		-- Amortización Auxilio Mortuorio
+               and ec.eco_com_procedure_id = eco_com_procedure 	-- id semestre recibido como parámetro
+               and ec.eco_com_state_id in (16)  	-- en proceso         
+               and ec.deleted_at is null
+                  and ec.wf_current_state_id =3);	 	-- área técnica
+       begin	        
+       --***********************************************************************************--
+       --Registro de contribuciones de los descuentos calculados para el auxilio mortorio--
+       --***********************************************************************************--
+       -- Procesa el cursor
+       for record_row in cur_discounts loop
+       --Declaración y asignación de información a variables
+           sum_amount := 0;
+           amount_month := (select discount_amount_month(record_row.id_discont_type));  --obtiene el aporte mensual
+                   if(record_row.dignity_pension is null) then amount_dignity_rent := 0;
+                   else amount_dignity_rent := record_row.dignity_pension;
+               end if;
+           quotable_amount := record_row.total_rent - amount_dignity_rent;
+           rent_class := (case
+                               when record_row.procedure_modality_id = 29 then 'VEJEZ'
+                               when record_row.procedure_modality_id = 30 then 'VIUDEDAD'
+                          end);
+           _periods :=(select get_periods_semester(record_row.eco_com_procedure_id)); -- obtiene los periodos de aporte de acuerdo al semestre
+           array_length_months := array_length(_periods, 1);
+      
+               --Realiza recorrido de meses
+               for i in 1.. array_length_months loop
+                   contribution_id := (select cp.id from contribution_passives cp
+                                       where cp.affiliate_id = record_row.affiliate_id and cp.month_year = _periods[i]::date);
+                                   
+                   if not exists(select cp.id from contribution_passives cp
+                                 where cp.affiliate_id = record_row.affiliate_id
+                                 and cp.month_year = _periods[i]::date
+                                 and cp.contributionable_type ='discount_type_economic_complement'
+                                 and cp.contributionable_id = record_row.id_discont_type) then		            
+                   --Creación de Nuevos aportes--
+                       insert
+                           into
+                               public.contribution_passives (user_id,
+                               affiliate_id,
+                               month_year,
+                               quotable,
+                               rent_pension,
+                               dignity_rent,
+                               interest,
+                               total,
+                               is_valid,
+                               affiliate_rent_class,
+                               contributionable_type,
+                               contributionable_id,
+                               created_at,
+                               updated_at)
+                           values(1,
+                               record_row.affiliate_id,
+                               _periods[i]::date,
+                               quotable_amount::numeric,
+                               record_row.total_rent::numeric,
+                               amount_dignity_rent::numeric,
+                               0::numeric,
+                               amount_month::numeric,
+                               false,
+                               rent_class::character varying,
+                               data_base_name::character varying,
+                               record_row.id_discont_type,
+                               current_timestamp,
+                               current_timestamp);
+       
+                   elsif ((select count(cp.id) from contribution_passives cp
+                                   where cp.affiliate_id = record_row.affiliate_id
+                                   and cp.month_year = _periods[i]::date
+                                   and cp.contributionable_type <> 'discount_type_economic_complement'
+                                and cp.contributionable_id <> record_row.id_discont_type) >= 1
+                                or (select count(cp.id) from contribution_passives cp
+                                   where cp.affiliate_id = record_row.affiliate_id
+                                   and cp.month_year = _periods[i]::date
+                                   and cp.contributionable_type = 'discount_type_economic_complement'
+                                and cp.contributionable_id = record_row.id_discont_type
+                                and amount_month<>cp.total)>=1) then
+                   
+               --Actualización de aportes--
+                          update public.contribution_passives
+                              set
+                               user_id = 1,
+                               quotable = quotable_amount::numeric,
+                               rent_pension = record_row.total_rent::numeric,
+                               dignity_rent = amount_dignity_rent::numeric,
+                               total = amount_month::numeric,
+                               is_valid = false,
+                               affiliate_rent_class = rent_class::character varying,
+                               contributionable_type = data_base_name::character varying,
+                               contributionable_id = record_row.id_discont_type,
+                               updated_at = current_timestamp
+                           where contribution_passives.id = contribution_id;
+                   end if;
+                   --para generar el ultimo aporte
+                   sum_amount = sum_amount + amount_month;
+                   if(i = 5) then
+                          amount_month := record_row.amount-sum_amount;
+                      end if;
+               end loop;
+       end loop;
+       message := 'Registro realizado exitosamente';
+       return message;
+       end;
+       $$;
+    ");
+
     }
 
     /**

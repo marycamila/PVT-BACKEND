@@ -673,7 +673,7 @@ class ImportPayrollCommandController extends Controller
         $data_cabeceras=array(array("ID_AFILIADO","ID_UNIDAD","ID_DESGLOSE","ID_CATEGORÍA","MES","AÑO","CARNET", 
         "APELLIDO PATERNO","APELLIDO MATERNO","AP_CASADA","PRIMER NOMBRE","SEGUNDO NOMBRE","ESTADO CIVIL","ID_JERARQUÍA","ID_GRADO","SEXO",
         "SUELDO BASE","BONO ANTIGUEDAD","BONO ESTUDIO","BONO A CARGO","BONO FRONTERA","BONO ORIENTE",
-        "TOTAL GANADO","MUSERPOL","LÍQUIDO PAGABLE","FECHA DE NACIMIENTO",
+        "TOTAL GANADO","MUSERPOL","LÍQUIDO PAGABLE","FECHA DE NACIMIENTO","FECHA DE INGRESO",
         "TIPO DE AFILIADO"));
 
         $date_payroll = Carbon::parse($request->date_payroll);
@@ -687,7 +687,7 @@ class ImportPayrollCommandController extends Controller
                                     array_push($data_cabeceras, array($row->affiliate_id ,$row->unit_id ,$row->breakdown_id ,$row->category_id ,
                                     $row->month_p, $row->year_p, $row->identity_card, $row->last_name , $row->mothers_last_name, $row->surname_husband, $row->first_name, $row->second_name, 
                                     $row->civil_status, $row->hierarchy_id, $row->degree_id, $row->gender, $row->base_wage, $row->seniority_bonus, $row->study_bonus, $row->position_bonus,
-                                    $row->border_bonus, $row->east_bonus, $row->gain, $row->total, $row->payable_liquid, $row->birth_date,
+                                    $row->border_bonus, $row->east_bonus, $row->gain, $row->total, $row->payable_liquid, $row->birth_date, $row->date_entry,
                                     $row->affiliate_type
                                 ));
                                 }

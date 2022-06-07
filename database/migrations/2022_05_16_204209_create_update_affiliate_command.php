@@ -44,7 +44,7 @@ return new class extends Migration
                        pc.first_name as pc_first_name,pc.second_name as pc_second_name,
                        pc.civil_status as pc_civil_status,pc.hierarchy_id as pc_hierarchy_id,pc.degree_id as pc_degree_id,
                        pc.gender as pc_gender,pc.birth_date as pc_birth_date,
-                       pc.date_entry as pc_date_entry,pc.affiliate_type as pc_affiliate_type from payroll_commands pc
+                       pc.date_entry as pc_date_entry,pc.affiliate_type as pc_affiliate_type, pc.base_wage as pc_base_wage, pc.seniority_bonus as pc_seniority_bonus from payroll_commands pc
                           inner join affiliates a on  pc.affiliate_id = a.id
                           where year_p = year_period and month_p = month_period
 
@@ -107,7 +107,7 @@ return new class extends Migration
                                 count_update:= count_update+1;
                           end if;
                          --categoria
-                        if record_row.category_id <> record_row.pc_category_id then
+                        if record_row.category_id <> record_row.pc_category_id and (record_row.pc_base_wage > 0 or record_row.pc_seniority_bonus > 0) then
                                  select name into category_name_old from categories c where id= record_row.category_id;
                               select name into category_name_new from categories c where id= record_row.pc_category_id;
 

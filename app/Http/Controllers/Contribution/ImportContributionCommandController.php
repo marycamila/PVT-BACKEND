@@ -58,7 +58,7 @@ class ImportContributionCommandController extends Controller
          $period_year = $request->get('period_year');
          $contributionable_type = 'payroll_commands';
 
-         $query = "SELECT distinct month_year, to_char( month_year, 'TMMonth') as period_month_name, extract(year from month_year) as period_year from contributions where deleted_at is null and (extract(year from month_year::timestamp)) = $period_year and contributionable_type = 'payroll_commands' group by month_year;";
+         $query = "SELECT distinct month_year, to_char( month_year, 'TMMonth') as period_month_name, extract(year from month_year) as period_year,extract(month from month_year) as period_month  from contributions where deleted_at is null and (extract(year from month_year::timestamp)) = $period_year and contributionable_type = 'payroll_commands' group by month_year;";
          $query = DB::select($query);
 
          $query_months = "select id as period_month ,name as period_month_name from months order by id asc";
@@ -67,7 +67,7 @@ class ImportContributionCommandController extends Controller
          foreach ($query_months as $month) {
             $month->state_importation = false;
             foreach ($query as $month_contribution) {
-                if($month->period_month_name == $month_contribution->period_month_name){
+                if($month->period_month == $month_contribution->period_month){
                     $month->state_importation = true;
                     break;
                 }

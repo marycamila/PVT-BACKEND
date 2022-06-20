@@ -66,7 +66,7 @@ return new class extends Migration
      end;
      $$;");
 
-  DB::statement("CREATE OR REPLACE FUNCTION public.change_state_valid(id_economic_complements bigint)
+  DB::statement("CREATE OR REPLACE FUNCTION public.change_state_valid(id_user bigint, id_economic_complements bigint)
   returns character varying
   language plpgsql
    as $$
@@ -105,7 +105,7 @@ return new class extends Migration
    update
        public.contribution_passives
    set
-       user_id = 1,
+       user_id = id_user,
        is_valid = true,
        updated_at = current_timestamp
    where
@@ -118,7 +118,7 @@ return new class extends Migration
    $$
    ;");
 
-DB::statement("CREATE OR REPLACE FUNCTION public.import_contribution_eco_com(eco_com_procedure int)
+DB::statement("CREATE OR REPLACE FUNCTION public.import_contribution_eco_com(id_user bigint, eco_com_procedure bigint)
 RETURNS character varying
 LANGUAGE plpgsql
 AS $$
@@ -206,7 +206,7 @@ AS $$
                                contributionable_id,
                                created_at,
                                updated_at)
-                           values(1,
+                           values(id_user,
                                record_row.affiliate_id,
                                _periods[i]::date,
                                quotable_amount::numeric,

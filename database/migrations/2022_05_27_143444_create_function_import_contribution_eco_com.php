@@ -289,7 +289,7 @@ AS $$
                --Actualización de aportes--
                           update public.contribution_passives
                               set
-                               user_id = 1,
+                               user_id = id_user,
                                quotable = quotable_amount::numeric,
                                rent_pension = record_row.total_rent::numeric,
                                dignity_rent = amount_dignity_rent::numeric,

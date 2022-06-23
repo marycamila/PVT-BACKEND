@@ -188,8 +188,8 @@ AS $$
        data_base_name varchar = 'discount_type_economic_complement';
        message varchar;
           dates varchar;
-        num_reg_economic_complement numeric : = 0;
-        num_reg_contribution_passives numeric : = 0;
+        num_reg_economic_complement numeric := 0;
+        num_reg_contribution_passives numeric := 0;
        month_row RECORD;
      
    --Declaración del cursor
@@ -312,7 +312,7 @@ AS $$
                end loop;
             num_reg_contribution_passives = num_reg_contribution_passives + 1;              
        end loop;       
-       message := 'Registro realizado exitosamente'||','|| num_reg_economic_complement||','||num_reg_contribution_passives;
+       message := 'Registro realizado exitosamente'||','||num_reg_economic_complement||','||num_reg_contribution_passives;
        return message;
        end;
        $$;

@@ -13,7 +13,7 @@ class CreateFunctionTmpContributionEcoCom extends Migration
      */
     public function up()
     {
-        DB::statement("CREATE OR REPLACE FUNCTION public.tmp_contribution_eco_com()
+        DB::statement("CREATE OR REPLACE FUNCTION public.tmp_contribution_eco_com(id_user bigint)
         returns character varying
         language plpgsql
         as $$
@@ -41,6 +41,9 @@ class CreateFunctionTmpContributionEcoCom extends Migration
         message varchar;
 
         dates varchar;
+        amount_economic_complement numeric;
+        amount_contribution_passive numeric;
+
 
         month_row RECORD;
         --Declaracio del cursor
@@ -140,7 +143,7 @@ class CreateFunctionTmpContributionEcoCom extends Migration
             contributionable_id,
             created_at,
             updated_at)
-        values(1,
+        values(id_user,
         record_row.affiliate_id,
         _periods[i]::date,
         quotable_amount::numeric,
@@ -167,7 +170,7 @@ class CreateFunctionTmpContributionEcoCom extends Migration
            update
             public.contribution_passives
         set
-            user_id = 1,
+            user_id = id_user,
             quotable = quotable_amount::numeric,
             rent_pension = record_row.total_rent::numeric,
             dignity_rent = amount_dignity_rent::numeric,
@@ -189,7 +192,23 @@ class CreateFunctionTmpContributionEcoCom extends Migration
         end loop;
         end loop;
 
-        message := 'Registro realizado exitosamente';
+        amount_economic_complement :=(
+        select sum(dtec.amount)
+        from discount_type_economic_complement dtec
+        inner join economic_complements ec
+        on ec.id = dtec.economic_complement_id
+        inner join eco_com_modalities ecm
+        on ecm.id = ec.eco_com_modality_id
+        inner join eco_com_states ecs
+        on ec.eco_com_state_id = ecs.id
+        where dtec.discount_type_id = 7
+        and ecs.eco_com_state_type_id = 1
+        and ec.deleted_at is null);
+
+        amount_contribution_passive:= (select sum(cp.total) from contribution_passives cp where is_valid is true);
+        
+
+        message := 'Registro realizado exitosamente'||','|| amount_economic_complement||','||amount_contribution_passive;
 
         return message;
         end;

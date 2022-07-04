@@ -78,7 +78,7 @@ class ImportContributionEcoComController extends Controller
     *      tags={"IMPORTACION-CONTRIBUCIONES-COMPLEMENTO-ECONÓMICO"},
     *      summary="CAMBIO DE ESTADO DE LA CONTRIBUCIÓN IS_VALID = TRUE",
     *      operationId="change_state_valid",
-    *      description="Cambio de estado de la contribucion en la tabla contribucio_passives el campo is_valid =  ture siempre y cuando el estado trámite de economic_complement cambia de estado 'En proceso' a 'Pagado'",
+    *      description="Cambio de estado en la tabla contribution_passives campo is_valid = true siempre y cuando el estado del trámite de economic_complement cambie de 'En proceso' a 'Pagado'",
     *       @OA\RequestBody(
     *          description= "Provide auth credentials",
     *          required=true,
@@ -138,7 +138,7 @@ class ImportContributionEcoComController extends Controller
     *      tags={"IMPORTACION-CONTRIBUCIONES-COMPLEMENTO-ECONÓMICO"},
     *      summary="CAMBIO DE ESTADO DE LA CONTRIBUCIÓN IS_VALID = false",
     *      operationId="change_state_valid_false",
-    *      description="Cambio de estado de la contribucion en la tabla contribucio_passives el campo is_valid =  false siempre y cuando el estado trámite de economic_complement cambia de estado 'Pagado' a 'En proceso'",
+    *      description="Cambio de estado en la tabla contribution_passives el campo is_valid = false siempre y cuando el estado trámite de economic_complement cambia de 'Pagado' a 'En proceso'",
     *       @OA\RequestBody(
     *          description= "Provide auth credentials",
     *          required=true,

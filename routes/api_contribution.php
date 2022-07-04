@@ -54,6 +54,9 @@ Route::group([
             Route::post('/report_import_contribution_command', [App\Http\Controllers\Contribution\ImportContributionCommandController::class, 'report_import_contribution_command']);
         });
         Route::post('/update_base_wages', [App\Http\Controllers\Contribution\ImportPayrollCommandController::class, 'update_base_wages']);
+        Route::post('/import_contribution_eco_com', [App\Http\Controllers\Contribution\ImportContributionEcoComController::class, 'import_contribution_eco_com']);
+        Route::post('/change_state_valid', [App\Http\Controllers\Contribution\ImportContributionEcoComController::class, 'change_state_valid']);
+        Route::post('/change_state_valid_false', [App\Http\Controllers\Contribution\ImportContributionEcoComController::class, 'change_state_valid_false']);
     });
 });
 

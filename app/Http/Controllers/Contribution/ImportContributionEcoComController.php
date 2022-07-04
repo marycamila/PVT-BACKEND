@@ -57,7 +57,7 @@ class ImportContributionEcoComController extends Controller
              'payload' => [
                 'successfully' => true,
                 'message_data' =>$data_contribution_eco_com[0],
-                'num__discount_type_economic_complement_process' =>$data_contribution_eco_com[2],
+                'num_discount_type_eco_com_process' =>$data_contribution_eco_com[2],
                 'num_contribution_passives_process' =>$data_contribution_eco_com[1],
             ]
         ]);

@@ -13,7 +13,7 @@ class CreateFunctionFormatIdentityCard extends Migration
      */
     public function up()
     {
-        DB::statement("CREATE OR REPLACE FUNCTION public.format_identity_card(value varchar)
+        DB::connection('db_aux')->statement("CREATE OR REPLACE FUNCTION public.format_identity_card(value varchar)
         RETURNS varchar
        AS $$
        DECLARE
@@ -37,6 +37,6 @@ class CreateFunctionFormatIdentityCard extends Migration
      */
     public function down()
     {
-        DB::statement("DROP FUNCTION format_identity_card");
+        DB::connection('db_aux')->statement("DROP FUNCTION format_identity_card");
     }
 }

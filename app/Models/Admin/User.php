@@ -9,6 +9,15 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Laratrust\Traits\LaratrustUserTrait;
 use Illuminate\Support\Facades\Hash;
+use App\Models\Contribution\AidContribution;
+use App\Models\Contribution\AidReimbursement;
+use App\Models\Contribution\Contribution;
+use App\Models\Contribution\ContributionProcess;
+use App\Models\Contribution\ContributionRate;
+use App\Models\Contribution\Reimbursement;
+use App\Models\Procedure\ProcedureRecord;
+use App\Models\Workflow\SequencesRecord;
+use App\Models\Workflow\WfRecord;
 
 class User extends Authenticatable
 {
@@ -82,4 +91,30 @@ class User extends Authenticatable
     {
         $this->attributes['password'] = Hash::make($value);
     }
+    
+    public function contribution_process()
+    {
+        return $this->hasMany(ContributionProcess::class);
+    }
+    public function aid_reimbursements()
+    {
+        return $this->hasMany(AidReimbursement::class);
+    }
+    public function aid_contributions()
+    {
+        return $this->hasMany(AidContribution::class);
+    }
+    public function procedure_records()
+	{
+		return $this->hasMany(ProcedureRecord::class);
+    }
+    public function sequences_records()
+	{
+		return $this->hasMany(SequencesRecord::class);
+    }
+    public function wf_records()
+	{
+		return $this->hasMany(WfRecord::class);
+    }
+
 }

@@ -4,6 +4,9 @@ namespace App\Models\Admin;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Procedure\ProcedureType;
+use App\Models\Workflow\Workflow;
+use App\Models\Workflow\WfState;
 
 class Module extends Model
 {
@@ -17,4 +20,17 @@ class Module extends Model
     {
         return $this->hasMany(Role::class);
     }
+    public function procedure_types()
+    {
+        return $this->hasMany(ProcedureType::class);
+    } 
+    public function workflows()
+	{
+		return $this->hasMany(Workflow::class);
+    }
+    public function wf_states()
+	{
+		return $this->hasMany(WfState::class);
+    }    
+
 }

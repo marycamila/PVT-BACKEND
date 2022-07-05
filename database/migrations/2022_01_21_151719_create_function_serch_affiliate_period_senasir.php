@@ -13,20 +13,20 @@ class CreateFunctionSerchAffiliatePeriodSenasir extends Migration
      */
     public function up()
     {
-        DB::statement(" CREATE OR REPLACE FUNCTION serch_affiliate_period_senasir(affiliate bigint, year_copy varchar)
+        DB::statement(" CREATE OR REPLACE FUNCTION serch_affiliate_period_senasir(affiliate bigint, year_copy date)
         RETURNS integer
         as $$
         DECLARE
-            id_contribution integer;
+        id_contribution_passive integer;
         begin
            --************************************************************************************
            --Funcion par buscar id de la contribucion de un afiliado de un periodo determinado
            --************************************************************************************ 
-            SELECT ac.id INTO id_contribution  FROM aid_contributions ac WHERE ac.affiliate_id = affiliate AND ac.month_year = year_copy;
-                IF id_contribution is NULL THEN
+            SELECT cp.id INTO id_contribution_passive  FROM contribution_passives cp WHERE cp.affiliate_id = affiliate AND cp.month_year = year_copy;
+                IF id_contribution_passive is NULL THEN
                     return 0;
                 ELSE
-                    RETURN  id_contribution;
+                    RETURN  id_contribution_passive;
                 END IF;
         end;
         $$ LANGUAGE 'plpgsql';

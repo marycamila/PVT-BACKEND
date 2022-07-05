@@ -46,7 +46,9 @@ class RouteServiceProvider extends ServiceProvider
                     require base_path('routes/api_admin.php');
                     require base_path('routes/api_global.php');
                     require base_path('routes/api_contribution.php');
+                    require base_path('routes/api_temporary.php');
                     require base_path('routes/api.php');
+                    require base_path('routes/api_affiliate.php');
                   });
             /* Route::middleware('web')
                 ->namespace($this->namespace)

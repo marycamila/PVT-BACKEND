@@ -326,7 +326,7 @@ class RoleController extends Controller
         $conditions = [];
 
         if ($id != '') array_push($conditions, array('id', '=', "{$id}"));
-        if ($operation_id != '') array_push($conditions, array('operation_id', '=', "%{$operation_id}%"));
+        if ($operation_id != '') array_push($conditions, array('operation_id', '=', $operation_id));
         if ($action_id != '') array_push($conditions, array('action_id', 'ilike', "%{$action_id}%"));
         if ($name != '') array_push($conditions, array('name', 'ilike', "%{$name}%"));
         if ($display_name != '') array_push($conditions, array('display_name', 'ilike', "%{$display_name}%"));

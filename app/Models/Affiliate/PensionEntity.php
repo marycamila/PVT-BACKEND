@@ -11,4 +11,9 @@ class PensionEntity extends Model
     public $timestamps = false;
     public $guarded = ['id'];
     protected $fillable = ['type','name'];
+
+    public function affiliates()
+    {
+        return $this->hasMany(Affiliate::class);
+    }
 }

@@ -13,8 +13,8 @@ class TmpImportContributionEcoComController extends Controller
            /**
     * @OA\Post(
     *      path="/api/temporary/tmp_import_contribution_eco_com",
-    *      tags={"IMPORTACION-CONTRIBUCIONES-COMPLEMENTO-ECONÓMICO"},
-    *      summary="IMPORTACIÓN DE APORTES POR EL DESCUENTOS YA REALIZADO POR COMPLEMENTO ECONÓMICO",
+    *      tags={"IMPORTACIÓN-APORTES-COMPLEMENTO-ECONÓMICO"},
+    *      summary="IMPORTACIÓN DE APORTES POR LOS DESCUENTOS YA REALIZADO POR COMPLEMENTO ECONÓMICO",
     *      operationId="tmp_import_contribution_eco_com",
     *      description="Registro de contribuciones de los descuentos ya realizados para el auxilio mortuorio",
     *     security={
@@ -41,7 +41,7 @@ class TmpImportContributionEcoComController extends Controller
     $user_id = Auth::user()->id;
     $data_contribution_eco_com =  DB::select("select tmp_contribution_eco_com($user_id)");
     $data_contribution_eco_com = explode(',',$data_contribution_eco_com[0]->tmp_contribution_eco_com);
-    $conunt_reg_contribution_passives =  DB::select("select count(*) from contribution_passives cp where is_valid is true");
+    $conunt_reg_contribution_passives =  DB::select("select count(*) from contribution_passives cp where contribution_state_id = 2");
     $count_reg_eco_comd =DB::select("select count(*) from discount_type_economic_complement dtec inner join economic_complements ec on ec.id = dtec.economic_complement_id
             inner join eco_com_modalities ecm on ecm.id = ec.eco_com_modality_id
             inner join eco_com_states ecs on ec.eco_com_state_id = ecs.id

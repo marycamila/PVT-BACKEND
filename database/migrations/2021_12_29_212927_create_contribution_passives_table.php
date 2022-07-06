@@ -26,8 +26,9 @@ class CreateContributionPassivesTable extends Migration
             $table->decimal('dignity_rent',13,2)->default(0)->comment('Renta dignidad');
             $table->decimal('interest',13,2)->default(0)->comment('Interes');
             $table->decimal('total',13,2)->default(0)->comment('Total aporte');
-            $table->boolean('is_valid')->default(false)->comment('Si el aporte es valido');
             $table->enum('affiliate_rent_class', ['VEJEZ', 'VIUDEDAD'])->default('VEJEZ')->comment('Tipo de Afiliado que realizo el Aporte');
+            $table->unsignedBigInteger('contribution_state_id')->unsigned();
+            $table->foreign('contribution_state_id')->references('id')->on('contribution_states');
             $table->nullableMorphs('contributionable'); // Campo para contribuiciones de aportes directos y complemento economico
             $table->timestamps();
             $table->softDeletes();

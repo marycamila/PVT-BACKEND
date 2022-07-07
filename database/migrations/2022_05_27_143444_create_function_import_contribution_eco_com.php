@@ -66,7 +66,7 @@ return new class extends Migration
      end;
      $$;");
 
-  DB::statement("CREATE OR REPLACE FUNCTION public.change_state_valid(id_user bigint, id_economic_complements bigint)
+  DB::statement("CREATE OR REPLACE FUNCTION public.change_state_contribution_paid_eco_com(id_user bigint, id_economic_complements bigint)
   returns character varying
   language plpgsql
    as $$
@@ -90,15 +90,15 @@ return new class extends Migration
     	cp.contributionable_id = dtec.id
     	and cp.contributionable_type = 'discount_type_economic_complement'
     where
-    	dtec.discount_type_id = 7
-    	and ecs.eco_com_state_type_id =1
-    	and is_valid is false
+    	dtec.discount_type_id = 7 --Descuento para Aporte Auxilio Mortuorio
+    	and ecs.eco_com_state_type_id = 1 --Estado Pagado del Tramite de Complemento Economico
+    	and contribution_state_id = 1 --Estado En proceso
     	and ec.id = id_economic_complements);
 
    begin
-    --******************************************************************************--
-    --Función para validar la contribución is_valid true tabla contribution_passives--
-    --******************************************************************************--
+    --************************************************************************************************--
+    --Función para validar la contribución Cambio de Estado a Pagado en la tabla contribution_passives--
+    --************************************************************************************************--
 
       for record_row in cur_contribution loop
 
@@ -106,7 +106,7 @@ return new class extends Migration
        public.contribution_passives
    set
        user_id = id_user,
-       is_valid = true,
+       contribution_state_id = 2::bigint,
        updated_at = current_timestamp
    where
        contribution_passives.id = record_row.contribution_id;
@@ -117,7 +117,7 @@ return new class extends Migration
    end;
    $$
    ;");
-  DB::statement("CREATE OR REPLACE FUNCTION public.change_state_valid_false(id_user bigint,id_economic_complements bigint)
+  DB::statement("CREATE OR REPLACE FUNCTION public.change_state_contribution_process_eco_com(id_user bigint,id_economic_complements bigint)
   returns character varying
   language plpgsql
   AS $$
@@ -142,12 +142,12 @@ return new class extends Migration
     where
         dtec.discount_type_id = 7
         and ec.eco_com_state_id in (16)
-        and is_valid is true
+        and contribution_state_id = 2--Pagado
         and ec.id = id_economic_complements);
 
     begin
         --******************************************************************************--
-        --Función para validar la contribución is_valid false tabla contribution_passives--
+        --Función para validar la contribución de Pagado a en Proceso tabla contribution_passives--
         --******************************************************************************--
        for record_row in cur_contribution loop
 
@@ -155,7 +155,7 @@ return new class extends Migration
         public.contribution_passives
     set
         user_id = id_user,
-        is_valid = false,
+        contribution_state_id = 1,-- En Proceso
         updated_at = current_timestamp
     where
         contribution_passives.id = record_row.contribution_id;
@@ -163,7 +163,7 @@ return new class extends Migration
     count_reg := count_reg + 1;
     end loop;
 
-    message := concat('Los aporte que cambiaron de estado is_valid false son: ', count_reg);
+    message := concat('Los aporte que cambiaron de estado En Proceso son: ', count_reg);
 
     return message ;
     end;
@@ -187,9 +187,9 @@ AS $$
        _periods date[] := array[]::date[];
        data_base_name varchar = 'discount_type_economic_complement';
        message varchar;
-          dates varchar;
-        num_reg_economic_complement numeric := 0;
-        num_reg_contribution_passives numeric := 0;
+       dates varchar;
+       num_reg_economic_complement numeric := 0;
+       num_reg_contribution_passives numeric := 0;
        month_row RECORD;
      
    --Declaración del cursor
@@ -213,7 +213,7 @@ AS $$
                and ec.eco_com_procedure_id = eco_com_procedure 	-- id semestre recibido como parámetro
                and ec.eco_com_state_id in (16)  	-- en proceso         
                and ec.deleted_at is null
-                  and ec.wf_current_state_id =3);	 	-- área técnica
+               and ec.wf_current_state_id =3);	 	-- área técnica
        begin	        
        --***********************************************************************************--
        --Registro de contribuciones de los descuentos calculados para el auxilio mortorio--
@@ -232,7 +232,7 @@ AS $$
                                when record_row.procedure_modality_id = 30 then 'VIUDEDAD'
                           end);
            _periods :=(select get_periods_semester(record_row.eco_com_procedure_id)); -- obtiene los periodos de aporte de acuerdo al semestre
-           array_length_months := array_length(_periods, 1);
+           array_length_months := array_length(_periods, 1); -- numero de meses
       
                --Realiza recorrido de meses
                for i in 1.. array_length_months loop
@@ -255,8 +255,8 @@ AS $$
                                dignity_rent,
                                interest,
                                total,
-                               is_valid,
                                affiliate_rent_class,
+                               contribution_state_id,
                                contributionable_type,
                                contributionable_id,
                                created_at,
@@ -269,8 +269,8 @@ AS $$
                                amount_dignity_rent::numeric,
                                0::numeric,
                                amount_month::numeric,
-                               false,
                                rent_class::character varying,
+                               1::bigint,--Estado En Proceso,
                                data_base_name::character varying,
                                record_row.id_discont_type,
                                current_timestamp,
@@ -296,8 +296,8 @@ AS $$
                                rent_pension = record_row.total_rent::numeric,
                                dignity_rent = amount_dignity_rent::numeric,
                                total = amount_month::numeric,
-                               is_valid = false,
                                affiliate_rent_class = rent_class::character varying,
+                               contribution_state_id = 1::bigint,--Estado En Proceso
                                contributionable_type = data_base_name::character varying,
                                contributionable_id = record_row.id_discont_type,
                                updated_at = current_timestamp

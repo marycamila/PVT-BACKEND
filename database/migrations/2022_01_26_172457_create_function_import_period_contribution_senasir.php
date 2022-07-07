@@ -26,9 +26,9 @@ class CreateFunctionImportPeriodContributionSenasir extends Migration
                  --***************************************
                  -- Procesa el cursor
                  FOR registro IN cur_contribution loop
-                 --actualizacion de Contribuciones
-                 PERFORM contribution_affiliate_senasir_create_or_update(registro.affiliate_id,year_copy,user_reg,registro.id::INTEGER);
-                 --actualizacion o creacion de esposa y actualizacion de algunos datos del afiliado
+                 --creación de Contribuciones
+                 PERFORM create_contribution_senasir(registro.affiliate_id,year_copy,user_reg,registro.id::INTEGER);
+                 --actualizacion o creación de esposa y actualizacion de algunos datos del afiliado
                  PERFORM update_or_create_spouse_and_update_affiliate(registro.affiliate_id,user_reg,registro.id::INTEGER);
 
                  END LOOP;

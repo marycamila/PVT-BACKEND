@@ -80,7 +80,7 @@ class CreateFunctionTmpContributionEcoCom extends Migration
         --***********************************************************************************--
         -- Procesa el cursor
               for record_row in cur_discounts loop
-        --Declaracio y asigno información a variables
+        --Declaración y asignación de información a variables
         sum_amount := 0;
 
         amount_month := (
@@ -106,7 +106,7 @@ class CreateFunctionTmpContributionEcoCom extends Migration
             get_periods_semester(record_row.eco_com_procedure_id));
 
         array_length_months := array_length(_periods, 1);
-        --Realiza recorrido de meses
+        --Realiza recorrido de los 6 meses
         for i in 1.. array_length_months loop
 
         contribution_id := (
@@ -126,7 +126,7 @@ class CreateFunctionTmpContributionEcoCom extends Migration
         where
             cp.affiliate_id = record_row.affiliate_id
             and cp.month_year = _periods[i]::date) then
-        --Creacio de Nuevos aportes--
+        --Creación de Nuevos aportes--
         insert
             into
             public.contribution_passives (user_id,
@@ -137,8 +137,8 @@ class CreateFunctionTmpContributionEcoCom extends Migration
             dignity_rent,
             interest,
             total,
-            is_valid,
             affiliate_rent_class,
+            contribution_state_id,
             contributionable_type,
             contributionable_id,
             created_at,
@@ -151,8 +151,8 @@ class CreateFunctionTmpContributionEcoCom extends Migration
         amount_dignity_rent::numeric,
         0::numeric,
         amount_month::numeric,
-        true,
         rent_class::character varying,
+        2::bigint,---Estado Pagado
         data_base_name::character varying,
         record_row.id_discont_type,
         current_timestamp,
@@ -175,8 +175,8 @@ class CreateFunctionTmpContributionEcoCom extends Migration
             rent_pension = record_row.total_rent::numeric,
             dignity_rent = amount_dignity_rent::numeric,
             total = amount_month::numeric,
-            is_valid = true,
             affiliate_rent_class = rent_class::character varying,
+            contribution_state_id = 2::bigint,--Estado Pagado
             contributionable_type = data_base_name::character varying,
             contributionable_id = record_row.id_discont_type,
             updated_at = current_timestamp
@@ -205,7 +205,7 @@ class CreateFunctionTmpContributionEcoCom extends Migration
         and ecs.eco_com_state_type_id = 1
         and ec.deleted_at is null);
 
-        amount_contribution_passive:= (select sum(cp.total) from contribution_passives cp where is_valid is true);
+        amount_contribution_passive:= (select sum(cp.total) from contribution_passives cp where contribution_state_id = 2::bigint);
         
 
         message := 'Registro realizado exitosamente'||','|| amount_economic_complement||','||amount_contribution_passive;

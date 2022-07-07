@@ -12,7 +12,7 @@ class ImportContributionEcoComController extends Controller
       /**
     * @OA\Post(
     *      path="/api/contribution/import_contribution_eco_com",
-    *      tags={"IMPORTACION-CONTRIBUCIONES-COMPLEMENTO-ECONÓMICO"},
+    *      tags={"IMPORTACIÓN-APORTES-COMPLEMENTO-ECONÓMICO"},
     *      summary="IMPORTACIÓN DE APORTES POR EL DESCUENTOS DE COMPLEMENTO ECONÓMICO POR SEMESTRE",
     *      operationId="import_contribution_eco_com",
     *      description="Registro de contribuciones de los descuentos por semestre para el auxilio mortuorio",
@@ -74,11 +74,11 @@ class ImportContributionEcoComController extends Controller
     }
       /**
     * @OA\Post(
-    *      path="/api/contribution/change_state_valid",
-    *      tags={"IMPORTACION-CONTRIBUCIONES-COMPLEMENTO-ECONÓMICO"},
-    *      summary="CAMBIO DE ESTADO DE LA CONTRIBUCIÓN IS_VALID = TRUE",
-    *      operationId="change_state_valid",
-    *      description="Cambio de estado en la tabla contribution_passives campo is_valid = true siempre y cuando el estado del trámite de economic_complement cambie de 'En proceso' a 'Pagado'",
+    *      path="/api/contribution/change_state_contribution_paid_eco_com",
+    *      tags={"IMPORTACIÓN-APORTES-COMPLEMENTO-ECONÓMICO"},
+    *      summary="CAMBIO DE ESTADO DE LA CONTRIBUCIÓN DE EN PROCESO A PAGODO ",
+    *      operationId="change_state_contribution_paid_eco_com",
+    *      description="Cambio de estado en la tabla contribution_passives a pagado siempre y cuando el estado del trámite de economic_complement cambie de 'En proceso' a 'Pagado'",
     *       @OA\RequestBody(
     *          description= "Provide auth credentials",
     *          required=true,
@@ -105,20 +105,20 @@ class ImportContributionEcoComController extends Controller
     * @return void
    */
 
-    public function change_state_valid(Request $request){
+    public function change_state_contribution_paid_eco_com(Request $request){
     $request->validate([
         'economic_complemnt_id' => 'required|numeric',
     ]);
     DB::beginTransaction();
     try{
     $user_id = Auth::user()->id;
-    $data_contribution_eco_com =  DB::select("select change_state_valid($user_id,$request->economic_complemnt_id)");
+    $data_contribution_eco_com =  DB::select("select change_state_contribution_paid_eco_com($user_id,$request->economic_complemnt_id)");
     DB::commit();
         return response()->json([
             'message' => 'Realizado con éxito',
              'payload' => [
                 'successfully' => true,
-                'message_data' =>$data_contribution_eco_com[0]->change_state_valid,
+                'message_data' =>$data_contribution_eco_com[0]->change_state_contribution_paid_eco_com,
             ]
         ]);
     }catch(Exception $e){
@@ -134,11 +134,11 @@ class ImportContributionEcoComController extends Controller
     }
     /**
     * @OA\Post(
-    *      path="/api/contribution/change_state_valid_false",
-    *      tags={"IMPORTACION-CONTRIBUCIONES-COMPLEMENTO-ECONÓMICO"},
-    *      summary="CAMBIO DE ESTADO DE LA CONTRIBUCIÓN IS_VALID = false",
-    *      operationId="change_state_valid_false",
-    *      description="Cambio de estado en la tabla contribution_passives el campo is_valid = false siempre y cuando el estado trámite de economic_complement cambia de 'Pagado' a 'En proceso'",
+    *      path="/api/contribution/change_state_contribution_process_eco_com",
+    *      tags={"IMPORTACIÓN-APORTES-COMPLEMENTO-ECONÓMICO"},
+    *      summary="CAMBIO DE ESTADO DE LA CONTRIBUCIÓN DE PAGADO A EN PROCESO",
+    *      operationId="change_state_contribution_process_eco_com",
+    *      description="Cambio de estado en la tabla contribution_passives en proceso siempre y cuando el estado trámite de economic_complement cambia de 'Pagado' a 'En proceso'",
     *       @OA\RequestBody(
     *          description= "Provide auth credentials",
     *          required=true,
@@ -165,20 +165,20 @@ class ImportContributionEcoComController extends Controller
     * @return void
    */
 
-   public function change_state_valid_false(Request $request){
+   public function change_state_contribution_process_eco_com(Request $request){
     $request->validate([
         'economic_complemnt_id' => 'required|numeric',
     ]);
     DB::beginTransaction();
     try{
     $user_id = Auth::user()->id;
-    $data_contribution_eco_com =  DB::select("select change_state_valid_false($user_id,$request->economic_complemnt_id)");
+    $data_contribution_eco_com =  DB::select("select change_state_contribution_process_eco_com($user_id,$request->economic_complemnt_id)");
     DB::commit();
         return response()->json([
             'message' => 'Realizado con éxito',
              'payload' => [
                 'successfully' => true,
-                'message_data' =>$data_contribution_eco_com[0]->change_state_valid_false,
+                'message_data' =>$data_contribution_eco_com[0]->change_state_contribution_process_eco_com,
             ]
         ]);
     }catch(Exception $e){

@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateFunctionContributionAffiliateSenasirCreateOrUpdate extends Migration
+class CreateFunctionCreateContributionSenasir extends Migration
 {
     /**
      * Run the migrations.
@@ -36,8 +36,8 @@ class CreateFunctionContributionAffiliateSenasirCreateOrUpdate extends Migration
                         end
                     as affiliate_rent_class,2 as contribution_state_id,'payroll_senasirs'::character varying as contributionable_type, payroll_senasir_id as contributionable_id from payroll_senasirs pvs
                     WHERE id=payroll_senasir_id;
-             RETURN type_acction ;
             END IF;
+            RETURN type_acction ;
         end;
         $$ LANGUAGE 'plpgsql'
        ");

@@ -205,7 +205,7 @@ class CreateFunctionTmpContributionEcoCom extends Migration
         and ecs.eco_com_state_type_id = 1
         and ec.deleted_at is null);
 
-        amount_contribution_passive:= (select sum(cp.total) from contribution_passives cp where contribution_state_id = 2::bigint);
+        amount_contribution_passive:= (select sum(cp.total) from contribution_passives cp where contribution_state_id = 2::bigint and cp.contributionable_type='discount_type_economic_complement');
         
 
         message := 'Registro realizado exitosamente'||','|| amount_economic_complement||','||amount_contribution_passive;

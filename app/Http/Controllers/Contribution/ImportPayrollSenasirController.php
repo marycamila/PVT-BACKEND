@@ -549,7 +549,7 @@ class ImportPayrollSenasirController extends Controller
         foreach ($query_months as $month) {
            $month->state_importation = false;
            foreach ($query as $month_payroll) {
-               if($month->period_month_name == $month_payroll->period_month_name){
+               if($month->period_month == $month_payroll->month_p){
                    $month->state_importation = true;
                    break;
                }

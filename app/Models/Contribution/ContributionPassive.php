@@ -25,8 +25,8 @@ class ContributionPassive extends Model
         'total',
         'affiliate_contribution',
         'mortuary_aid',
-        'contribution_state_id',
         'affiliate_rent_class',
+        'contribution_state_id',
         'contributionable_type',
         'contributionable_id'
 

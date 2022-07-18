@@ -5,24 +5,17 @@ namespace App\Models\Affiliate;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\City;
+use App\Models\Affiliate;
+
+use Util;
 
 class Address extends Model
 {
     use HasFactory;
     public $timestamps = true;
     protected $table = "addresses";
-    public $guarded = ['id'];
-    protected $fillable = [
-        'city_address_id',
-        'zone',
-        'street',
-        'number_address',
-        'created_at',
-        'updated_at',
-        'latitude',
-        'longitude',
-        'description'
-    ];
+    public $guarded = [];
+
     protected $attributes = array(
         'city_address_id' => null,
         'zone' => null,
@@ -34,8 +27,12 @@ class Address extends Model
     {
         return $this->belongsTo(City::class,'city_address_id','id');
     }
+    public function cityName()
+    {
+        return $this->city->name;
+    }
     public function affiliate()
     {
-    	return $this->morphTo(Affiliate::class);
+    	return $this->belongsToMany(Affiliate::class);
     }
 }

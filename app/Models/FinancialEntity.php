@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Affiliate\Affiliate;
+use App\Models\Loan\Loan;
 
 class FinancialEntity extends Model
 {
@@ -20,5 +21,9 @@ class FinancialEntity extends Model
     public function affiliates()
     {
         return $this->hasMany(Affiliate::class);
+    }
+    public function loans()
+    {
+        return $this->hasMany(Loan::class);
     }
 }

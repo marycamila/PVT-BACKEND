@@ -2,9 +2,11 @@
 
 namespace App\Models\Affiliate;
 
+use App\Http\Controllers\Affiliate\AffiliateController;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use App\Models\FinancialEntity;
 use App\Models\Contribution\PayrollSenasir;
 use App\Models\Admin\User;
@@ -18,8 +20,9 @@ use App\Models\Contribution\PayrollCommand;
 class Affiliate extends Model
 {
     use HasFactory;
+
     public $timestamps = true;
-    public $guarded = ['id'];
+    public $relationships = ['City'];
     protected $fillable = [
         'user_id',
         'affiliate_state_id',
@@ -101,7 +104,7 @@ class Affiliate extends Model
     }
     public function addresses()
     {
-        return $this->morphToMany(Address::class, 'addressable')->withTimestamps()->latest('updated_at');
+      return $this->morphToMany(Address::class, 'addressable')->withPivot('validated')->withTimestamps()->latest('updated_at');
     }
     public function payroll_command()
     {

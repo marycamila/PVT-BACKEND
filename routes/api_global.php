@@ -8,6 +8,8 @@ Route::group([
     'middleware' => 'api',
     'prefix' => 'global'
 ], function () {
+    //Rutas abiertas
+    Route::get('procedure_qr', [App\Http\Controllers\ProcedureQRController::class, 'procedure_qr']);
     // Rutas autenticadas con token
     Route::group([
         'middleware' => ['auth:sanctum']

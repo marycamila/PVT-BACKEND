@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Affiliate\Affiliate;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -17,6 +18,6 @@ class AffiliateToken extends Model
         'firebase_token'
     ];
     public function affiliate(){
-        return $this->hasOne(Affiliate::class);
+        return $this->belongsTo(Affiliate::class);
     }
 }

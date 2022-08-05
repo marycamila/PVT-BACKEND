@@ -15,7 +15,7 @@ class AffiliateUser extends Model
         'affiliate_token_id',
         'username',
         'password',
-        'change_password'
+        'access_status'
     ];
     protected $primaryKey = 'affiliate_token_id';
     public $incrementing = false;

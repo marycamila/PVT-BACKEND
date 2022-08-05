@@ -59,6 +59,7 @@ class ProcedureQRController extends Controller
      * @param Request $request
      * @return void
      */
+
     public function procedure_qr(Request $request,$module_id,$uuid)
     {   
         $request['module_id'] = $module_id;
@@ -89,7 +90,6 @@ class ProcedureQRController extends Controller
 
                 $role = Role::find($data->role_id);
                 $data->module_display_name = $module->display_name;
-                $data->code = $data->code;
                 $data->state_name = $state->name;
                 $data->procedure_modality_name = $procedure->name;
                 $data->procedure_type_name = $type;
@@ -118,15 +118,15 @@ class ProcedureQRController extends Controller
                     ]);  
                 }
 
-                $wfstate = WfState::find($data->wf_state_current_id);
+                $wfstate = WfState::find($data->wf_state_current_id)->role_id;
+                $role = Role::find($wfstate);
                 $data->module_display_name = $module->display_name;
-                $data->code = $data->code;
                 $data->state_name = $state->name;
                 $data->procedure_modality_name = $procedure->name;
                 $data->procedure_type_name = $type;
                 $data->title = $title;
                 $data->person = $person;
-                $data->location = $wfstate->name;
+                $data->location = $role->display_name;
                 $data->validated = $data->inbox_state;
                 break;
             
@@ -149,16 +149,15 @@ class ProcedureQRController extends Controller
                         'identity_card' => $beneficiary->identity_card,                     
                     ]);  
                 }
-
-                $wfstate = WfState::find($data->wf_state_current_id);
+                $wfstate = WfState::find($data->wf_state_current_id)->role_id;
+                $role = Role::find($wfstate);
                 $data->module_display_name = $module->display_name;
-                $data->code = $data->code;
                 $data->state_name = $state->name;
                 $data->procedure_modality_name = $procedure->name;
                 $data->procedure_type_name = $type;
                 $data->title = $title;
                 $data->person = $person;
-                $data->location = $wfstate->name;
+                $data->location = $role->display_name;
                 $data->validated = $data->inbox_state;
                 break;
 

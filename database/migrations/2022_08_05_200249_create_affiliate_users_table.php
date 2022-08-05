@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreign('affiliate_token_id')->references('id')->on('affiliate_tokens');
             $table->string('username')->comment('Usuario');
             $table->string('password')->comment('Contraseña');
-            $table->boolean('change_password')->default(false)->comment('Cambio de contraseña');
+            $table->enum('access_status', ['Activo', 'Inactivo', 'Pendiente'])->default('Pendiente')->comment('Estado del acceso'); 
             $table->timestamps();
         });
     }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Admin\Module;
 use App\Models\Admin\Role;
+use App\Models\Admin\RoleSequence;
 use App\Models\Loan\Loan;
 use App\Models\Loan\LoanBorrower;
 use App\Models\Loan\LoanState;
@@ -30,7 +31,7 @@ class ProcedureQRController extends Controller
      *         in="path",
      *         description="",
      *         example=6,
-     * 
+     *
      *         required=true,
      *         @OA\Schema(
      *             type="integer",
@@ -44,7 +45,7 @@ class ProcedureQRController extends Controller
      *         example="cc2f6a58-9ea8-46f3-94df-c3e61aa3bbcc",
      *         required=true,
      *       ),
-     * 
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Success",
@@ -59,9 +60,19 @@ class ProcedureQRController extends Controller
      * @param Request $request
      * @return void
      */
-
+    public static function get_porcentage($id,$state){
+        if ($state!=90) {
+            $flow=RoleSequence::Where('procedure_type_id',$id)->where('role_id',$state)->first();
+            $cant_flujos = count(RoleSequence::where('procedure_type_id',$id)->get())+1;
+            $porcentage=(100*$flow->sequence_number_flow)/$cant_flujos;
+        }
+        else {
+            $porcentage=100;
+        }
+        return $porcentage;
+    }
     public function procedure_qr(Request $request,$module_id,$uuid)
-    {   
+    {
         $request['module_id'] = $module_id;
         $request['uuid'] = $uuid;
         $request->validate([
@@ -80,15 +91,16 @@ class ProcedureQRController extends Controller
                 $procedure = ProcedureModality::find($data->procedure_modality_id);
                 $type = Loan::find($data->id)->modality->procedure_type->name;
                 $title = "Prestatario(a)";
-                
+
                 $borrower = LoanBorrower::where('loan_id',$data->id)->first();
 
                     $person->push([
                         'full_name' => $borrower->fullName,
-                        'identity_card' => $borrower->identity_card,                     
-                    ]);  
+                        'identity_card' => $borrower->identity_card,
+                    ]);
 
                 $role = Role::find($data->role_id);
+                $RoleSeq=Loan::find($data->id)->modality->procedure_type->id;
                 $data->module_display_name = $module->display_name;
                 $data->state_name = $state->name;
                 $data->procedure_modality_name = $procedure->name;
@@ -96,6 +108,7 @@ class ProcedureQRController extends Controller
                 $data->title = $title;
                 $data->person = $person;
                 $data->location =$role->display_name;
+                $data->porcentage= $this->get_porcentage($RoleSeq,$role->id);
                 break;
 
             case 4:
@@ -114,8 +127,8 @@ class ProcedureQRController extends Controller
                 foreach($beneficiaries as $beneficiary){
                     $person->push([
                         'full_name' => $beneficiary->fullName,
-                        'identity_card' => $beneficiary->identity_card,                     
-                    ]);  
+                        'identity_card' => $beneficiary->identity_card,
+                    ]);
                 }
 
                 $wfstate = WfState::find($data->wf_state_current_id)->role_id;
@@ -129,7 +142,7 @@ class ProcedureQRController extends Controller
                 $data->location = $role->display_name;
                 $data->validated = $data->inbox_state;
                 break;
-            
+
             case 3:
                 $request->validate([
                     'uuid' => 'required|uuid|exists:retirement_funds,uuid'
@@ -146,8 +159,8 @@ class ProcedureQRController extends Controller
                 foreach($beneficiaries as $beneficiary){
                     $person->push([
                         'full_name' => $beneficiary->fullName,
-                        'identity_card' => $beneficiary->identity_card,                     
-                    ]);  
+                        'identity_card' => $beneficiary->identity_card,
+                    ]);
                 }
                 $wfstate = WfState::find($data->wf_state_current_id)->role_id;
                 $role = Role::find($wfstate);
@@ -176,9 +189,10 @@ class ProcedureQRController extends Controller
                 'procedure_type_name' => $data->procedure_type_name,
                 'location' => $data->location,
                 'validated' => $data-> validated,
-                'state_name' => $data->state_name
+                'state_name' => $data->state_name,
+                'porcentage' => $data->porcentage
             ],
         ]);
     }
- 
+
 }

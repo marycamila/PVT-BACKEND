@@ -20,6 +20,17 @@ use Illuminate\Http\Request;
 
 class ProcedureQRController extends Controller
 {
+    public static function get_porcentage_loan($id,$state){
+        if ($state!=90) {
+            $flow=RoleSequence::Where('procedure_type_id',$id)->where('role_id',$state)->first();
+            $number_flows = count(RoleSequence::where('procedure_type_id',$id)->get())+1;
+            $porcentage=(100*$flow->sequence_number_flow)/$number_flows;
+        }
+        else {
+            $porcentage=100;
+        }
+        return $porcentage;
+    }
  /**
      * @OA\Get(
      *     path="/api/global/procedure_qr/{module_id}/{uuid}",
@@ -60,17 +71,7 @@ class ProcedureQRController extends Controller
      * @param Request $request
      * @return void
      */
-    public static function get_porcentage($id,$state){
-        if ($state!=90) {
-            $flow=RoleSequence::Where('procedure_type_id',$id)->where('role_id',$state)->first();
-            $cant_flujos = count(RoleSequence::where('procedure_type_id',$id)->get())+1;
-            $porcentage=(100*$flow->sequence_number_flow)/$cant_flujos;
-        }
-        else {
-            $porcentage=100;
-        }
-        return $porcentage;
-    }
+
     public function procedure_qr(Request $request,$module_id,$uuid)
     {
         $request['module_id'] = $module_id;
@@ -108,7 +109,7 @@ class ProcedureQRController extends Controller
                 $data->title = $title;
                 $data->person = $person;
                 $data->location =$role->display_name;
-                $data->porcentage= $this->get_porcentage($RoleSeq,$role->id);
+                $data->porcentage= $this->get_porcentage_loan($RoleSeq,$role->id);
                 break;
 
             case 4:

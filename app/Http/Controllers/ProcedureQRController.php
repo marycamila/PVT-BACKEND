@@ -133,6 +133,7 @@ class ProcedureQRController extends Controller
                 }
 
                 $wfstate = WfState::find($data->wf_state_current_id)->role_id;
+                $wfseq = WfState::find($data->wf_state_current_id)->sequence_number;
                 $role = Role::find($wfstate);
                 $data->module_display_name = $module->display_name;
                 $data->state_name = $state->name;
@@ -142,6 +143,7 @@ class ProcedureQRController extends Controller
                 $data->person = $person;
                 $data->location = $role->display_name;
                 $data->validated = $data->inbox_state;
+                $data->porcentage = $this->getPercentage($module_id, $wfseq);
                 break;
 
             case 3:
@@ -164,6 +166,7 @@ class ProcedureQRController extends Controller
                     ]);
                 }
                 $wfstate = WfState::find($data->wf_state_current_id)->role_id;
+                $wfseq = WfState::find($data->wf_state_current_id)->sequence_number;
                 $role = Role::find($wfstate);
                 $data->module_display_name = $module->display_name;
                 $data->state_name = $state->name;
@@ -173,6 +176,7 @@ class ProcedureQRController extends Controller
                 $data->person = $person;
                 $data->location = $role->display_name;
                 $data->validated = $data->inbox_state;
+                $data->porcentage = $this->getPercentage($module_id, $wfseq);
                 break;
 
             default:
@@ -189,11 +193,20 @@ class ProcedureQRController extends Controller
                 'procedure_modality_name' => $data->procedure_modality_name,
                 'procedure_type_name' => $data->procedure_type_name,
                 'location' => $data->location,
-                'validated' => $data-> validated,
+                'validated' => $data->validated,
                 'state_name' => $data->state_name,
                 'porcentage' => $data->porcentage
             ],
         ]);
     }
 
+    public function getPercentage($module_id, $wfseq)
+    {
+        $list = WfState::where('module_id', $module_id)
+            ->where('sequence_number', '<>', 0)
+            ->get();
+        $count = $list->count() - 1;
+        $percentage = round((100 * $wfseq) / $count);
+        return $percentage;
+    }
 }

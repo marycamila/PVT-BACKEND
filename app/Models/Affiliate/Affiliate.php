@@ -2,19 +2,15 @@
 
 namespace App\Models\Affiliate;
 
-use App\Http\Controllers\Affiliate\AffiliateController;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use App\Models\FinancialEntity;
 use App\Models\Contribution\PayrollSenasir;
 use App\Models\Admin\User;
-use App\Models\Contribution\AidContribution;
-use App\Models\Contribution\AidReimbursement;
 use App\Models\Contribution\Contribution;
 use App\Models\Contribution\Reimbursement;
 use App\Models\Affiliate\Address;
+use App\Models\Affiliate\AffiliateToken;
 use App\Models\Contribution\PayrollCommand;
 
 class Affiliate extends Model
@@ -108,6 +104,14 @@ class Affiliate extends Model
     }
     public function payroll_command()
     {
-        return $this->hasMany(PayrollSenasir::class);
+        return $this->hasMany(PayrollCommand::class);
+    }
+    public function spouse()
+    {
+        return $this->hasOne(Spouse::class);
+    }
+    public function affiliate_token()
+    {
+        return $this->hasOne(AffiliateToken::class,'affiliate_id','id');
     }
 }

@@ -2,15 +2,18 @@
 
 namespace App\Models\Affiliate;
 
+use App\Helpers\Util;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\FinancialEntity;
 use App\Models\Contribution\PayrollSenasir;
 use App\Models\Admin\User;
+use App\Models\Affiliate\Unit;
 use App\Models\Contribution\Contribution;
 use App\Models\Contribution\Reimbursement;
 use App\Models\Affiliate\Address;
 use App\Models\Affiliate\AffiliateToken;
+use App\Models\City;
 use App\Models\Contribution\PayrollCommand;
 
 class Affiliate extends Model
@@ -78,7 +81,7 @@ class Affiliate extends Model
     {
         return $this->belongsTo(Category::class);
     }
-    public function pension_entity() 
+    public function pension_entity()
     {
         return $this->belongsTo(PensionEntity::class);
     }
@@ -90,9 +93,9 @@ class Affiliate extends Model
     {
         return $this->hasMany(PayrollSenasir::class);
     }
-    public function contributions()        
+    public function contributions()
     {
-      return $this->hasMany(Contribution::class);
+        return $this->hasMany(Contribution::class);
     }
     public function reimbursements()
     {
@@ -100,7 +103,7 @@ class Affiliate extends Model
     }
     public function addresses()
     {
-      return $this->morphToMany(Address::class, 'addressable')->withPivot('validated')->withTimestamps()->latest('updated_at');
+        return $this->morphToMany(Address::class, 'addressable')->withTimestamps()->latest('updated_at');
     }
     public function payroll_command()
     {
@@ -112,6 +115,38 @@ class Affiliate extends Model
     }
     public function affiliate_token()
     {
-        return $this->hasOne(AffiliateToken::class,'affiliate_id','id');
+        return $this->hasOne(AffiliateToken::class, 'affiliate_id', 'id');
+    }
+    public function city_birth()
+    {
+        return $this->belongsTo(City::class, 'city_birth_id', 'id');
+    }
+    public function city_identity_card()
+    {
+        return $this->belongsTo(City::class, 'city_identity_card_id', 'id');
+    }
+    public function unit()
+    {
+        return $this->belongsTo(Unit::class);
+    }
+    public function getFullNameAttribute()
+    {
+        return rtrim(preg_replace('/[[:blank:]]+/', ' ', join(' ', [$this->first_name, $this->second_name, $this->last_name, $this->mothers_last_name, $this->surname_husband])));
+    }
+    public function getDeadAttribute()
+    {
+        return ($this->date_death != null || $this->reason_death != null || $this->death_certificate_number != null || $this->affiliate_state->name == "Fallecido");
+    }
+    public function getCivilStatusGenderAttribute()
+    {
+        return Util::get_civil_status($this->civil_status, $this->gender);
+    }
+    public function getIdentityCardExtAttribute()
+    {
+        $data = $this->identity_card;
+        if ($this->city_identity_card && $this->city_identity_card_id != 11) {
+            $data .= ' ' . $this->city_identity_card->first_shortened;
+        }
+        return rtrim($data);
     }
 }

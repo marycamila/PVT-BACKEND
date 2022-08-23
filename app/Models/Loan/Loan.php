@@ -6,6 +6,7 @@ use App\Models\Admin\Role;
 use App\Models\Affiliate\Affiliate;
 use App\Models\City;
 use App\Models\FinancialEntity;
+use App\Models\Note;
 use App\Models\PersonalReference;
 use App\Models\Procedure\ProcedureDocument;
 use App\Models\Procedure\ProcedureModality;
@@ -71,9 +72,9 @@ class Loan extends Model
     }
     public function notes()     //revisar
     {
-        return $this->morphMany(Note::class, 'annotable');
+        return $this->morphToMany(Note::class, 'annotable');
     }
-    public function tags()      //revisar
+    public function tags()     
     {
         return $this->morphToMany(Tag::class, 'taggable')->withPivot('user_id', 'date')->withTimestamps();
     }

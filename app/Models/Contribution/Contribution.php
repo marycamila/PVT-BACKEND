@@ -9,7 +9,6 @@ use App\Models\Affiliate\Affiliate;
 use App\Models\Affiliate\Category;
 use App\Models\Affiliate\Degree;
 use App\Models\Contribution\PayrollCommand;
-use App\Models\Contribution\Contribution;
 use App\Models\Contribution\ContributionRate;
 
 class Contribution extends Model

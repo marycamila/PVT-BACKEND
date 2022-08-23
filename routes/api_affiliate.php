@@ -12,6 +12,7 @@ Route::group([
     Route::group([
         'middleware' => ['auth:sanctum']
     ], function () {
-        Route::apiResource('/affiliate', App\Http\Controllers\Affiliate\AffiliateController::class)->only(['index']);
+       Route::get('/access_status/{id}', [App\Http\Controllers\Affiliate\AffiliateController::class, 'access_status']);
+       Route::apiResource('/affiliate', App\Http\Controllers\Affiliate\AffiliateController::class)->only(['index','show']);
     });
 });

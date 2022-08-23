@@ -70,4 +70,62 @@ class Util
         return "dbname=$dbname_input port=$port_input host=$host_input user=$user_input password=$password_input";
     }
 
+    public static function trim_spaces($string)
+    {
+        return preg_replace('/[[:blank:]]+/', ' ', $string);
+    }
+
+    public static function male_female($gender, $capìtalize = false)
+    {
+        if ($gender) {
+            $ending = strtoupper($gender) == 'M' ? 'o' : 'a';
+        } else {
+            $ending = strtoupper($gender) == 'M' ? 'el' : 'la';
+        }
+        if ($capìtalize) $ending = strtoupper($ending);
+        return $ending;
+    }
+
+    public static function get_civil_status($status, $gender = null)
+    {
+        $status = self::trim_spaces($status);
+        switch ($status) {
+            case 'S':
+            case 's':
+                $status = 'solter';
+                break;
+            case 'D':
+            case 'd':
+                $status = 'divorciad';
+                break;
+            case 'C':
+            case 'c':
+                $status = 'casad';
+                break;
+            case 'V':
+            case 'v':
+                $status = 'viud';
+                break;
+            default:
+                return '';
+                break;
+        }
+        if (is_null($gender) || is_bool($gender) || $gender == '') {
+            $status .= 'o(a)';
+        } else {
+            switch ($gender) {
+                case 'M':
+                case 'm':
+                case 'F':
+                case 'f':
+                    $status .= self::male_female($gender);
+                    break;
+                default:
+                    return '';
+                    break;
+            }
+        }
+        return $status;
+    }
+    
 }

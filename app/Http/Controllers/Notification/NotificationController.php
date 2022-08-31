@@ -3,24 +3,22 @@
 namespace App\Http\Controllers\Notification;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\EconomicComplement\EcoComProcedure;
-use App\Models\ObservationType;
-use App\Models\Admin\Module;
-use App\Models\Affiliate\AffiliateToken;
-use App\Models\EconomicComplement\EcoComBeneficiary;
 use App\Models\EconomicComplement\EcoComState;
 use App\Models\EconomicComplement\EconomicComplement;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
-use App\Helpers\Util;
+use App\Models\EconomicComplement\EcoComModality;
 use App\Models\Notification\NotificationSend;
-use Exception;
+use App\Models\Affiliate\Hierarchy;
+use App\Models\ObservationType;
+use App\Models\Admin\Module;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Auth;
 
 class NotificationController extends Controller
 {
-    // Para seleccionar el semestre
+    // Para obtener todos los semestres
     public function get_semesters(){
         $semesters = EcoComProcedure::select(['id', 'year', 'semester'])->get();
         return response()->json([
@@ -36,7 +34,7 @@ class NotificationController extends Controller
         ]);
     }
 
-    // Para obtener las modalidades de pago
+    // Para obtener las modalidades de pago   (pago en cuenta, pago en ventanilla, pago a domicilio)
     public function get_modalities_payment() {
         $modalities_payment = EcoComState::select('id', 'name')->whereIn('id', [24, 25, 29])->get();
         return response()->json([
@@ -44,14 +42,33 @@ class NotificationController extends Controller
         ]);
     }
 
-    // Como determinamos que se agrego un nuevo semestre para el cobro?
+    // Para obtener los tipos de beneficiarios  (vejez, viuda, orfandad)
+    public function get_beneficiary_type(){
+        $types = EcoComModality::join('procedure_modalities', 'eco_com_modalities.procedure_modality_id', '=', 'procedure_modalities.id')
+                                ->select('procedure_modalities.id', 'procedure_modalities.name')
+                                ->distinct()
+                                ->get();
+        return response()->json([
+            'beneficiary_type' => $types
+        ]);
+    }
+
+    // Para obtener el nivel de jerarquia (4 posibles casos)
+    public function get_hierarchical_level(){
+        $hierarchies = Hierarchy::select('id', 'name')->where('id', '>', 1)->get();
+        return response()->json([
+            'hierarchies' => $hierarchies
+        ]);
+    }
+
+    // Obtener el semestre actual para la notificación
     public function current_semester(){
-        // Obtenemos el semestre actual para la notificación
         $last_eco_com = EcoComProcedure::latest('year')->first();
         return array($last_eco_com->year, $last_eco_com->semester);
     }
 
-    public function delegate_shipping($data, $tokens){
+    // Microservicio para consumir la ruta del backend node
+    public function delegate_shipping($data, $tokens){ 
         // $url_backend_node = env('BACKEND_NODE');
         try{
             $response = Http::withHeaders(['Content-Type' => 'application/json'])
@@ -96,30 +113,24 @@ class NotificationController extends Controller
             ]);
         }
     }
-    public function saludar($nombre, $params) {
-        logger('hola '.$nombre.$params);
-    }
 
+    // Método para pruebas
     public function show($array) {
         for($i = 0; $i < sizeof($array); $i++){
             logger($i.'  => '.$array[$i]);
         }
     }
 
+    // Guardar en el registro tabla notification_send
     public function to_register($user_id, $delivered, $message, $subject, $ids) {
         $eco_com = new EconomicComplement();
         $alias = $eco_com->getMorphClass();
-        // return response()->json([
-        //     'alias' => $alias
-        // ]);
         $j = 0;
         foreach($ids as $id) {
             $obj = (object)$message;
-            // return json_encode(['data' => $obj]);
             $notification_send = new NotificationSend();
             $notification_send->create([
-                // 'user_id' => $user_id,
-                'user_id' => 1,
+                'user_id' => $user_id,
                 'carrier_id' => 1,
                 'number_id' => null, 
                 'sendable_type' => $alias,
@@ -134,15 +145,21 @@ class NotificationController extends Controller
     }
 
     public function mass_notification(Request $request) {
-        $semester = $request->semester; // El semestre Segundo o Primero
-        $year     = $request->year;     // Fecha del semestre
-        $type     = $request->type;     // tipo de acción que realizó el usuario
-        $user_id  = $request->user;     // El id del usuario iniciado sesión en el sistema
+        // ---------------------------------  FILTRADOS -----------------------------------------
+        $semester         = $request->semester;          // Si selecciona el semestre
+        $year             = $request->year;              // Necesariamente se necesita el año
+        $action           = $request->action;            // La acción que se necesita consultar
+        $reception_type   = $request->reception_type;    // Vejez, viudedad y orfandad          (quizá no sea necesario)
+        $beneficiary_type = $request->beneficiary_type;  // habitual o inclusión
+        $hierarchies      = $request->hierarchies_level; // nivel jerarquico
+        // ---------------------------------------------------------------------------------------
+        $user_id          = Auth::user();                // el usuario que generó la notificación
 
-        if($type == 'economic_complement_payment' || $type == 'receipt_of_requirements'){
-            $title_notification = $request->title;
-            $attached           = $request->attached;
-            $loaded_image       = $request->loaded_image ?? "";     // Solo cargará la imagen en el caso de o bien la recepción de requisitos o pago de complemento
+        if($action == 'economic_complement_payment' || $action == 'receipt_of_requirements'){
+            $title_notification = $request->title;                // título de notificación
+            $attached           = $request->attached;             // mensaje para la notificación
+            $loaded_image       = $request->loaded_image ?? "";   // Si carga la imagen
+
             if($request->has('payment_method')) $payment_method = $request->payment_method;
             else $payment_method = $request->has('payment_method');
 
@@ -151,11 +168,11 @@ class NotificationController extends Controller
             $res = EcoComProcedure::select('normal_start_date', 'normal_end_date')->latest('year')->first();
             [$start_date, $end_date] = array($res->normal_start_date, $res->normal_end_date);
 
-            $message = $this->build_message($type, $payment_method, $year, $semester, $start_date, $end_date); // Armado del mensaje
+            $message  = $this->build_message($action, $payment_method, $year, $semester, $start_date, $end_date); // Armado del mensaje
             $message .= ' '.$attached;
 
             $tokens = [];
-            $ids = [];
+            $ids    = [];
             $params = [];
             $data   = [
                 'title' => $title_notification,
@@ -164,16 +181,10 @@ class NotificationController extends Controller
                 'text'  => $message 
             ];
 
-            // return response()->json([
-            //     'year' => $year,
-            //     'semester' => json_encode($data),
-            //     // 'fecha actual' => Carbon::now()
-            // ]);
-
             $params['user_id'] = $user_id;
-            $params['ids'] = $ids;
-            $params['tokens'] = $tokens;
-            $params['data'] = $data;
+            $params['ids']     = $ids;
+            $params['tokens']  = $tokens;
+            $params['data']    = $data;
             $params['message'] = $message;
             $params['subject'] = 'COMPLEMENTO ECONÓMICO';
 
@@ -187,7 +198,6 @@ class NotificationController extends Controller
                 ->when($payment_method, function($query, $payment_method){
                     $query->where('economic_complements.eco_com_state_id',$payment_method);
                     // $query->whereIn('economic_complements.eco_com_state_id',[24, 25, 29]);
-                    logger("=======entra aca========");
                 })
                 ->select('economic_complements.id', 'eco_com_applicants.last_name', 'eco_com_applicants.mothers_last_name', 'eco_com_applicants.first_name', 'affiliate_tokens.firebase_token')
                 ->orderBy('affiliate_tokens.affiliate_id')
@@ -203,7 +213,7 @@ class NotificationController extends Controller
                     if($res['status']) {
                         $status = $res['delivered'];
                         logger($params['ids']);
-                        $this->to_register($params['user_id'], $status, $params['message'], $params['subject'], $params['ids']);
+                        $this->to_register($params['user_id'], $status, $params['data'], $params['subject'], $params['ids']);
                     }
                     else logger("no envío");
 
@@ -211,11 +221,6 @@ class NotificationController extends Controller
                     sleep(3); // esperar durante 3 segundos
                 });
 
-
-            // return response()->json([
-            //     'get' => $result
-            // ]);
-            
             if($result) {
                 return response()->json([
                     'error' => false,
@@ -228,9 +233,17 @@ class NotificationController extends Controller
                 'data' => []
             ]);
         }
-        // Caso de observaciones
+        $eco_com_state_types = EcoComState::all();
+        $eco_com = EconomicComplement::find($request->ecoComId);
+        $observation = ObservationType::find($request->observationTypeId);
+        $eco_com->observations()->save($observation, [
+            'user_id' => Auth::user()->id,
+            'date' => Carbon::now(),
+            'message' => $request->message,
+            'enabled' => $request->enabled
+        ]);
     }
-    // Necesito el formato del mensaje para poder armarlo
+
     public function build_message($type, $payment_method, $year, $semester, $start_date, $end_date ) {
         $end   = " perteneciente al $semester semestre del $year";
         if($type == 'economic_complement_payment') {
@@ -247,16 +260,9 @@ class NotificationController extends Controller
                     $message = "Estimado affiliado, ya se habilitó el pago a domicilio del complemento económico,".$end;
                 break;
             }
-
         } else {
             $message = "Estimado affiliado, a partir del $start_date hasta el $end_date podrá crear el trámite para su complemento económico desde la aplicación,".$end;
         }
         return $message;
     }
-    // Para la RECEPCIÓN DE REQUISITOS 
-    // se debería notificar antes de que empiece el semestre [SI]
-    // para el PAGO DE COMPLEMENTO ECONOMICO
-    // Se debería notificar antes de que empiece el semestre [NO]
-    // Desúes de la creación del trámite [SI]
-    // o bien ellos tendrían que notificar antes y después o bien el software tiene que controlar eso?
 }

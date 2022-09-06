@@ -9,10 +9,7 @@ Route::group([
     'prefix' => 'global'
 ], function () {
     //Rutas abiertas
-    Route::patch('change_password', [App\Http\Controllers\Affiliate\AffiliateUserController::class, 'change_password']);
-    Route::post('auth', [App\Http\Controllers\Affiliate\AffiliateUserController::class, 'auth']);
-    Route::post('store', [App\Http\Controllers\Affiliate\AffiliateUserController::class, 'store']);
-    Route::get('procedure_qr/{module_id}/{uuid}', [App\Http\Controllers\ProcedureQRController::class, 'procedure_qr']);
+     Route::get('procedure_qr/{module_id}/{uuid}', [App\Http\Controllers\ProcedureQRController::class, 'procedure_qr']);
     // Rutas autenticadas con token
     Route::group([
         'middleware' => ['auth:sanctum']

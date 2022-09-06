@@ -103,7 +103,7 @@ class Affiliate extends Model
     }
     public function addresses()
     {
-        return $this->morphToMany(Address::class, 'addressable')->withTimestamps()->latest('updated_at');
+        return $this->morphToMany(Address::class, 'addressable')->withPivot('validated')->withTimestamps()->latest('updated_at');
     }
     public function payroll_command()
     {

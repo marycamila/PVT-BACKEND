@@ -8,11 +8,15 @@ Route::group([
     'middleware' => 'api',
     'prefix' => 'affiliate'
 ], function () {
+    // Rutas abiertas
+    Route::patch('change_password', [App\Http\Controllers\Affiliate\AffiliateUserController::class, 'change_password']);
+    Route::post('auth', [App\Http\Controllers\Affiliate\AffiliateUserController::class, 'auth']);
+    Route::post('store/{id}', [App\Http\Controllers\Affiliate\AffiliateUserController::class, 'store']);
     // Rutas autenticadas con token
     Route::group([
         'middleware' => ['auth:sanctum']
     ], function () {
-       Route::get('/access_status/{id}', [App\Http\Controllers\Affiliate\AffiliateController::class, 'access_status']);
-       Route::apiResource('/affiliate', App\Http\Controllers\Affiliate\AffiliateController::class)->only(['index','show']);
+       Route::get('/credential_status/{id}', [App\Http\Controllers\Affiliate\AffiliateController::class, 'credential_status']);
+       Route::apiResource('/affiliate', App\Http\Controllers\Affiliate\AffiliateController::class)->only(['index','show','update']);
     });
 });

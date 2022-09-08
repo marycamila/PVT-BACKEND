@@ -62,6 +62,8 @@ class AppServiceProvider extends ServiceProvider
             'wf_states' => 'App\Models\Workflow\WfState',
             'ret_fun_beneficiaries' => 'App\Models\RetirementFund\RetFunBeneficiary',
             'quota_aid_beneficiaries' => 'App\Models\QuotaAidMortuary\QuotaAidBeneficiary',
+            'economic_complements' => 'App\Models\EconomicComplement\EconomicComplement',
+            'discount_type_economic_complement'=> 'App\Models\EconomicComplement\DiscountTypeEconomicComplement'
         ]);
     }
 }

@@ -7,6 +7,7 @@ use App\Models\Affiliate\Affiliate;
 use App\Models\City;
 use App\Models\FinancialEntity;
 use App\Models\Note;
+use App\Models\Observation;
 use App\Models\PersonalReference;
 use App\Models\Procedure\ProcedureDocument;
 use App\Models\Procedure\ProcedureModality;

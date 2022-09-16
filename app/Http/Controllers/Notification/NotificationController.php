@@ -22,7 +22,30 @@ use App\Exceptions\ExceptionMicroservice;
 
 class NotificationController extends Controller
 {
-    // Para obtener todos los semestres
+    /**
+     * @OA\Get(
+     *     path="/api/notification/get_semesters",
+     *     tags={"NOTIFICACIONES"},
+     *     summary="LISTADO DE SEMESTRES",
+     *     operationId="getSemestres",
+     *     description="Obtiene el listado de semestres para complemento económico",
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *         type="object"
+     *         )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     }
+     * )
+     *
+     * Get list of cities
+     *
+     * @param Request $request
+     * @return void
+     */
     public function get_semesters(){
         $semesters = EcoComProcedure::select(['id', 'year', 'semester'])
         ->orderBy('year')
@@ -32,7 +55,30 @@ class NotificationController extends Controller
         ]);
     }
 
-    // Para seleccionar las observaciones module_id: 2
+    /**
+     * @OA\Get(
+     *     path="/api/notification/get_observations/{module_id}",
+     *     tags={"NOTIFICACIONES"},
+     *     summary="LISTADO DE OBSERVACIONES",
+     *     operationId="getObservaciones",
+     *     description="Obtiene el listado de las observaciones de tipo 'AT' para complemento económico",
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *         type="object"
+     *         )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     }
+     * )
+     *
+     * Get list of cities
+     *
+     * @param Request $request
+     * @return void
+     */
     public function get_observations($module_id){
         $observation_types = Module::find($module_id)->observation_types;
         return response()->json([
@@ -40,7 +86,30 @@ class NotificationController extends Controller
         ]);
     }
 
-    // Para obtener las modalidades de pago   (pago en cuenta, pago en ventanilla, pago a domicilio)
+    /**
+     * @OA\Get(
+     *     path="/api/notification/get_modalities_payment",
+     *     tags={"NOTIFICACIONES"},
+     *     summary="LISTADO DE MODALIDADES DE PAGO",
+     *     operationId="getModalidadesDePago",
+     *     description="Obtiene el listado de las modalidades de pago para complemento económico",
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *         type="object"
+     *         )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     }
+     * )
+     *
+     * Get list of cities
+     *
+     * @param Request $request
+     * @return void
+     */
     public function get_modalities_payment() {
         $modalities_payment = EcoComState::select('id', 'name')->whereIn('id', [24, 25, 29])->get();
         return response()->json([
@@ -48,7 +117,30 @@ class NotificationController extends Controller
         ]);
     }
 
-    // Para obtener los tipos de beneficiarios  (vejez, viuda, orfandad)
+    /**
+     * @OA\Get(
+     *     path="/api/notification/get_beneficiary_type",
+     *     tags={"NOTIFICACIONES"},
+     *     summary="LISTADO DE TIPOS DE BENEFICIARIOS",
+     *     operationId="getTiposBeneficiarios",
+     *     description="Obtiene el listado de los tipos de beneficiarios para complemento económico",
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *         type="object"
+     *         )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     }
+     * )
+     *
+     * Get list of cities
+     *
+     * @param Request $request
+     * @return void
+     */
     public function get_beneficiary_type(){
         $types = EcoComModality::join('procedure_modalities', 'eco_com_modalities.procedure_modality_id', '=', 'procedure_modalities.id')
                                 ->select('procedure_modalities.id', 'procedure_modalities.name')
@@ -59,7 +151,30 @@ class NotificationController extends Controller
         ]);
     }
 
-    // Para obtener el nivel de jerarquia (4 posibles casos)
+    /**
+     * @OA\Get(
+     *     path="/api/notification/get_hierarchical_level",
+     *     tags={"NOTIFICACIONES"},
+     *     summary="LISTADO DE JERARQUIAS",
+     *     operationId="getJerarquias",
+     *     description="Obtiene el listado de las jerarquias para complemento económico",
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *         type="object"
+     *         )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     }
+     * )
+     *
+     * Get list of cities
+     *
+     * @param Request $request
+     * @return void
+     */
     public function get_hierarchical_level(){
         $hierarchies = Hierarchy::select('id', 'name')->where('id', '>', 1)
         ->orderBy('id')
@@ -70,13 +185,11 @@ class NotificationController extends Controller
     }
 
     // Microservicio para consumir la ruta del backend node
-    public function delegate_shipping($data, $tokens){ 
-        // $url_backend_node = env('BACKEND_NODE');
+    public function delegate_shipping($data, $tokens, $ids){ 
         $res = [];
         try{
             $response = Http::withHeaders(['Content-Type' => 'application/json'])
                 ->acceptJson()
-                // ->post('http://192.168.2.129:8082/api/notification/groupusers', [
                 ->post(env('URL_BACKEND_NODE'),[
                     'tokens' => $tokens, 
                     'title'  => 'COMPLEMENTO ECONÓMICO',
@@ -89,9 +202,13 @@ class NotificationController extends Controller
                 $message   = $response['message'];
                 $responses = $message['responses'];
 
+                $i = 0;
                 foreach($responses as $check) {
                     $var = $check['success'] ? true : false;
-                    array_push($delivered, $var);
+                    $delivered = array(
+                        $ids[$i] => $var
+                    );
+                    $i++;
                 }
                 $res['status']       = true;
                 $res['delivered']    = $delivered;
@@ -114,8 +231,8 @@ class NotificationController extends Controller
     public function to_register($user_id, $delivered, $message, $subject, $ids) {
         $eco_com = new EconomicComplement();
         $alias = $eco_com->getMorphClass();
-        $j = 0;
         foreach($ids as $id) {
+            logger($delivered[$id]);
             $obj = (object)$message;
             $notification_send = new NotificationSend();
             $notification_send->create([
@@ -125,11 +242,10 @@ class NotificationController extends Controller
                 'sendable_type' => $alias,
                 'sendable_id' => $id,
                 'send_date' => Carbon::now(),
-                'delivered' => $delivered[$j],
+                'delivered' => $delivered[$id],
                 'message' => json_encode(['data' => $obj]),
                 'subject' => $subject
             ]);
-            $j++;
         }
     }
 
@@ -220,13 +336,11 @@ class NotificationController extends Controller
             $i++;
             $chunk = DB::select($query);
             $offset += 500;
-
-            logger('esto es chunk '. count($chunk));
             foreach($chunk as $crumb){
                 array_push($params['tokens'], $crumb->firebase_token);
                 array_push($params['ids'],    $crumb->affiliate_id);
             }
-            $res = $this->delegate_shipping($params['data'], $params['tokens']); 
+            $res = $this->delegate_shipping($params['data'], $params['tokens'], $params['ids']); 
             if($res['status']) {
                 $status = $res['delivered'];
                 $this->to_register($params['user_id'], $status, $params['data'], $params['subject'], $params['ids']);
@@ -237,9 +351,13 @@ class NotificationController extends Controller
             sleep(1);
         } while($i < $count);
         return $result ? response()->json([
-            'error'   => $res['status'],
+            'error'   => false,
             'message' => $res['message'],
-            'data'    => []
+            'data'    => [
+                'delivered'     => $res['delivered'],
+                'success_count' => $res['successCount'],
+                'failure_count' => $res['failureCount']
+            ]
         ]) : response()->json([
             'error'   => true,
             'message' => $res['message'],
@@ -247,7 +365,48 @@ class NotificationController extends Controller
         ], 404);
     }
 
-    // Proceso general
+    /**
+     * @OA\Post(
+     *     path="/api/notification/mass_notify",
+     *     tags={"NOTIFICACIONES"},
+     *     summary="ENVÍO DE NOTIFICACIONES",
+     *     operationId="Envío masivo de notificaciones",
+     *     description="Ruta para el envío masivo de notificaciones",
+     *     @OA\RequestBody(
+     *          description= "Envío de notificaciones",
+     *          required=true,
+     *          @OA\JsonContent(
+     *              type="object",
+     *              @OA\Property(property="action", type="string",description="Recepción de requerimientos, complemento económico u observaciones (Receipt_of_requirements, economic_complement_payment, observatinos", example="economic_complement_payment"),
+     *              @OA\Property(property="payment_method", type="integer",description="Método de pago para el complemento económico (Abono en cuenta SIGEP, Ventanilla Banco Unión y a domicilio)",example="24"),
+     *              @OA\Property(property="modality", type="integer",description="Modalidad (vejez, viudedad u orfandad)", example="29"),
+     *              @OA\Property(property="type_observation", type="integer",description="Tipo de observación", example="2"),
+     *              @OA\Property(property="title", type="string",description="título de la notificación", example="Complemento Económico"),
+     *              @OA\Property(property="message", type="string",description="mensaje de la notificación",example="Esto es un mensaje para notificar"),
+     *              @OA\Property(property="attached", type="integer",description="adjunto de la notificación", example="Adjunto de la notificación"),
+     *              @OA\Property(property="loaded_image", type="boolean",description="parámetro para saber si se cargo la imagen",example="true"),
+     *              @OA\Property(property="user_id", type="integer",description="id del usuario",example="1"),
+     *              @OA\Property(property="year", type="string",description="Fecha perteneciente del complemento económico",example="2022-01-01"),
+     *              @OA\Property(property="semester", type="string",description="Semestre del complemento económico observado",example="Segundo"),
+     *          )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *         type="object"
+     *         )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     }
+     * )
+     *
+     *  mass_notification 
+     *
+     * @param Request $request
+     * @return void
+     */
     public function mass_notification(NotificationRequest $request) {
 
         ini_set('max_execution_time', 60);
@@ -316,9 +475,7 @@ class NotificationController extends Controller
                                 from tmp_affiliates
                                 order by affiliate_id";
                     } else {
-                        logger("primer else");
                         if($request->has('modality')){
-                            logger("segundo if");
                             $modality = $request->modality;
                             if($request->has('hierarchies')){
                                 $hierarchies = $request->hierarchies;

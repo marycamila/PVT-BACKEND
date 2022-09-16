@@ -37,13 +37,13 @@ class AffiliateUserController extends Controller
      */
 
 
-    public function store(Request $request)
+    public function store(Request $request, $id)
     {
+        $request['id'] = $id;
         $request->validate([
-            'identity_card' => 'required|integer|exists:affiliates,identity_card'
+            'id' => 'required|integer|exists:affiliates,id'
         ]);
-        $ci = $request->identity_card;
-        $AffiliateId = Affiliate::where('identity_card', $ci)->first()->id;
+        $AffiliateId = $request->id;
         $isAffiliateToken = DB::table('affiliate_tokens')->where('affiliate_id', $AffiliateId)->exists();
         if (!$isAffiliateToken) {
             $AffiliateToken = new AffiliateToken;
@@ -210,7 +210,7 @@ class AffiliateUserController extends Controller
         if (Hash::check($request->password,$password)){
             $AffiliateUser->password=Hash::make($request->new_password);
             $AffiliateUser->access_status='Activo';
-            $state=$AffiliateUser->access_staus;
+            $state=$AffiliateUser->access_status;
             $AffiliateUser->save();
             $AffiliateToken=AffiliateToken::find($AffiliateUser->affiliate_token_id);
             $AffiliateToken->api_token=Hash::make($request->device_id);
@@ -243,8 +243,13 @@ class AffiliateUserController extends Controller
      * @param  \App\Models\Affiliate\AffiliateUser  $affiliateUser
      * @return \Illuminate\Http\Response
      */
-    public function destroy(AffiliateUser $affiliateUser)
+    public function destroy(Request $request)
     {
-        //
+        $request->affiliate->affiliate_token()->update(['api_token' => null]);
+        return response()->json([
+            'error' => false,
+            'message' => 'Sesión terminada',
+            'data' => (object)[]
+        ], 200);
     }
 }

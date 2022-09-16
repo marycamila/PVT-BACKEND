@@ -15,6 +15,7 @@ use App\Models\Affiliate\Address;
 use App\Models\Affiliate\AffiliateToken;
 use App\Models\City;
 use App\Models\Contribution\PayrollCommand;
+use App\Models\Observation;
 
 class Affiliate extends Model
 {
@@ -103,7 +104,7 @@ class Affiliate extends Model
     }
     public function addresses()
     {
-        return $this->morphToMany(Address::class, 'addressable')->withTimestamps()->latest('updated_at');
+        return $this->morphToMany(Address::class, 'addressable')->withPivot('validated')->withTimestamps()->latest('updated_at');
     }
     public function payroll_command()
     {
@@ -128,6 +129,10 @@ class Affiliate extends Model
     public function unit()
     {
         return $this->belongsTo(Unit::class);
+    }
+    public function observations()
+    {
+        return $this->morphMany(Observation::class, 'observable')->latest('updated_at');
     }
     public function getFullNameAttribute()
     {

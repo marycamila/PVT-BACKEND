@@ -319,7 +319,7 @@ class NotificationController extends Controller
                 where ecp.year = '$year'
                 and ecp.semester = '$semester'
                 and at.api_token is not null
-                --and at.firebase_token is not null
+                and at.firebase_token is not null
             )");
         });
     }

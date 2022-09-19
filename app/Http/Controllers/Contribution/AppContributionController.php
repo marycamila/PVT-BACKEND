@@ -10,7 +10,7 @@ use App\Models\Contribution\Contribution;
 use App\Models\Contribution\ContributionPassive;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class AppContributionController extends Controller
 {
@@ -19,12 +19,20 @@ class AppContributionController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function all_contributions($id)
+    public function all_contributions(Request $request, $id, $year)
     {
+        $request['affiliate_id'] = $id;
+        $request['year'] = $year;
+        $request->validate([
+            'affiliate_id' => 'required|integer|exists:affiliates,id',
+            'year' => 'integer'
+        ]);
+        
         $affiliate = Affiliate::find($id);
         $degree = Degree::find($affiliate->degree_id);
         $contributions = collect();
         $contributions_passives = ContributionPassive::whereAffiliateId($id)
+            ->whereYear('month_year', $year)
             ->orderBy('month_year', 'asc')
             ->get();
         foreach ($contributions_passives as $contributions_passive) {
@@ -45,6 +53,7 @@ class AppContributionController extends Controller
         }
 
         $contributions_actives = Contribution::whereAffiliateId($id)
+            ->whereYear('month_year', $year)
             ->orderBy('month_year', 'asc')
             ->get();
         foreach ($contributions_actives as $contributions_active) {
@@ -60,6 +69,8 @@ class AppContributionController extends Controller
                 'type' => $contributions_active->contributionable_type
             ]);
         }
+        $year_min = $this->get_minimum_year($id);
+        $year_max = $this->get_maximum_year($id);
 
         return response()->json([
             'message' => 'Contribuciones del Afiliado',
@@ -72,14 +83,32 @@ class AppContributionController extends Controller
                 'surname_husband' => $affiliate->surname_husband,
                 'identity_card' => $affiliate->identity_card,
                 'city_identity_card' => $affiliate->city_identity_card->first_shortened,
+                'year_min' => $year_min,
+                'year_max' => $year_max,
                 'contributions' => $contributions
             ],
         ]);
     }
 
-    public function print()
+    public function get_minimum_year($id)
     {
-        
+        $data = DB::table('contributions')->where('affiliate_id', $id)->min('month_year');
+        $min = Carbon::parse($data)->format('Y');
+
+        return $min;
+    }
+
+    public function get_maximum_year($id)
+    {
+        $data1 = DB::table('contribution_passives')->where('affiliate_id', $id)->max('month_year');
+        $max1 = Carbon::parse($data1)->format('Y');
+
+        $data2 = DB::table('contributions')->where('affiliate_id', $id)->max('month_year');
+        $max2 = Carbon::parse($data2)->format('Y');
+
+        if ($max1 > $max2)
+            return $max1;
+        return $max2;
     }
 
     /**

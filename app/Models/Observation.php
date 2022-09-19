@@ -7,10 +7,12 @@ use App\Models\Loan\Record;
 use App\Models\ObservationType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Observation extends Model
 {
     use HasFactory;
+    use SoftDeletes;
 
     protected $table = 'observables';
     public $timestamps = true;

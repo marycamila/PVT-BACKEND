@@ -14,6 +14,6 @@ Route::group([
     Route::group([
         'middleware' => ['api_auth']
     ], function () {
-        Route::get('/all_contributions/{id}', [App\Http\Controllers\Contribution\AppContributionController::class, 'all_contributions']);
+        Route::get('/all_contributions/{id}/{year}', [App\Http\Controllers\Contribution\AppContributionController::class, 'all_contributions']);
     });
 });

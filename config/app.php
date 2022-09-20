@@ -178,6 +178,9 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
 
+        //libreria para generar PDF
+        // Barryvdh\DomPDF\ServiceProvider::class,
+        Barryvdh\DomPDF\ServiceProvider::class,
     ],
 
     /*
@@ -234,6 +237,8 @@ return [
         // LDAP
         'Ldap' => App\Helpers\Ldap::class,
         'Excel' => Maatwebsite\Excel\Facades\Excel::class,
+        //DompPDF
+        'PDF' => Barryvdh\DomPDF\PDF::class
     ],
 
 ];

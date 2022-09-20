@@ -7,6 +7,7 @@ use App\Models\Affiliate\Affiliate;
 use App\Models\City;
 use App\Models\FinancialEntity;
 use App\Models\Note;
+use App\Models\Observation;
 use App\Models\PersonalReference;
 use App\Models\Procedure\ProcedureDocument;
 use App\Models\Procedure\ProcedureModality;
@@ -140,7 +141,7 @@ class Loan extends Model
     }
     public function observations()
     {
-        return $this->morphMany(Observation::class, 'observable')->latest('updated_at');
+        return $this->morphMany(Observation::class, 'observable');
     }
     public function disbursable()
     {

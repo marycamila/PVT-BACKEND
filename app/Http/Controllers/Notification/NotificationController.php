@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Notification\NotificationRequest;
 use App\Models\EconomicComplement\EcoComProcedure;
 use App\Models\EconomicComplement\EcoComState;
+use App\Models\EconomicComplement\EcoComStateType;
 use App\Models\EconomicComplement\EconomicComplement;
 use App\Models\EconomicComplement\EcoComModality;
 use App\Models\Notification\NotificationSend;
@@ -19,6 +20,7 @@ use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use App\Exceptions\ExceptionMicroservice;
+use Illuminate\Support\Facades\Validator;
 
 class NotificationController extends Controller
 {
@@ -50,8 +52,13 @@ class NotificationController extends Controller
         $semesters = EcoComProcedure::select(['id', 'year', 'semester'])
         ->orderBy('year')
         ->get();
+        $results = [];
+        foreach($semesters as $semester) {
+            array_push($results, (object)['id' => $semester->id, 'period' => explode("-", $semester->year)[0]." - ".$semester->semester]);
+        }
+        
         return response()->json([
-            'semesters' => $semesters,
+            'semesters' => $results,
         ]);
     }
 
@@ -62,6 +69,16 @@ class NotificationController extends Controller
      *     summary="LISTADO DE OBSERVACIONES",
      *     operationId="getObservaciones",
      *     description="Obtiene el listado de las observaciones de tipo 'AT' para complemento económico",
+     *     @OA\Parameter(
+     *          name="module_id",
+     *          in="path",
+     *          description="",
+     *          required=true,
+     *          @OA\Schema(
+     *              type="integer",
+     *              format="int64"        
+     *          )
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Success",
@@ -111,7 +128,7 @@ class NotificationController extends Controller
      * @return void
      */
     public function get_modalities_payment() {
-        $modalities_payment = EcoComState::select('id', 'name')->whereIn('id', [24, 25, 29])->get();
+        $modalities_payment = EcoComStateType::find(1)->eco_com_state;
         return response()->json([
             'modalities_payment' => $modalities_payment
         ]);
@@ -184,6 +201,52 @@ class NotificationController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/notification/get_actions",
+     *     tags={"NOTIFICACIONES"},
+     *     summary="LISTADO DE ACCIONES",
+     *     operationId="getAcciones",
+     *     description="Obtiene el listado de las acciones permitidas",
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *         type="object"
+     *         )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     }
+     * )
+     *
+     * Get list of cities
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function get_actions() {
+        return response()->json([
+            'Acciones' => [
+                [
+                    'id' => 1,
+                    'shortened' => 'Recepción de requisitos',
+                    'name' => 'Recepción de requisitos para el pago del complemento económico'
+                ],
+                [
+                    'id' => 2,
+                    'shortened' => 'Pago complemento económico',
+                    'name' => 'Pago del complemento económico perteneciente al semestre actual'
+                ],
+                [
+                    'id' => 3,
+                    'shortened' => 'Observaciones de trámites',
+                    'name' => 'Observaciones de trámites de complemento económico'
+                ]
+            ]
+        ]);
+    }
+
     // Microservicio para consumir la ruta del backend node
     public function delegate_shipping($data, $tokens, $ids){ 
         $res = [];
@@ -216,8 +279,13 @@ class NotificationController extends Controller
                 $res['failureCount'] = $message['failureCount'];
                 $res['message'] = 'Notificación masiva exitosa';
             } else {
-                $res['status']  = false;
-                $res['message'] = 'Notificación masiva fallida';
+                if(count($tokens) == 0) {
+                    $res['status']  = true;
+                    $res['message'] = "Nada que enviar!";
+                } else {
+                    $res['status']  = false;
+                    $res['message'] = $response['errors'][0]['msg'];
+                }
             }
         }
         catch(\Exception $e) {
@@ -232,7 +300,6 @@ class NotificationController extends Controller
         $eco_com = new EconomicComplement();
         $alias = $eco_com->getMorphClass();
         foreach($ids as $id) {
-            logger($delivered[$id]);
             $obj = (object)$message;
             $notification_send = new NotificationSend();
             $notification_send->create([
@@ -278,7 +345,7 @@ class NotificationController extends Controller
                 inner join procedure_modalities pm
                 on ecm.procedure_modality_id = pm.id
                 where ts.api_token is not null
-                and ts.firebase_token is not null
+                --and ts.firebase_token is not null
                 and ecs.id in (24, 25, 29)
                 order by ts.affiliate_id, ecp.year desc)');
             DB::statement('create or replace procedure fill_temp()
@@ -319,9 +386,31 @@ class NotificationController extends Controller
                 where ecp.year = '$year'
                 and ecp.semester = '$semester'
                 and at.api_token is not null
-                and at.firebase_token is not null
+                --and at.firebase_token is not null
             )");
         });
+    }
+
+    // Para la tabla 
+    public function shippable_list($query, $filters) {
+        $base = collect(DB::select($query));
+        $result = $base->filter(function ($value, $key) use ($filters) {
+            return str_contains($value->last_name, $filters[0])
+                && str_contains($value->mothers_last_name, $filters[1])
+                && str_contains($value->first_name, $filters[2])
+                && str_contains($value->second_name, $filters[3])
+                && str_contains($value->identity_card, $filters[4]);
+        });
+        $response = array();
+        foreach($result as $key => $value) {
+            $value->send = false;
+            array_push($response, $value);
+        }
+        return response()->json([
+            'error' => false,
+            'message' => 'Listado de personas a notificar',
+            'data' => $response
+        ]);
     }
 
     // Proceso de consulta 
@@ -341,7 +430,7 @@ class NotificationController extends Controller
                 array_push($params['ids'],    $crumb->affiliate_id);
             }
             $res = $this->delegate_shipping($params['data'], $params['tokens'], $params['ids']); 
-            if($res['status']) {
+            if($res['status'] && count($params['tokens']) != 0) {
                 $status = $res['delivered'];
                 $this->to_register($params['user_id'], $status, $params['data'], $params['subject'], $params['ids']);
                 $result = true;
@@ -409,91 +498,82 @@ class NotificationController extends Controller
      */
     public function mass_notification(NotificationRequest $request) {
 
-        ini_set('max_execution_time', 60);
         try {
             $action = $request->action;
-            $title_notification = $request->title;
-            $message = $request->message;
-            $params  = [];
-            $tokens  = [];
-            $ids     = [];
-            $data    = [
-                'title' => $title_notification,
-                'image' => "https://www.opinion.com.bo/asset/thumbnail,992,558,center,center//media/opinion/images/2022/05/24/2022052415283420630.jpg", 
-                'PublicationDate' => "alguna cosa",
-                'text'  => $message 
-            ];
 
-            $params['data']    = $data;
-            $params['tokens']  = $tokens;
-            $params['ids']     = $ids;
-            $params['subject'] = $request->attached;
-            $params['user_id'] = $request->user_id;
+            if($action === 1) { // recepción de requisitos
 
+                $query = "select at.affiliate_id, at.firebase_token, a.last_name, a.mothers_last_name, a.first_name, a.second_name, a.identity_card
+                        from affiliate_tokens at
+                        inner join affiliates a
+                        on at.affiliate_id = a.id
+                        where api_token is not null
+                        --and firebase_token is not null
+                        order by affiliate_id";
 
-            if($action == 'receipt_of_requirements'){
-
-                $res = [];
-                $result = AffiliateToken::whereNotNull('api_token')
-                    ->whereNotNull('firebase_token')
-                    ->orderBy('affiliate_id')
-                    ->chunk(500, function($registers, $count) use ($params) { 
-                        foreach($registers as $register) {
-                            array_push($params['tokens'], $register->firebase_token);
-                            array_push($params['ids'], $register->id); 
-                        }
-                        $res = $this->delegate_shipping($params['data'], $params['tokens']);  
-                        if($res['status']) {
-                            $status = $res['delivered'];
-                            $this->to_register($params['user_id'], $status, $params['data'], $params['subject'], $params['ids']);
-                        }
-                        else return false;
+                // $res = [];
+                // $result = AffiliateToken::whereNotNull('api_token')
+                //     ->whereNotNull('firebase_token')
+                //     ->orderBy('affiliate_id')
+                //     ->chunk(500, function($registers, $count) use ($params) { 
+                //         foreach($registers as $register) {
+                //             array_push($params['tokens'], $register->firebase_token);
+                //             array_push($params['ids'], $register->id); 
+                //         }
+                //         $res = $this->delegate_shipping($params['data'], $params['tokens']);  
+                //         if($res['status']) {
+                //             $status = $res['delivered'];
+                //             $this->to_register($params['user_id'], $status, $params['data'], $params['subject'], $params['ids']);
+                //         }
+                //         else return false;
                         
-                        logger("-----------------    ENVÍO LOTE ALL NRO $count  --------------------------");
-                        sleep(1);
-                });
-                return $result ? response()->json([
-                    'error'   => false,
-                    'message' => 'Notificación masiva exitosa',
-                    'data'    => []
-                ]) : response()->json([
-                    'error'   => true,
-                    'message' => 'Notificación masiva fallida',
-                    'data'    => []
-                ], 404);
+                //         logger("-----------------    ENVÍO LOTE NRO $count  --------------------------");
+                //         sleep(1);
+                // });
+                // return $result ? response()->json([
+                //     'error'   => false,
+                //     'message' => 'Notificación masiva exitosa',
+                //     'data'    => []
+                // ]) : response()->json([
+                //     'error'   => true,
+                //     'message' => 'Notificación masiva fallida',
+                //     'data'    => []
+                // ], 404);
 
             } else {
-                if($action == 'economic_complement_payment') {
+                if($action === 2) { // pago de complemento económico
                     $payment_method = $request->payment_method;
                     $this->create_temporary_tables_payments(); 
-                    if($payment_method == 0) {
+                    if($payment_method == 0) { // A todos los habilitados para pago de complemento económico
                         logger("A todos los habilitados para pago de complemento económico");
-                        $count = DB::select("select ceil(cast(count(distinct affiliate_id) as decimal) / 500) as interval
-                                    from tmp_affiliates");
+                        // $count = DB::select("select ceil(cast(count(distinct affiliate_id) as decimal) / 500) as interval
+                        //             from tmp_affiliates");
 
-                        $query = "select affiliate_id, firebase_token
-                                from tmp_affiliates
-                                order by affiliate_id";
-                    } else {
+                        $query = "select ta.affiliate_id, ta.firebase_token, a.last_name, a.mothers_last_name, a.first_name, a.second_name, a.identity_card
+                                from tmp_affiliates ta
+                                inner join affiliates a
+                                on ta.affiliate_id = a.id
+                                order by ta.affiliate_id";
+                    } else { // Cualquier método de pago
                         if($request->has('modality')){
                             $modality = $request->modality;
                             if($request->has('hierarchies')){
                                 $hierarchies = $request->hierarchies;
-                                logger("A $payment_method con su modalidad de $modality y con la jerarquia $hierarchies");
-                                $count = DB::select("select ceil(cast(count(distinct affiliate_id) as decimal) / 500) as interval
-                                                    from tmp_affiliates ta
-                                                    left join affiliates a
-                                                    on ta.affiliate_id = a.id
-                                                    inner join degrees d
-                                                    on a.degree_id = d.id
-                                                    inner join hierarchies h
-                                                    on d.hierarchy_id = h.id
-                                                    where payment_id = $payment_method
-                                                    and ta.modality_id = $modality
-                                                    and h.id = $hierarchies");
+                                logger("Al método de pago $payment_method con su modalidad de $modality y con la jerarquia $hierarchies");
+                                // $count = DB::select("select ceil(cast(count(distinct affiliate_id) as decimal) / 500) as interval
+                                //                     from tmp_affiliates ta
+                                //                     left join affiliates a
+                                //                     on ta.affiliate_id = a.id
+                                //                     inner join degrees d
+                                //                     on a.degree_id = d.id
+                                //                     inner join hierarchies h
+                                //                     on d.hierarchy_id = h.id
+                                //                     where payment_id = $payment_method
+                                //                     and ta.modality_id = $modality
+                                //                     and h.id = $hierarchies");
                                 
                                 
-                                $query = "select ta.affiliate_id, ta.firebase_token
+                                $query = "select ta.affiliate_id, ta.firebase_token, a.last_name, a.mothers_last_name, a.first_name, a.second_name, a.identity_card
                                         from tmp_affiliates ta
                                         left join affiliates a
                                         on ta.affiliate_id = a.id
@@ -505,57 +585,155 @@ class NotificationController extends Controller
                                         and ta.modality_id = $modality
                                         and h.id = $hierarchies";
                             } else {
-                                logger("A $payment_method con su modalidad de $modality");
-                                $count = DB::select("select ceil(cast(count(distinct affiliate_id) as decimal) / 500) as interval
-                                            from tmp_affiliates
-                                            where payment_id = $payment_method
-                                            and modality_id = $modality");
+                                logger("Al método de pago $payment_method con su modalidad de $modality");
+                                // $count = DB::select("select ceil(cast(count(distinct affiliate_id) as decimal) / 500) as interval
+                                //             from tmp_affiliates
+                                //             where payment_id = $payment_method
+                                //             and modality_id = $modality");
 
-                                $query = "select distinct affiliate_id, firebase_token
-                                        from tmp_affiliates
+                                $query = "select distinct ta.affiliate_id, ta.firebase_token, a.last_name, a.mothers_last_name, a.first_name, a.second_name, a.identity_card
+                                        from tmp_affiliates ta
+                                        inner join affiliates a
+                                        on ta.affiliate_id = a.id
                                         where payment_id = $payment_method
                                         and modality_id = $modality";
                             }
                         } else {
                             logger("Solo a su método de pago $payment_method");
-                            $count = DB::select("select ceil(cast(count(distinct affiliate_id) as decimal) / 500) as interval
-                                        from tmp_affiliates
-                                        where payment_id = $payment_method");
+                            // $count = DB::select("select ceil(cast(count(distinct affiliate_id) as decimal) / 500) as interval
+                            //             from tmp_affiliates
+                            //             where payment_id = $payment_method");
                             
-                            $query = "select affiliate_id, firebase_token
-                                    from tmp_affiliates
+                            $query = "select ta.affiliate_id, ta.firebase_token, a.last_name, a.mothers_last_name, a.first_name, a.second_name, a.identity_card
+                                    from tmp_affiliates ta
+                                    inner join affiliates a
+                                    on ta.affiliate_id = a.id
                                     where payment_id = $payment_method";
                         }
                     }
-                } elseif($action == 'observations') {
+                } elseif($action === 3) {
                     $year = $request->year;
                     $semester = $request->semester;
                     $this->create_temporary_table_observation($year, $semester); 
                     $type = $request->type_observation;
-                    $count = DB::select("select ceil(cast(count(distinct tos.affiliate_id) as decimal) / 500) as interval
-                                from tmp_observations tos, economic_complements ec, observables o, observation_types ot
-                                where tos.affiliate_id = ec.affiliate_id
-                                and o.observable_type = 'economic_complements'
-                                and o.observable_id = ec.id
-                                and o.observation_type_id = $type
-                                and o.enabled = true
-                                and ot.type = 'AT'
-                                and ot.description is not null
-                                and ot.description <> ''");
+                    // $count = DB::select("select ceil(cast(count(distinct tos.affiliate_id) as decimal) / 500) as interval
+                    //             from tmp_observations tos, economic_complements ec, observables o, observation_types ot
+                    //             where tos.affiliate_id = ec.affiliate_id
+                    //             and o.observable_type = 'economic_complements'
+                    //             and o.observable_id = ec.id
+                    //             and o.observation_type_id = $type
+                    //             and o.enabled = true
+                    //             and ot.type = 'AT'
+                    //             and ot.description is not null
+                    //             and ot.description <> ''");
                     
-                    $query = "select distinct tos.affiliate_id, tos.firebase_token
-                                from tmp_observations tos, economic_complements ec, observables o, observation_types ot
+                    $query = "select distinct tos.affiliate_id, tos.firebase_token, a.last_name, a.mothers_last_name, a.first_name, a.second_name, a.identity_card
+                                from tmp_observations tos, economic_complements ec, observables o, observation_types ot, affiliates a
                                 where tos.affiliate_id = ec.affiliate_id
                                 and o.observable_type = 'economic_complements'
                                 and o.observable_id = ec.id
+                                and tos.affiliate_id = a.id
                                 and o.observation_type_id = $type
                                 and o.enabled = true
                                 and ot.type = 'AT'
                                 and ot.description is not null
                                 and ot.description <> ''";
                 }
-                return $this->consultation_process($count[0]->interval, $query, $params);
+                // return $this->consultation_process($count[0]->interval, $query, $params);
             }
+            $filters = array();
+            $filters[0] = $request->last_name ?? "";
+            $filters[1] = $request->mothers_last_name ?? "";
+            $filters[2] = $request->first_name ?? "";
+            $filters[3] = $request->second_name ?? "";
+            $filters[4] = $request->identity_card ?? "";
+            return $this->shippable_list($query, $filters);
+        } catch(\Exception $e) {
+            return response()->json([
+                'error' => true,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // Ruta para el envío
+    public function send_mass_notification(Request $request) {
+
+        $validator = Validator::make($request->all(), [
+            'title' => 'required|string',
+            'message' => 'required|string',
+            'sends' => 'required|array|min:0',
+            // 'sends.*' => 'required|numeric'
+        ]);
+
+        if($validator->fails()) {
+            $keys = $validator->errors()->keys();
+            $errors = [];
+            foreach($keys as $key) {
+                $errors[$key] = $validator->errors()->get($key);
+            }
+            return response()->json([
+                'error' => true,
+                'errors' => $errors
+            ], 422);
+        }
+
+        try {
+            ini_set('max_execution_time', 5); // 5 segundos
+            $title_notification = $request->title;
+            $message            = $request->message;
+            $image              = $request->image ?? "";
+            $sends              = $request->sends;
+            $amount             = count($sends);
+            $publication_date   = Carbon::now()->format('Y-m-d');
+            $data = [
+                'title' => $title_notification,
+                'image' => $image,
+                'PublicationDate' => $publication_date,
+                'text' => $message
+            ];
+            $params = [];
+            $tokens = [];
+            $ids    = [];
+            $params['data']    = $data;
+            $params['tokens']  = $tokens;
+            $params['ids']     = $ids;
+            $params['subject'] = $request->attached;
+            $params['user_id'] = $request->user_id;
+
+            $interval = ceil(($amount * 1.0)/ 500);
+            $i = 0;
+            do {
+                $i++;
+                foreach($sends[0] as $send) {
+                    if($send->send) {
+                        array_push($params['tokens'], $send->firebase_token);
+                        array_push($params['ids'],    $send->affiliate_id);
+                    }
+                }
+                $res = $this->delegate_shipping($params['data'], $params['tokens'], $params['ids']); 
+                if($res['status'] && count($params['tokens']) != 0) {
+                    $status = $res['delivered'];
+                    $this->to_register($params['user_id'], $status, $params['data'], $params['subject'], $params['ids']);
+                    $result = true;
+                }
+                else { $result = false; break; }
+                logger("-----------------    ENVÍO LOTE NRO $i  --------------------------");
+                sleep(1);
+            } while($i < $interval);
+            return $result ? response()->json([
+                'error'   => false,
+                'message' => $res['message'],
+                'data'    => [
+                    'delivered'     => $res['delivered'],
+                    'success_count' => $res['successCount'],
+                    'failure_count' => $res['failureCount']
+                ]
+            ]) : response()->json([
+                'error'   => true,
+                'message' => $res['message'],
+                'data'    => []
+            ], 404);
         } catch(\Exception $e) {
             return response()->json([
                 'error' => true,

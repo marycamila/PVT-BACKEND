@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 
 Route::group([
-    'middleware' => 'api',
+    'middleware' => 'api', 
     'prefix'     => 'notification'
 ], function () {
     // Ruta para obtener los semestres
@@ -16,6 +16,11 @@ Route::group([
     Route::get('get_beneficiary_type', [App\Http\Controllers\Notification\NotificationController::class, 'get_beneficiary_type']);
     // Ruta para obtener las jerarquias
     Route::get('get_hierarchical_level', [App\Http\Controllers\Notification\NotificationController::class, 'get_hierarchical_level']);
-    // Ruta para notificación masiva
+    // Ruta para obtener las acciones
+    Route::get('get_actions', [App\Http\Controllers\Notification\NotificationController::class, 'get_actions']);
+    // Ruta para obtener el listado masivo de afiliados
     Route::post('mass_notify', [App\Http\Controllers\Notification\NotificationController::class, 'mass_notification']);
+    // Ruta para notificar
+    Route::post('send_mass_notification', [App\Http\Controllers\Notification\NotificationController::class, 'send_mass_notification']);
+
 });

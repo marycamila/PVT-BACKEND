@@ -3,19 +3,11 @@
 namespace App\Http\Controllers\Loan;
 
 use App\Http\Controllers\Controller;
-use App\Models\Affiliate\Affiliate;
 use App\Models\Loan\Loan;
-use App\Models\Loan\LoanState;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use NunoMaduro\Collision\Adapters\Phpunit\State;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\App;
-use App\Helpers\Util;
-use PhpParser\Node\Expr\Cast\Object_;
-
-
 class LoanController extends Controller
 {
     /**

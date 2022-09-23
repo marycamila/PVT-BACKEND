@@ -8,6 +8,13 @@ use App\Models\Loan\Loan;
 use App\Models\Loan\LoanState;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use NunoMaduro\Collision\Adapters\Phpunit\State;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\App;
+use App\Helpers\Util;
+use PhpParser\Node\Expr\Cast\Object_;
+
 
 class LoanController extends Controller
 {
@@ -75,6 +82,39 @@ class LoanController extends Controller
     {
         //
     }
+    public function print_plan(Request $request, Loan $loan)
+    {
+        if($loan->disbursement_date){
+            $procedure_modality = $loan->modality;
+            $file_title = implode('_', ['PLAN','DE','PAGOS', $procedure_modality->shortened, $loan->code,Carbon::now()->format('m/d')]);
+            $is_dead = false;
+            if($loan->borrower->first()->type == 'spouses')
+                $is_dead = true;
+            $data = [
+                'header' => [
+                    'direction' => 'DIRECCIÓN DE ESTRATEGIAS SOCIALES E INVERSIONES',
+                    'unity' => 'UNIDAD DE INVERSIÓN EN PRÉSTAMOS',
+                    'table' => [
+                        ['Tipo', $loan->modality->procedure_type->second_name],
+                        ['Modalidad', $loan->modality->shortened],
+                        ['Fecha', Carbon::now()->format('d/m/Y')],
+                        ['Hora', Carbon::now()->format('H:i')],
+                    ]
+                ],
+                'title' => 'PLAN DE PAGOS',
+                'loan' => $loan,
+                'lender' => $is_dead ? $loan->affiliate->spouse : $loan->affiliate,
+                'is_dead'=> $is_dead,
+                'file_title'=>$file_title
+            ];
+            $file_name = implode('_', ['plan', $procedure_modality->shortened, $loan->code]) . '.pdf';
+            $pdf=PDF::loadView('loan/payment_plan', $data);
+            return $pdf->stream();
+        }else{
+            return "Prestamo no desembolsado";
+        }
+    }
+
      /**
      * @OA\Get(
      *     path="/api/app/get_information_loan/{id_affiliate}",

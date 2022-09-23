@@ -40,3 +40,9 @@
     <hr class="m-b-10" style="margin-top: 0; padding-top: 0;">
 </body>
 </html>
+<style>
+    html {
+    /* Arriba | Derecha | Abajo | Izquierda */
+    margin: 5pt 15pt 16pt 15pt ;
+    }
+</style>

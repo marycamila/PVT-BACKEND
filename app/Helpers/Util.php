@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Helpers;
+
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
@@ -147,5 +149,21 @@ class Util
         // $name = self::removeSpaces($name);
         return $name;
     }
-    
+    public static function money_format($value, $literal = false)
+    {
+        if ($literal) {
+            $f = new \NumberFormatter('es', \NumberFormatter::SPELLOUT);
+            $data = $f->format(intval($value)) . ' ' . explode('.', number_format(round($value, 2), 2))[1] . '/100';
+            $mil = explode(" ",$data);
+            $mil = $mil[0] == "mil" ? 'un ':"";
+            $data =   $mil.$data;
+        } else {
+            $data = number_format($value, 2, ',', '.');
+        }
+        return $data;
+    }
+    public static function round2($value)
+    {
+        return round($value, 2, PHP_ROUND_HALF_EVEN);
+    }
 }

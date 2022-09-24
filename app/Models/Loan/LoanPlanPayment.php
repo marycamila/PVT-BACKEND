@@ -3,12 +3,14 @@
 namespace App\Models\Loan;
 
 use App\Models\Loan\Loan;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class LoanPlanPayment extends Model
 {
     use HasFactory;
+    use SoftDeletes;
 
     public $timestamps = true;
     public $guarded = ['id'];
@@ -24,5 +26,4 @@ class LoanPlanPayment extends Model
         'total_amount',
         'balance',
     ];
-    
 }

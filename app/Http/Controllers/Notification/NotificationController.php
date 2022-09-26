@@ -105,11 +105,20 @@ class NotificationController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/api/notification/get_modalities_payment",
+     *     path="/api/notification/get_modalities_payment/{state_type_id}",
      *     tags={"NOTIFICACIONES"},
      *     summary="LISTADO DE MODALIDADES DE PAGO",
      *     operationId="getModalidadesDePago",
      *     description="Obtiene el listado de las modalidades de pago para complemento económico",
+     *     @OA\Parameter(
+     *         name="state_type_id",
+     *         in="path",
+     *         description="Pagado, habilitado y en proceso",
+     *         required=true,
+     *         @OA\JsonContent(
+     *             type="object"
+     *         )
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Success",
@@ -127,8 +136,8 @@ class NotificationController extends Controller
      * @param Request $request
      * @return void
      */
-    public function get_modalities_payment() {
-        $modalities_payment = EcoComStateType::find(1)->eco_com_state;
+    public function get_modalities_payment($eco_com_state_type_id) {
+        $modalities_payment = EcoComStateType::find($eco_com_state_type_id)->eco_com_state;
         return response()->json([
             'modalities_payment' => $modalities_payment
         ]);
@@ -284,7 +293,7 @@ class NotificationController extends Controller
                     $res['message'] = "Nada que enviar!";
                 } else {
                     $res['status']  = false;
-                    $res['message'] = $response['errors'][0]['msg'];
+                    $res['message'] = $response['message']['message'];
                 }
             }
         }
@@ -456,13 +465,13 @@ class NotificationController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/api/notification/mass_notify",
+     *     path="/api/notification/list_to_notify",
      *     tags={"NOTIFICACIONES"},
-     *     summary="ENVÍO DE NOTIFICACIONES",
-     *     operationId="Envío masivo de notificaciones",
-     *     description="Ruta para el envío masivo de notificaciones",
+     *     summary="LISTADO DE BENEFICIARIOS A NOTIFICAR",
+     *     operationId="ListToNotify",
+     *     description="Listado de beneficiarios para enviar notificación",
      *     @OA\RequestBody(
-     *          description= "Envío de notificaciones",
+     *          description= "Listado de notificaciones",
      *          required=true,
      *          @OA\JsonContent(
      *              type="object",
@@ -470,11 +479,6 @@ class NotificationController extends Controller
      *              @OA\Property(property="payment_method", type="integer",description="Método de pago para el complemento económico (Abono en cuenta SIGEP, Ventanilla Banco Unión y a domicilio)",example="24"),
      *              @OA\Property(property="modality", type="integer",description="Modalidad (vejez, viudedad u orfandad)", example="29"),
      *              @OA\Property(property="type_observation", type="integer",description="Tipo de observación", example="2"),
-     *              @OA\Property(property="title", type="string",description="título de la notificación", example="Complemento Económico"),
-     *              @OA\Property(property="message", type="string",description="mensaje de la notificación",example="Esto es un mensaje para notificar"),
-     *              @OA\Property(property="attached", type="integer",description="adjunto de la notificación", example="Adjunto de la notificación"),
-     *              @OA\Property(property="loaded_image", type="boolean",description="parámetro para saber si se cargo la imagen",example="true"),
-     *              @OA\Property(property="user_id", type="integer",description="id del usuario",example="1"),
      *              @OA\Property(property="year", type="string",description="Fecha perteneciente del complemento económico",example="2022-01-01"),
      *              @OA\Property(property="semester", type="string",description="Semestre del complemento económico observado",example="Segundo"),
      *          )
@@ -496,20 +500,76 @@ class NotificationController extends Controller
      * @param Request $request
      * @return void
      */
-    public function mass_notification(NotificationRequest $request) {
+    public function list_to_notify(Request $request) {
+
+        $validator = Validator::make($request->all(), [
+            'action' => [
+                'required',
+                'numeric',
+                function($attribute, $value, $fail) {
+                    if(!in_array($value, [1,2,3]))
+                    $fail('El valor del campo '.$attribute.' es incorrecto');
+                }
+            ],
+            'payment_method' => [
+                'exclude_if:action,1,3',
+                'required_if:action,2',
+                'required',
+                'numeric',
+                function($attribute, $value, $fail) {
+                    if(!in_array($value, [0,24,25,29])) 
+                    $fail('El '.$attribute.' (método de pago) es incorrecto');
+                }
+            ],
+            'modality' => [
+                'exclude_if:action3,1',
+                'exclude_if:payment_method,0',
+                'numeric',
+                function($attribute, $value, $fail) {
+                    if(!in_array($value, [29, 30, 31]))
+                    $fail('El '.$attribute. ' (modalidad) es incorrecto');
+                }
+            ],
+            'type_observation' => 'required_if:action,3|numeric',
+            'hierarchies' => 'numeric',
+            'year' => 'required_if:action,3',
+            'semester' => 'required_if:action,3|string'
+        ]);
+
+        if($validator->fails()) {
+            $keys = $validator->errors()->keys();
+            $errors = [];
+            foreach($keys as $key) {
+                $errors[$key] = $validator->errors()->get($key);
+            }
+            return response()->json([
+                'error' => true,
+                'errors' => $errors
+            ], 422);
+        }
 
         try {
             $action = $request->action;
 
             if($action === 1) { // recepción de requisitos
 
-                $query = "select at.affiliate_id, at.firebase_token, a.last_name, a.mothers_last_name, a.first_name, a.second_name, a.identity_card
-                        from affiliate_tokens at
-                        inner join affiliates a
-                        on at.affiliate_id = a.id
-                        where api_token is not null
-                        --and firebase_token is not null
-                        order by affiliate_id";
+                $query = "select at2.affiliate_id, eca.last_name, eca.mothers_last_name, eca.first_name, eca.second_name, eca.identity_card
+                        from affiliate_tokens at2
+                        inner join economic_complements ec
+                        on at2.affiliate_id = ec.affiliate_id
+                        inner join eco_com_applicants eca
+                        on ec.id = eca.economic_complement_id
+                        inner join eco_com_procedures ecp
+                        on ec.eco_com_procedure_id = ecp.id
+                        where ec.eco_com_procedure_id in (
+                                select ecp.id
+                                from eco_com_procedures ecp
+                                order by ecp.id desc
+                                offset 0 rows
+                                fetch first 1 row only
+                        )
+                        --and at2.api_token is not null
+                        --and at2.firebase_token is not null";
 
                 // $res = [];
                 // $result = AffiliateToken::whereNotNull('api_token')
@@ -549,11 +609,12 @@ class NotificationController extends Controller
                         // $count = DB::select("select ceil(cast(count(distinct affiliate_id) as decimal) / 500) as interval
                         //             from tmp_affiliates");
 
-                        $query = "select ta.affiliate_id, ta.firebase_token, a.last_name, a.mothers_last_name, a.first_name, a.second_name, a.identity_card
+                        $query = "select ta.affiliate_id, eca.last_name, eca.mothers_last_name, eca.first_name, eca.second_name, eca.identity_card
                                 from tmp_affiliates ta
-                                inner join affiliates a
-                                on ta.affiliate_id = a.id
+                                inner join eco_com_applicants eca
+                                on ta.economic_complement_id = eca.economic_complement_id
                                 order by ta.affiliate_id";
+
                     } else { // Cualquier método de pago
                         if($request->has('modality')){
                             $modality = $request->modality;
@@ -573,9 +634,11 @@ class NotificationController extends Controller
                                 //                     and h.id = $hierarchies");
                                 
                                 
-                                $query = "select ta.affiliate_id, ta.firebase_token, a.last_name, a.mothers_last_name, a.first_name, a.second_name, a.identity_card
+                                $query = "select ta.affiliate_id, eca.last_name, eca.mothers_last_name, eca.first_name, eca.second_name, eca.identity_card
                                         from tmp_affiliates ta
-                                        left join affiliates a
+                                        left join eco_com_applicants eca
+                                        on ta.economic_complement_id = eca.economic_complement_id
+                                        inner join affiliates a
                                         on ta.affiliate_id = a.id
                                         inner join degrees d
                                         on a.degree_id = d.id
@@ -591,10 +654,10 @@ class NotificationController extends Controller
                                 //             where payment_id = $payment_method
                                 //             and modality_id = $modality");
 
-                                $query = "select distinct ta.affiliate_id, ta.firebase_token, a.last_name, a.mothers_last_name, a.first_name, a.second_name, a.identity_card
+                                $query = "select distinct ta.affiliate_id, eca.last_name, eca.mothers_last_name, eca.first_name, eca.second_name, eca.identity_card
                                         from tmp_affiliates ta
-                                        inner join affiliates a
-                                        on ta.affiliate_id = a.id
+                                        inner join eco_com_applicants eca
+                                        on ta.economic_complement_id = eca.economic_complement_id
                                         where payment_id = $payment_method
                                         and modality_id = $modality";
                             }
@@ -604,10 +667,10 @@ class NotificationController extends Controller
                             //             from tmp_affiliates
                             //             where payment_id = $payment_method");
                             
-                            $query = "select ta.affiliate_id, ta.firebase_token, a.last_name, a.mothers_last_name, a.first_name, a.second_name, a.identity_card
+                            $query = "select ta.affiliate_id, eca.last_name, eca.mothers_last_name, eca.first_name, eca.second_name, eca.identity_card
                                     from tmp_affiliates ta
-                                    inner join affiliates a
-                                    on ta.affiliate_id = a.id
+                                    inner join eco_com_applicants eca
+                                    on ta.economic_complement_id = eca.economic_complement_id
                                     where payment_id = $payment_method";
                         }
                     }
@@ -616,6 +679,7 @@ class NotificationController extends Controller
                     $semester = $request->semester;
                     $this->create_temporary_table_observation($year, $semester); 
                     $type = $request->type_observation;
+                    logger("observación del $year año, con $semester semestre y tipo de observación $type");
                     // $count = DB::select("select ceil(cast(count(distinct tos.affiliate_id) as decimal) / 500) as interval
                     //             from tmp_observations tos, economic_complements ec, observables o, observation_types ot
                     //             where tos.affiliate_id = ec.affiliate_id
@@ -627,12 +691,12 @@ class NotificationController extends Controller
                     //             and ot.description is not null
                     //             and ot.description <> ''");
                     
-                    $query = "select distinct tos.affiliate_id, tos.firebase_token, a.last_name, a.mothers_last_name, a.first_name, a.second_name, a.identity_card
-                                from tmp_observations tos, economic_complements ec, observables o, observation_types ot, affiliates a
+                    $query = "select distinct tos.affiliate_id, eca.last_name, eca.mothers_last_name, eca.first_name, eca.second_name, eca.identity_card
+                                from tmp_observations tos, economic_complements ec, observables o, observation_types ot, eco_com_applicants eca
                                 where tos.affiliate_id = ec.affiliate_id
                                 and o.observable_type = 'economic_complements'
                                 and o.observable_id = ec.id
-                                and tos.affiliate_id = a.id
+                                and ec.id = eca.economic_complement_id
                                 and o.observation_type_id = $type
                                 and o.enabled = true
                                 and ot.type = 'AT'
@@ -656,14 +720,49 @@ class NotificationController extends Controller
         }
     }
 
-    // Ruta para el envío
+    /**
+     * @OA\Post(
+     *     path="/api/notification/send_mass_notification",
+     *     tags={"NOTIFICACIONES"},
+     *     summary="ENVÍO DE NOTIFICACIONES MASIVAS",
+     *     operationId="sendMassNotification",
+     *     description="Envío de notificaciones masivas",
+     *     @OA\RequestBody(
+     *          description= "Envío de notificaciones masivas",
+     *          required=true,
+     *          @OA\JsonContent(
+     *              type="object",
+     *              @OA\Property(property="title", type="string",description="Título de la notificación", example="Comunicado Complemento económico"),
+     *              @OA\Property(property="message", type="string",description="Mensaje de la notificación",example="Señor affiliado {{nombre}} se apertura la recepción de requisitos para el trámite de pago de complemento económico"),
+     *              @OA\Property(property="sends", type="object",description="Array de personas a notificar (beneficiarios)", example="[{'affiliate_id': 5964, 'send': true}]"),
+     *              @OA\Property(property="image", type="string",description="Url de la imagen como cuerpo de la notificación", example="http://google.com/image"),
+     *              @OA\Property(property="attached", type="string",description="Adjunto del mensaje",example="Comunicado"),
+     *              @OA\Property(property="user_id", type="integer",description="Id del usuario que envía la notificación",example="1"),
+     *          )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *         type="object"
+     *         )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     }
+     * )
+     *
+     *  mass_notification 
+     *
+     * @param Request $request
+     * @return void
+     */
     public function send_mass_notification(Request $request) {
 
         $validator = Validator::make($request->all(), [
             'title' => 'required|string',
             'message' => 'required|string',
             'sends' => 'required|array|min:0',
-            // 'sends.*' => 'required|numeric'
         ]);
 
         if($validator->fails()) {
@@ -705,10 +804,11 @@ class NotificationController extends Controller
             $i = 0;
             do {
                 $i++;
-                foreach($sends[0] as $send) {
-                    if($send->send) {
-                        array_push($params['tokens'], $send->firebase_token);
-                        array_push($params['ids'],    $send->affiliate_id);
+                foreach($sends as $send) {
+                    if($send['send']) {
+                        $firebase_token = AffiliateToken::whereAffiliateId($send['affiliate_id'])->select('firebase_token')->get()[0];
+                        array_push($params['tokens'], $firebase_token['firebase_token']);
+                        array_push($params['ids'],   $send['affiliate_id']);
                     }
                 }
                 $res = $this->delegate_shipping($params['data'], $params['tokens'], $params['ids']); 

@@ -115,8 +115,9 @@ class NotificationController extends Controller
      *         in="path",
      *         description="Pagado, habilitado y en proceso",
      *         required=true,
-     *         @OA\JsonContent(
-     *             type="object"
+     *         @OA\Schema(
+     *             type="integer",
+     *             format="int64"
      *         )
      *     ),
      *     @OA\Response(
@@ -550,9 +551,7 @@ class NotificationController extends Controller
 
         try {
             $action = $request->action;
-
             if($action === 1) { // recepción de requisitos
-
                 $query = "select at2.affiliate_id, eca.last_name, eca.mothers_last_name, eca.first_name, eca.second_name, eca.identity_card
                         from affiliate_tokens at2
                         inner join economic_complements ec
@@ -570,45 +569,12 @@ class NotificationController extends Controller
                         )
                         --and at2.api_token is not null
                         --and at2.firebase_token is not null";
-
-                // $res = [];
-                // $result = AffiliateToken::whereNotNull('api_token')
-                //     ->whereNotNull('firebase_token')
-                //     ->orderBy('affiliate_id')
-                //     ->chunk(500, function($registers, $count) use ($params) { 
-                //         foreach($registers as $register) {
-                //             array_push($params['tokens'], $register->firebase_token);
-                //             array_push($params['ids'], $register->id); 
-                //         }
-                //         $res = $this->delegate_shipping($params['data'], $params['tokens']);  
-                //         if($res['status']) {
-                //             $status = $res['delivered'];
-                //             $this->to_register($params['user_id'], $status, $params['data'], $params['subject'], $params['ids']);
-                //         }
-                //         else return false;
-                        
-                //         logger("-----------------    ENVÍO LOTE NRO $count  --------------------------");
-                //         sleep(1);
-                // });
-                // return $result ? response()->json([
-                //     'error'   => false,
-                //     'message' => 'Notificación masiva exitosa',
-                //     'data'    => []
-                // ]) : response()->json([
-                //     'error'   => true,
-                //     'message' => 'Notificación masiva fallida',
-                //     'data'    => []
-                // ], 404);
-
             } else {
-                if($action === 2) { // pago de complemento económico
+                if($action === 2) { 
                     $payment_method = $request->payment_method;
                     $this->create_temporary_tables_payments(); 
                     if($payment_method == 0) { // A todos los habilitados para pago de complemento económico
                         logger("A todos los habilitados para pago de complemento económico");
-                        // $count = DB::select("select ceil(cast(count(distinct affiliate_id) as decimal) / 500) as interval
-                        //             from tmp_affiliates");
-
                         $query = "select ta.affiliate_id, eca.last_name, eca.mothers_last_name, eca.first_name, eca.second_name, eca.identity_card
                                 from tmp_affiliates ta
                                 inner join eco_com_applicants eca
@@ -621,19 +587,6 @@ class NotificationController extends Controller
                             if($request->has('hierarchies')){
                                 $hierarchies = $request->hierarchies;
                                 logger("Al método de pago $payment_method con su modalidad de $modality y con la jerarquia $hierarchies");
-                                // $count = DB::select("select ceil(cast(count(distinct affiliate_id) as decimal) / 500) as interval
-                                //                     from tmp_affiliates ta
-                                //                     left join affiliates a
-                                //                     on ta.affiliate_id = a.id
-                                //                     inner join degrees d
-                                //                     on a.degree_id = d.id
-                                //                     inner join hierarchies h
-                                //                     on d.hierarchy_id = h.id
-                                //                     where payment_id = $payment_method
-                                //                     and ta.modality_id = $modality
-                                //                     and h.id = $hierarchies");
-                                
-                                
                                 $query = "select ta.affiliate_id, eca.last_name, eca.mothers_last_name, eca.first_name, eca.second_name, eca.identity_card
                                         from tmp_affiliates ta
                                         left join eco_com_applicants eca
@@ -649,11 +602,6 @@ class NotificationController extends Controller
                                         and h.id = $hierarchies";
                             } else {
                                 logger("Al método de pago $payment_method con su modalidad de $modality");
-                                // $count = DB::select("select ceil(cast(count(distinct affiliate_id) as decimal) / 500) as interval
-                                //             from tmp_affiliates
-                                //             where payment_id = $payment_method
-                                //             and modality_id = $modality");
-
                                 $query = "select distinct ta.affiliate_id, eca.last_name, eca.mothers_last_name, eca.first_name, eca.second_name, eca.identity_card
                                         from tmp_affiliates ta
                                         inner join eco_com_applicants eca
@@ -663,10 +611,6 @@ class NotificationController extends Controller
                             }
                         } else {
                             logger("Solo a su método de pago $payment_method");
-                            // $count = DB::select("select ceil(cast(count(distinct affiliate_id) as decimal) / 500) as interval
-                            //             from tmp_affiliates
-                            //             where payment_id = $payment_method");
-                            
                             $query = "select ta.affiliate_id, eca.last_name, eca.mothers_last_name, eca.first_name, eca.second_name, eca.identity_card
                                     from tmp_affiliates ta
                                     inner join eco_com_applicants eca
@@ -680,17 +624,6 @@ class NotificationController extends Controller
                     $this->create_temporary_table_observation($year, $semester); 
                     $type = $request->type_observation;
                     logger("observación del $year año, con $semester semestre y tipo de observación $type");
-                    // $count = DB::select("select ceil(cast(count(distinct tos.affiliate_id) as decimal) / 500) as interval
-                    //             from tmp_observations tos, economic_complements ec, observables o, observation_types ot
-                    //             where tos.affiliate_id = ec.affiliate_id
-                    //             and o.observable_type = 'economic_complements'
-                    //             and o.observable_id = ec.id
-                    //             and o.observation_type_id = $type
-                    //             and o.enabled = true
-                    //             and ot.type = 'AT'
-                    //             and ot.description is not null
-                    //             and ot.description <> ''");
-                    
                     $query = "select distinct tos.affiliate_id, eca.last_name, eca.mothers_last_name, eca.first_name, eca.second_name, eca.identity_card
                                 from tmp_observations tos, economic_complements ec, observables o, observation_types ot, eco_com_applicants eca
                                 where tos.affiliate_id = ec.affiliate_id
@@ -703,7 +636,6 @@ class NotificationController extends Controller
                                 and ot.description is not null
                                 and ot.description <> ''";
                 }
-                // return $this->consultation_process($count[0]->interval, $query, $params);
             }
             $filters = array();
             $filters[0] = $request->last_name ?? "";
@@ -778,7 +710,7 @@ class NotificationController extends Controller
         }
 
         try {
-            ini_set('max_execution_time', 5); // 5 segundos
+            ini_set('max_execution_time', 5); 
             $title_notification = $request->title;
             $message            = $request->message;
             $image              = $request->image ?? "";

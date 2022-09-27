@@ -184,7 +184,7 @@ class AppContributionController extends Controller
             'contributions' => $contributions
         ];
         $day = Carbon::now()->format('d/m/Y');
-        $pdf = PDF::loadView('my-pdf-file', $data, compact('day'));
+        $pdf = PDF::loadView('certification__contribution_eco_com', $data, compact('day'));
 
         return $pdf->download('contributions.pdf');
     }
@@ -265,4 +265,3 @@ class AppContributionController extends Controller
         //
     }
 }
-7

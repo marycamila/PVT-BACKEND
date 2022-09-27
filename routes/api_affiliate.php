@@ -18,5 +18,10 @@ Route::group([
     ], function () {
        Route::get('/credential_status/{id}', [App\Http\Controllers\Affiliate\AffiliateController::class, 'credential_status']);
        Route::apiResource('/affiliate', App\Http\Controllers\Affiliate\AffiliateController::class)->only(['index','show','update']);
+       Route::apiResource('/degree', App\Http\Controllers\Affiliate\DegreeController::class)->only(['index','show']);
+       Route::apiResource('/unit', App\Http\Controllers\Affiliate\UnitController::class)->only(['index','show']);
+       Route::apiResource('/category',App\Http\Controllers\Affiliate\CategoryController::class)->only(['index','show']);
+       Route::apiResource('/pension_entity',App\Http\Controllers\Affiliate\PensionEntityController::class)->only(['index','show']);
+       Route::apiResource('/affiliate_state',App\Http\Controllers\Affiliate\AffiliateStateController::class)->only(['index','show']);
     });
 });

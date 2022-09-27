@@ -3,19 +3,16 @@
 namespace App\Http\Controllers\Loan;
 
 use App\Http\Controllers\Controller;
-use App\Models\Affiliate\Affiliate;
+use App\Models\Admin\Module;
+use App\Models\Admin\Role;
 use App\Models\Loan\Loan;
+use App\Models\Loan\LoanBorrower;
 use App\Models\Loan\LoanState;
+use App\Models\Procedure\ProcedureModality;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use NunoMaduro\Collision\Adapters\Phpunit\State;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\App;
-use App\Helpers\Util;
-use PhpParser\Node\Expr\Cast\Object_;
-
-
 class LoanController extends Controller
 {
     /**
@@ -154,32 +151,82 @@ class LoanController extends Controller
         if ($hasLoans) {
             $loans = Loan::where([
                 ['affiliate_id', '=',$request->id_affiliate]
-            ])->whereIn('state_id',[3,4])->get();
-        $allLoans=[];
+            ])->whereIn('state_id',[1,3,4])->get();
+        $current=[];
+        $inProcess=[];
+        $liquidated=[];
         foreach ($loans as $loan ) {
-            array_push($allLoans,array(
-                "id"=> $loan->id,
-                "code"=> $loan->code,
-                "procedure_modality" => $loan->modality->name,
-                "request_date"=> $loan->disbursement_date,
-                "amount_requested"=> $loan->amount_requested,
-                "city"=> $loan->city->name,
-                "interest"=> $loan->interest->annual_interest,
-                "state"=> $loan->state->name,
-                "amount_approved"=> $loan->amount_approved,
-                "liquid_qualification_calculated"=> $loan->liquid_qualification_calculated,
-                "loan_term"=> $loan->loan_term,
-                "refinancing_balance"=> $loan->refinancing_balance,
-                "payment_type"=> $loan->payment_type->name,
-                "destiny_id"=> $loan->destiny->name,
-                "quota"=> $loan->EstimatedQuota,
+            if ($loan->state_id == 1) {
+                $data = Loan::where('uuid',$loan->uuid)->first();
+                $state = LoanState::find($data->state_id);
+                $procedure = ProcedureModality::find($data->procedure_modality_id);
+                $type = Loan::find($data->id)->modality->procedure_type->name;
+                $role = Role::find($data->role_id);
+                $data->state_name = $state->name;
+                $data->procedure_modality_name = $procedure->name;
+                $data->procedure_type_name = $type;
+                $data->location =$role->display_name;
+                array_push($inProcess,array(
+                    'code' => $data->code,
+                    'procedure_modality_name' => $data->procedure_modality_name,
+                    'procedure_type_name' => $data->procedure_type_name,
+                    'location' => $data->location,
+                    'validated' => $data->validated,
+                    'state_name' => $data->state_name,
                 )
-            );
+                );
+            }
+            else {
+                if ($loan->state_id == 3) {
+                    array_push($current,array(
+                        "id"=> $loan->id,
+                        "code"=> $loan->code,
+                        "procedure_modality" => $loan->modality->name,
+                        "request_date"=> $loan->disbursement_date,
+                        "amount_requested"=> $loan->amount_requested,
+                        "city"=> $loan->city->name,
+                        "interest"=> $loan->interest->annual_interest,
+                        "state"=> $loan->state->name,
+                        "amount_approved"=> $loan->amount_approved,
+                        "liquid_qualification_calculated"=> $loan->liquid_qualification_calculated,
+                        "loan_term"=> $loan->loan_term,
+                        "refinancing_balance"=> $loan->refinancing_balance,
+                        "payment_type"=> $loan->payment_type->name,
+                        "destiny_id"=> $loan->destiny->name,
+                        "quota"=> $loan->EstimatedQuota,
+                        )
+                    );
+                }
+                else {
+                    array_push($liquidated,array(
+                        "id"=> $loan->id,
+                        "code"=> $loan->code,
+                        "procedure_modality" => $loan->modality->name,
+                        "request_date"=> $loan->disbursement_date,
+                        "amount_requested"=> $loan->amount_requested,
+                        "city"=> $loan->city->name,
+                        "interest"=> $loan->interest->annual_interest,
+                        "state"=> $loan->state->name,
+                        "amount_approved"=> $loan->amount_approved,
+                        "liquid_qualification_calculated"=> $loan->liquid_qualification_calculated,
+                        "loan_term"=> $loan->loan_term,
+                        "refinancing_balance"=> $loan->refinancing_balance,
+                        "payment_type"=> $loan->payment_type->name,
+                        "destiny_id"=> $loan->destiny->name,
+                        "quota"=> $loan->EstimatedQuota,
+                        )
+                    );
+                }
+            }
         }
         return response()->json([
             'error' => 'false',
             'message' => 'Lista de Prestamos',
-            'payload' => $allLoans,
+            'payload' => [
+                'inProcess'=> $inProcess,
+                'current' => $current,
+                'liquited' => $liquidated,
+            ],
         ]);
         }
         else{

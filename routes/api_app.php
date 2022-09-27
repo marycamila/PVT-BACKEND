@@ -16,5 +16,6 @@ Route::group([
     ], function () {
         Route::get('/get_information_loan/{id_affiliate}',[App\Http\Controllers\Loan\LoanController::class, 'get_information_loan']);
         Route::get('/all_contributions/{id}/{year}', [App\Http\Controllers\Contribution\AppContributionController::class, 'all_contributions']);
+        Route::get('/loan/{loan}/print/plan',[App\Http\Controllers\Loan\LoanController::class, 'print_plan']);
     });
 });

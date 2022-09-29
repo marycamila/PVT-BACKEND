@@ -40,7 +40,7 @@ class AppContributionController extends Controller
         $degree = Degree::find($affiliate->degree_id);
         if ($affiliate->affiliate_state->affiliate_state_type->name == 'Pasivo')
             $affiliate_passive = true;
-        else 
+        else
             $affiliate_passive = false;
 
         $contributions_total = collect();
@@ -160,7 +160,6 @@ class AppContributionController extends Controller
                 'month' => $month,
                 'year' => $year,
                 'rent_class' => $rent_class,
-                'affiliate_rent_class' => $contributions_passive->affiliate_rent_class, //vejez-viudedad
                 'description' => $text,
                 'quotable' => $contributions_passive->quotable,
                 'retirement_fund' => null,
@@ -172,8 +171,9 @@ class AppContributionController extends Controller
 
         $data = [
             'header' => [
-                'direction' => 'DIRECCIÓN DE ASUNTOS ADMINISTRATIVOS',
-                'unity' => 'UNIDAD DE SISTEMAS',
+                'direction' => 'DIRECCIÓN DE BENEFICIOS ECONÓMICOS',
+                'unity' => 'UNIDAD DE OTORGACIÓN DE FONDO DE RETIRO
+                            POLICIAL, CUOTA MORTUORIA Y AUXILIO MORTUORIO',
                 'table' => [
                     ['Fecha', Carbon::now()->format('d-m-Y')],
                     ['Hora', Carbon::now()->format('H:m:s')],
@@ -184,11 +184,46 @@ class AppContributionController extends Controller
             'contributions' => $contributions
         ];
         $day = Carbon::now()->format('d/m/Y');
-        $pdf = PDF::loadView('certification__contribution_eco_com', $data, compact('day'));
+        $pdf = PDF::loadView('contribution.print.certification_contribution_eco_com', $data, compact('day'));
 
         return $pdf->download('contributions.pdf');
     }
-  
+
+    public function printCertificationContributionActive(Request $request, $affiliate_id)
+    {
+        $request['affiliate_id'] = $affiliate_id;
+        $request->validate([
+            'affiliate_id' => 'required|integer|exists:contributions,affiliate_id',
+        ]);
+
+        $affiliate = Affiliate::find($affiliate_id);
+        $degree = Degree::find($affiliate->degree_id);
+        $contributions_actives = Contribution::whereAffiliateId($affiliate_id)
+            ->orderBy('month_year', 'asc')
+            ->get();
+        $contributions = collect();
+        foreach ($contributions_actives as $contributions_active) {
+            
+        }
+        $data = [
+            'header' => [
+                'direction' => 'DIRECCIÓN DE BENEFICIOS ECONÓMICOS',
+                'unity' => 'UNIDAD DE OTORGACIÓN DE FONDO DE RETIRO
+                            POLICIAL, CUOTA MORTUORIA Y AUXILIO MORTUORIO',
+                'table' => [
+                    ['Fecha', Carbon::now()->format('d-m-Y')],
+                    ['Hora', Carbon::now('GMT-4')->format('H:i:s')],
+                ]
+            ],
+            'degree' => $degree,
+            'affiliate' => $affiliate,
+            'contributions' => $contributions
+        ];
+
+        $pdf = PDF::loadView('contribution.print.certification_contribution_active', $data);
+        return $pdf->download('contribution_act.pdf');
+    }
+
     /**
      * Display a listing of the resource.
      *

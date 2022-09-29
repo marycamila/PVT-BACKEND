@@ -32,6 +32,9 @@ tr {
   overflow: hidden;
   border-spacing: 0;
 }
+.table-info th {
+  padding: 0px 10px 0px 10px;
+}
 
 .table-info thead tr td {
   border-left: 1px solid #fff;

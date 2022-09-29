@@ -47,6 +47,8 @@ class AppServiceProvider extends ServiceProvider
             'roles' => 'App\Models\Admin\Role',
             'modules' => 'App\Models\Admin\Module',
             'loans' => 'App\Models\Loan\Loan',
+            'notes' => 'App\Models\Note',
+            'sismus' => 'App\Models\Loan\Sismu',
             'procedure_types' => 'App\Models\Procedure\ProcedureType',
             'loan_payments' => 'App\Models\Loan\LoanPayment',
             'vouchers' => 'App\Models\Voucher',

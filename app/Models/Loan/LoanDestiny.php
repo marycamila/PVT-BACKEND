@@ -2,6 +2,7 @@
 
 namespace App\Models\Loan;
 
+use App\Models\Procedure\ProcedureType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 

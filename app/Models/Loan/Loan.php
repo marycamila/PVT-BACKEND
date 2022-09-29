@@ -19,7 +19,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Loan extends Model
 {
-    use HasFactory;
     use SoftDeletes;
 
     protected $dates = [
@@ -74,9 +73,9 @@ class Loan extends Model
     {
         return $this->belongsTo(LoanProperty::class, 'property_id','id');
     }
-    public function notes()     //revisar
+    public function notes()
     {
-        return $this->morphToMany(Note::class, 'annotable');
+        return $this->morphMany(Note::class, 'annotable');
     }
     public function tags()
     {

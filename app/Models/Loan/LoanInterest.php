@@ -2,6 +2,7 @@
 
 namespace App\Models\Loan;
 
+use App\Models\Procedure\ProcedureModality;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -13,7 +14,7 @@ class LoanInterest extends Model
 
     public function loans()
     {
-        return $this->hasMany(Loan::class);
+        return $this->hasMany(Loan::class, 'id', 'interest_id');
     }
     public function procedure_modality()
     {

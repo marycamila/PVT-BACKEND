@@ -60,10 +60,10 @@ class AppContributionController extends Controller
                     'id' => $contributions_passive->id,
                     'month_year' => $contributions_passive->month_year,
                     'description' => $text,
-                    'quotable' => $contributions_passive->quotable,
+                    'quotable' => Util::money_format($contributions_passive->quotable),
                     'retirement_fund' => null,
                     'mortuary_quota' => null,
-                    'total' => $contributions_passive->total,
+                    'total' => Util::money_format($contributions_passive->total),
                     'type' => $contributions_passive->contributionable_type
                 ]);
             }
@@ -78,10 +78,10 @@ class AppContributionController extends Controller
                     'id' => $contributions_active->id,
                     'month_year' => $contributions_active->month_year,
                     'description' => null,
-                    'quotable' => $contributions_active->quotable,
-                    'retirement_fund' => $contributions_active->retirement_fund,
-                    'mortuary_quota' => $contributions_active->mortuary_quota,
-                    'total' => $contributions_active->total,
+                    'quotable' => Util::money_format($contributions_active->quotable),
+                    'retirement_fund' => Util::money_format($contributions_active->retirement_fund),
+                    'mortuary_quota' => Util::money_format($contributions_active->mortuary_quota),
+                    'total' => Util::money_format($contributions_active->total),
                     'type' => $contributions_active->contributionable_type
                 ]);
             }
@@ -198,13 +198,13 @@ class AppContributionController extends Controller
 
         $affiliate = Affiliate::find($affiliate_id);
         $degree = Degree::find($affiliate->degree_id);
-        $contributions_actives = Contribution::whereAffiliateId($affiliate_id)
+        $contributions = Contribution::whereAffiliateId($affiliate_id)
             ->orderBy('month_year', 'asc')
             ->get();
-        $contributions = collect();
-        foreach ($contributions_actives as $contributions_active) {
+        //$contributions = collect();
+        /*foreach ($contributions_actives as $contributions_active) {
             
-        }
+        }*/
         $data = [
             'header' => [
                 'direction' => 'DIRECCIÓN DE BENEFICIOS ECONÓMICOS',

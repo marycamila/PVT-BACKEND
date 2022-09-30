@@ -22,5 +22,6 @@ Route::group([
     Route::post('list_to_notify', [App\Http\Controllers\Notification\NotificationController::class, 'list_to_notify']);
     // Ruta para notificar
     Route::post('send_mass_notification', [App\Http\Controllers\Notification\NotificationController::class, 'send_mass_notification']);
-
+    // Ruta provisional para envio de notificaciones
+    Route::post('send_notifications', [App\Http\Controllers\Notification\NotificationController::class, 'send_notifications']);
 });

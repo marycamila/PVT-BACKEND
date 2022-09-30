@@ -21,6 +21,9 @@ use Exception;
 use Illuminate\Support\Facades\DB;
 use App\Exceptions\ExceptionMicroservice;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Models\Affiliate\Affiliate;
 
 class NotificationController extends Controller
 {
@@ -276,11 +279,15 @@ class NotificationController extends Controller
                 $responses = $message['responses'];
 
                 $i = 0;
+                $delivered = array();
                 foreach($responses as $check) {
                     $var = $check['success'] ? true : false;
-                    $delivered = array(
-                        $ids[$i] => $var
+                    $aux = array();
+                    $aux = array(
+                        'affiliate_id' => $ids[$i],
+                        'status' => $var
                     );
+                    array_push($delivered, $aux);
                     $i++;
                 }
                 $res['status']       = true;
@@ -309,6 +316,7 @@ class NotificationController extends Controller
     public function to_register($user_id, $delivered, $message, $subject, $ids) {
         $eco_com = new EconomicComplement();
         $alias = $eco_com->getMorphClass();
+        $i = 0;
         foreach($ids as $id) {
             $obj = (object)$message;
             $notification_send = new NotificationSend();
@@ -319,10 +327,11 @@ class NotificationController extends Controller
                 'sendable_type' => $alias,
                 'sendable_id' => $id,
                 'send_date' => Carbon::now(),
-                'delivered' => $delivered[$id],
+                'delivered' => $delivered[$i]['status'],
                 'message' => json_encode(['data' => $obj]),
                 'subject' => $subject
             ]);
+            $i++;
         }
     }
 
@@ -689,9 +698,9 @@ class NotificationController extends Controller
      * @param Request $request
      * @return void
      */
-    public function send_mass_notification(Request $request) {
-
-        $validator = Validator::make($request->all(), [
+    public function send_mass_notification($request)
+    {
+        $validator = Validator::make($request, [
             'title' => 'required|string',
             'message' => 'required|string',
             'sends' => 'required|array|min:0',
@@ -711,10 +720,10 @@ class NotificationController extends Controller
 
         try {
             ini_set('max_execution_time', 5); 
-            $title_notification = $request->title;
-            $message            = $request->message;
+            $title_notification = $request['title'];
+            $message            = $request['message'];
             $image              = $request->image ?? "";
-            $sends              = $request->sends;
+            $sends              = $request['sends'];
             $amount             = count($sends);
             $publication_date   = Carbon::now()->format('Y-m-d');
             $data = [
@@ -729,14 +738,14 @@ class NotificationController extends Controller
             $params['data']    = $data;
             $params['tokens']  = $tokens;
             $params['ids']     = $ids;
-            $params['subject'] = $request->attached;
-            $params['user_id'] = $request->user_id;
+            $params['subject'] = $request['attached'];
+            $params['user_id'] = $request['user_id'];
 
             $interval = ceil(($amount * 1.0)/ 500);
             $i = 0;
             do {
                 $i++;
-                foreach($sends as $send) {
+                foreach($sends[0] as $send) {
                     if($send['send']) {
                         $firebase_token = AffiliateToken::whereAffiliateId($send['affiliate_id'])->select('firebase_token')->get()[0];
                         array_push($params['tokens'], $firebase_token['firebase_token']);
@@ -753,11 +762,12 @@ class NotificationController extends Controller
                 logger("-----------------    ENVÍO LOTE NRO $i  --------------------------");
                 sleep(1);
             } while($i < $interval);
+
             return $result ? response()->json([
                 'error'   => false,
                 'message' => $res['message'],
                 'data'    => [
-                    'delivered'     => $res['delivered'],
+                    'delivered'  => $res['delivered'],
                     'success_count' => $res['successCount'],
                     'failure_count' => $res['failureCount']
                 ]
@@ -772,5 +782,49 @@ class NotificationController extends Controller
                 'message' => $e->getMessage()
             ], 500);
         }
+    }
+
+    public function send_notifications(Request $request)
+    {
+        /*try
+        {
+            $request->validate([
+                'title' => 'required|string',
+                'message' => 'required|string',
+                'file' => 'required|file|mimes:xlsx'
+            ]);*/
+            
+            $rows = Excel::toArray([], $request->file);
+            $rows = $rows[0];
+            $affiliates = collect();
+            $send = collect();
+            foreach($rows as $row)
+            {
+                if($row[0] != null)
+                {
+                    if(Affiliate::find($row[0]) != null && Affiliate::find($row[0])->affiliate_token != null && Affiliate::find($row[0])->affiliate_token->firebase_token != null)
+                    {
+                        $affiliates->push([
+                            'affiliate_id' => $row[0],
+                            'send' => true
+                        ]);
+                    }
+                }
+            }
+            $send->push([
+                'title' => $request->title,
+                'message' => $request->message,
+                'attached' => $request->attached,
+                'user_id' => 1,
+                'sends' => array($affiliates)
+            ]);
+            $send = $send[0];
+            return $this->send_mass_notification($send);
+        /*} catch(\Exception $e) {
+            return response()->json([
+                'error' => true,
+                'message' => $e->getMessage()
+            ], 500);
+        }*/
     }
 }

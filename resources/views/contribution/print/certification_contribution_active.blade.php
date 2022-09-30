@@ -44,10 +44,10 @@
                     <tr>
                         <td class="data-row py-2">{{ date('Y', strtotime($contribution->month_year)) }}</td>
                         <td class="data-row py-2">{{ date('m', strtotime($contribution->month_year)) }}</td>
-                        <td class="data-row py-2">{{ $contribution->retirement_fund }}</td>
-                        <td class="data-row py-2">{{ $contribution->mortuary_quota }}</td>
-                        <td class="data-row py-2">{{ $contribution->quotable }}</td>
-                        <td class="data-row py-2">{{ $contribution->total }}</td>
+                        <td class="data-row py-2">{{ Util::money_format($contribution->retirement_fund) }}</td>
+                        <td class="data-row py-2">{{ Util::money_format($contribution->mortuary_quota) }}</td>
+                        <td class="data-row py-2">{{ Util::money_format($contribution->quotable) }}</td>
+                        <td class="data-row py-2">{{ Util::money_format($contribution->total) }}</td>
                     </tr>
                 @endforeach
             </tbody>

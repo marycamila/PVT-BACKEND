@@ -6,11 +6,13 @@ use App\Models\Admin\User;
 use App\Models\Affiliate\Affiliate;
 use App\Models\Procedure\ProcedureModality;
 use App\Models\Voucher;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class LoanPayment extends Model
 {
+    use HasFactory;
     use SoftDeletes;
 
     public $timestamps = true;

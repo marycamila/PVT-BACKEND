@@ -111,6 +111,38 @@ class LoanController extends Controller
             return "Prestamo no desembolsado";
         }
     }
+    public function print_kardex(Request $request, Loan $loan, $standalone = true)
+    {
+        if($loan->disbursement_date){
+            $procedure_modality = $loan->modality;
+            $is_dead = false;
+            if($loan->borrower->first()->type == 'spouses'){
+                $is_dead = true;
+            }
+                $file_title = $procedure_modality->shortened;
+                $data = [
+                    'header' => [
+                        'direction' => 'DIRECCIÓN DE ESTRATEGIAS SOCIALES E INVERSIONES',
+                        'unity' => 'UNIDAD DE INVERSIÓN EN PRÉSTAMOS',
+                        'table' => [
+                            ['Tipo', $loan->modality->procedure_type->second_name],
+                            ['Modalidad', $loan->modality->shortened],
+                            ['Fecha', Carbon::now()->format('d/m/Y')],
+                            ['Hora', Carbon::now()->format('H:i')],
+                        ]
+                    ],
+                    'title' => 'KARDEX DE PAGOS',
+                    'loan' => $loan,
+                    'lender' => $is_dead ? $loan->affiliate->spouse : $loan->affiliate,
+                    'file_title' => $file_title,
+                    'is_dead' => $is_dead
+                ];
+                $pdf=PDF::loadView('loan.payment_kardex', $data);
+                return $pdf->setPaper('a4', 'landscape')->stream();
+            }else{
+                return "prestamo no desembolsado";
+            }
+    }
 
      /**
      * @OA\Get(

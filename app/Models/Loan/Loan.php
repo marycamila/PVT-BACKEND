@@ -171,6 +171,16 @@ class Loan extends Model
         unset($this->interest);
         return Util::round2($monthly_interest * $this->amount_approved / (1 - 1 / pow((1 + $monthly_interest), $this->loan_term)));
     }
+    public function paymentsKardex()
+    {
+        $id_pagado = LoanPaymentState::where('name','Pagado')->first();
+        $id_pendiente = LoanPaymentState::where('name', 'Pendiente por confirmar')->first();
+        return $this->hasMany(LoanPayment::class)->whereIn('state_id', [$id_pagado->id, $id_pendiente->id])->orderBy('quota_number', 'asc');
+    }
+    public function parent_loan()
+    {
+        return $this->belongsTo(Loan::class);
+    }
 
     public function sends() {
         return $this->morphMany(NotificationSend::class, 'sendable');

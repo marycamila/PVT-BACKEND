@@ -2,12 +2,18 @@
 
 namespace App\Models\Loan;
 
+use App\Models\Admin\User;
+use App\Models\Affiliate\Affiliate;
+use App\Models\Procedure\ProcedureModality;
+use App\Models\Voucher;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class LoanPayment extends Model
 {
     use HasFactory;
+    use SoftDeletes;
 
     public $timestamps = true;
     public $guarded = ['id'];
@@ -69,7 +75,8 @@ class LoanPayment extends Model
     {
         return $this->belongsTo(User::class);
     }
-    public function users(){
+    public function users()
+    {
         return $this->hasOne(User::class,'id','id');
     }
 }

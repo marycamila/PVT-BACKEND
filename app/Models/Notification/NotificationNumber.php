@@ -8,4 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 class NotificationNumber extends Model
 {
     use HasFactory;
+    protected $guarded = [];
+
+    public function send(){
+        return $this->hasMany(NotificationSend::class, 'number_id');
+    }
 }

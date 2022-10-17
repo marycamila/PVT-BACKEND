@@ -4,6 +4,7 @@ namespace App\Models\Loan;
 
 use App\Helpers\Util;
 use App\Models\Admin\Role;
+use App\Models\Affiliate\Address;
 use App\Models\Affiliate\Affiliate;
 use App\Models\City;
 use App\Models\FinancialEntity;
@@ -162,8 +163,17 @@ class Loan extends Model
     {
         return $this->hasMany(LoanGuaranteeRegister::class);
     }
-    public function borrower(){
-        return $this->hasOne(LoanBorrower::class);
+    public function getBorrowerAttribute(){
+        $data = collect([]);
+        $borrowers = LoanBorrower::where('loan_id',$this->id)->get();
+        foreach($borrowers as $borrower){
+            $borrower_data = new LoanBorrower();
+            $borrower_data = $borrower;
+            $borrower_data->city_identity_card = $borrower->city_identity_card;
+            $borrower_data->state = $borrower->affiliate_state;
+            $data->push($borrower_data);
+        }
+        return $data;
     }
     public function getEstimatedQuotaAttribute()
     {
@@ -180,6 +190,10 @@ class Loan extends Model
     public function parent_loan()
     {
         return $this->belongsTo(Loan::class);
+    }
+    public function Address()
+    {
+        return $this->hasOne(Address::class, 'id', 'address_id');
     }
 
     public function sends() {

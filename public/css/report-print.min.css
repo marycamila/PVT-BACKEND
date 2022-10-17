@@ -33,9 +33,11 @@ tr {
   border-spacing: 0;
 }
 .table-info th {
-  padding: 0px 10px 0px 10px;
+  padding: 3px 10px 3px 10px;
 }
-
+.table-info td {
+  padding: 3px 10px 3px 10px;
+}
 .table-info thead tr td {
   border-left: 1px solid #fff;
   border-top: 1px solid #5d6975;

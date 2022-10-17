@@ -18,6 +18,7 @@
         "laraveles/spanish": "^1.5",
         "league/flysystem-ftp": "^3.0",
         "maatwebsite/excel": "^3.1",
+        "milon/barcode": "^9.0",
         "nesbot/carbon": "^2.54",
         "santigarcor/laratrust": "^7.1.0"
     },

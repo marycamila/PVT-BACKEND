@@ -351,6 +351,109 @@ class AffiliateController extends Controller
     {
         //
     }
+
+    /**
+     * @OA\Get(
+     *     path="/api/affiliate/affiliate/{affiliate}/address",
+     *     tags={"AFILIADO"},
+     *     summary="LISTADO DE DIRECCIONES DEL AFILIADO",
+     *     operationId="getAddresses",
+     * @OA\Parameter(
+     *         name="affiliate",
+     *         in="path",
+     *         description="",
+     *         example=1,
+     *
+     *         required=true,
+     *         @OA\Schema(
+     *             type="integer",
+     *             format = "int64"
+     *         )
+     *       ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *         type="object"
+     *         )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     }
+     * )
+     *
+     * Get affiliate addresses 
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function get_addresses(Affiliate $affiliate)
+    {
+        return $affiliate->addresses;
+    }
+     /**
+     * @OA\Patch(
+     *      path="/api/affiliate/affiliate/{affiliate}/address",
+     *      tags={"AFILIADO"},
+     *      summary="ACTUALIZAR DIRECCIONES DEL AFILIADO",
+     *      operationId="UpdateAddressesAffiliate",
+     *      description="Actualizar las direcciones del afiliado",
+     *      security={{"bearerAuth":{}}},
+     *      @OA\Parameter(
+     *         name="affiliate",
+     *         in="path",
+     *         description="",
+     *         required=true,
+     *         example=1,
+     *         @OA\Schema(
+     *             type="integer",
+     *             format = "int64"
+     *         )
+     *       ),
+     *      @OA\RequestBody(
+     *          required=false,
+     *          @OA\JsonContent(
+     *              type="object",
+     *              @OA\Property(property="addresses", type="array items: type:integer",description="Lista de IDs de direcciones",example="[28180,6291]"),
+     *              @OA\Property(property="addresses_valid", type="int",description="dirección validada",example="28180")
+     *          )
+     *     ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Success",
+     *          @OA\JsonContent(
+     *            type="object"
+     *         )
+     *      )
+     * )
+     *
+     * @return void
+     */
+    public function update_addresses(Request $request, Affiliate $affiliate)
+    {
+        $request->validate([
+            'addresses' => 'array',
+            'addresses.*' => 'exists:addresses,id',
+            'addresses_valid' => 'nullable|integer'
+        ]);
+
+        $affiliate->save();
+
+        if ($request->addresses != []) {
+            if ($request->has('addresses_valid') && $request->addresses_valid != 0) {
+                $affiliate->addresses()->sync($request->addresses);
+                $affiliate->addresses()->sync([$request->addresses_valid => ['validated' => true]]);
+                return $affiliate->addresses()->sync($request->addresses);
+            } else {
+                $affiliate->addresses()->sync($request->addresses);
+                $affiliate->addresses()->sync([$affiliate->addresses->first()->id => ['validated' => true]]);
+                return $affiliate->addresses()->sync($request->addresses);
+            }
+        } else {
+            return "No hay direcciones por añadir";
+        }
+    }
+
     /**
      * @OA\Get(
      *     path="/api/affiliate/credential_status/{id}",

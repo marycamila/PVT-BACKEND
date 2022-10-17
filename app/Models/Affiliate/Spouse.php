@@ -36,7 +36,6 @@ class Spouse extends Model
         'departure',
         'marriage_date',
     ];
-    
     public function affiliate()
     {
         return $this->belongsTo(Affiliate::class);
@@ -52,5 +51,13 @@ class Spouse extends Model
     public function getDeadAttribute()
     {
       return ($this->date_death != null || $this->reason_death != null || $this->death_certificate_number != null);
+    }
+    public function getFullNameAttribute()
+    {
+        return preg_replace('/[[:blank:]]+/', ' ', join(' ', [$this->first_name, $this->second_name, $this->last_name, $this->mothers_last_name,$this->surname_husband]));
+    }
+    public function getIdentityCardExtAttribute()
+    {
+        return $this->identity_card . ' ' . $this->city_identity_card->first_shortened;
     }
 }

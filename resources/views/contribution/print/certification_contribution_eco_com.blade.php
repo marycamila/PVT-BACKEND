@@ -32,6 +32,7 @@
         <table class="table-info w-100 text-center">
             <thead class="bg-grey-darker text-xxs text-white">
                 <tr class="text-white text-xxs">
+                    <th class="data-row py-2">N°</th>
                     <th class="data-row py-2">AÑO</th>
                     <th class="data-row py-2">MES</th>
                     <th class="data-row py-2">TITULAR/VIUDA</th>
@@ -43,6 +44,7 @@
             <tbody>
                 @foreach ($contributions as $contribution)
                     <tr>
+                        <td class="data-row py-2">{{ $num = $num + 1 }}</td>
                         <td class="data-row py-2">{{ $contribution['year'] }}</td>
                         <td class="data-row py-2">{{ $contribution['month'] }}</td>
                         <td class="data-row py-2">{{ $contribution['rent_class'] }}</td>

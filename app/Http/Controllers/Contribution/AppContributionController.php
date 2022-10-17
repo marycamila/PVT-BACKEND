@@ -17,6 +17,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Auth;
+use Illuminate\Support\Facades\Hash;
 
 class AppContributionController extends Controller
 {
@@ -72,18 +73,36 @@ class AppContributionController extends Controller
                 ->whereYear('month_year', $i)
                 ->orderBy('month_year', 'asc')
                 ->get();
+            $reimbursements = Reimbursement::whereAffiliateId($affiliate_id)
+                ->whereYear('month_year', '2015')
+                ->orderBy('month_year', 'asc')
+                ->get();
+
             foreach ($contributions_actives as $contributions_active) {
-                $contributions->push([
-                    'state' => 'ACTIVO',
-                    'id' => $contributions_active->id,
-                    'month_year' => $contributions_active->month_year,
-                    'description' => null,
-                    'quotable' => Util::money_format($contributions_active->quotable),
-                    'retirement_fund' => Util::money_format($contributions_active->retirement_fund),
-                    'mortuary_quota' => Util::money_format($contributions_active->mortuary_quota),
-                    'total' => Util::money_format($contributions_active->total),
-                    'type' => $contributions_active->contributionable_type
-                ]);
+                foreach ($reimbursements as $reimbursement) {
+                    if ($reimbursement->month_year == $contributions_active->month_year) {
+                        $contribution_total = $contributions_active->total;
+                        $reimbursement_total = $reimbursement->total;
+                        $full_total = $contribution_total + $reimbursement_total;
+                    } else {
+                        $contribution_total = null;
+                        $reimbursement_total = null;
+                        $full_total = $contributions_active->total;
+                    }
+                    $contributions->push([
+                        'state' => 'ACTIVO',
+                        'id' => $contributions_active->id,
+                        'month_year' => $contributions_active->month_year,
+                        'description' => null,
+                        'quotable' => Util::money_format($contributions_active->quotable),
+                        'retirement_fund' => Util::money_format($contributions_active->retirement_fund),
+                        'mortuary_quota' => Util::money_format($contributions_active->mortuary_quota),
+                        'contribution_total' => Util::money_format($contribution_total),
+                        'reimbursement_total' => Util::money_format($reimbursement_total),
+                        'total' => Util::money_format($full_total),
+                        'type' => $contributions_active->contributionable_type
+                    ]);
+                }
             }
             $contributions_total->push([
                 'year' => $i . "",
@@ -168,7 +187,7 @@ class AppContributionController extends Controller
                 'type' => $contributions_passive->contributionable_type
             ]);
         }
-
+        $num = 0;
         $data = [
             'header' => [
                 'direction' => 'DIRECCIÓN DE BENEFICIOS ECONÓMICOS',
@@ -176,16 +195,15 @@ class AppContributionController extends Controller
                             POLICIAL, CUOTA MORTUORIA Y AUXILIO MORTUORIO',
                 'table' => [
                     ['Fecha', Carbon::now()->format('d-m-Y')],
-                    ['Hora', Carbon::now()->format('H:m:s')],
+                    ['Hora', Carbon::now()->format('H:i:s')],
                 ]
             ],
+            'num' => $num,
             'degree' => $degree,
             'affiliate' => $affiliate,
             'contributions' => $contributions
         ];
-        $day = Carbon::now()->format('d/m/Y');
-        $pdf = PDF::loadView('contribution.print.certification_contribution_eco_com', $data, compact('day'));
-
+        $pdf = PDF::loadView('contribution.print.certification_contribution_eco_com', $data);
         return $pdf->download('contributions.pdf');
     }
 
@@ -201,10 +219,10 @@ class AppContributionController extends Controller
         $contributions = Contribution::whereAffiliateId($affiliate_id)
             ->orderBy('month_year', 'asc')
             ->get();
-        //$contributions = collect();
-        /*foreach ($contributions_actives as $contributions_active) {
-            
-        }*/
+        $reimbursements = Reimbursement::whereAffiliateId($affiliate_id)
+            ->orderBy('month_year', 'asc')
+            ->get();
+        $num = 0;
         $data = [
             'header' => [
                 'direction' => 'DIRECCIÓN DE BENEFICIOS ECONÓMICOS',
@@ -215,9 +233,11 @@ class AppContributionController extends Controller
                     ['Hora', Carbon::now('GMT-4')->format('H:i:s')],
                 ]
             ],
+            'num' => $num,
             'degree' => $degree,
             'affiliate' => $affiliate,
-            'contributions' => $contributions
+            'contributions' => $contributions,
+            'reimbursements' => $reimbursements
         ];
 
         $pdf = PDF::loadView('contribution.print.certification_contribution_active', $data);

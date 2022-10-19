@@ -1044,14 +1044,19 @@
         <div class="w-95 mx-auto">
             <table class="w-100 table-collapse ">
                 <tr>
-                    <th class="no-padding no-margins align-middle" style="width:63px; border-top: 2px solid; ">
+                    {{-- <th class="no-padding no-margins align-middle" style="width:63px; border-top: 2px solid; ">
                         <div class="text-right no-padding no-margins">
-                            
+                            <img src="data:image/png;base64, {{ $bar_code }}" />
                         </div>
+                    </th> --}}
+                    <th class="align-top text-left text-xs font-normal align-middle px-10"
+                        style="border-top: 2px solid; ">
+                        <div class="mb-3">{!! DNS2D::getBarcodeHTML($degree, 'QRCODE', 1, 1) !!}</div>
+                        {{-- <img src="data:image/png;base64,' . DNS2D::getBarcodeHTML({{$degree}}, 'QRCODE',3,33)'"/>; --}}
                     </th>
                     <th class="align-top text-left text-xs font-normal align-middle px-10"
                         style="border-top: 2px solid; ">
-                        Procesado por: <span class="italic">APP MÓVIL</span><br>
+                        Procesado por: <span class="italic"> App_Muserpol</span><br>
                         PLATAFORMA VIRTUAL DE TRÁMITES
                         MUTUAL DE SERVICIOS AL POLICÍA - MUSERPOL <br>
                         <span class="italic">http://www.muserpol.gob.bo</span>
@@ -1066,6 +1071,7 @@
             </table>
         </div>
     </div>
+
     {{-- <div style="width: 100%;margin:0;paddin:0; display:inline">
         <img src="data:image/png;base64, {{ $bar_code }}" />
     </div>

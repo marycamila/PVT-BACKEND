@@ -181,6 +181,8 @@ return [
         //libreria para generar PDF
         // Barryvdh\DomPDF\ServiceProvider::class,
         Barryvdh\DomPDF\ServiceProvider::class,
+        // Barcode
+        Milon\Barcode\BarcodeServiceProvider::class,
     ],
 
     /*
@@ -241,7 +243,10 @@ return [
         'Ldap' => App\Helpers\Ldap::class,
         'Excel' => Maatwebsite\Excel\Facades\Excel::class,
         //DompPDF
-        'PDF' => Barryvdh\DomPDF\PDF::class
+        'PDF' => Barryvdh\DomPDF\PDF::class,
+        // Barcode
+        'DNS1D' => Milon\Barcode\Facades\DNS1DFacade::class,
+        'DNS2D' => Milon\Barcode\Facades\DNS2DFacade::class,
     ],
 
 ];

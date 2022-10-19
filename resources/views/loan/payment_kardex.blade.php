@@ -8,6 +8,9 @@
 
 <body>
     @php ($plural = false)
+    @if($loan->guarantors()->count()>1)
+    @php ($plural = true)
+    @endif
     @php ($n = 1)
     @include('partials.header', $header)
 
@@ -17,7 +20,7 @@
 
 
     <div class="block">
-        <div class="font-semibold leading-tight text-left m-b-10 text-xs">{{ $n++ }}. DATOS DE{{ $plural ? ' LOS' : 'L' }} TITULAR{{ $plural ? 'ES' : ''}}</div>
+        <div class="font-semibold leading-tight text-left m-b-10 text-xs">{{ $n++ }}. DATOS DEL TITULAR</div>
     </div>
 
     <div class="block">
@@ -39,7 +42,7 @@
                 @if(!$is_dead)
                 <td class="data-row py-5">{{ $lender->affiliate_state->affiliate_state_type->name }}</td>
                 @else
-                <td class="data-row py-5">PASIVO</td>
+                <td class="data-row py-5">{{$lender->affiliate->affiliate_state->affiliate_state_type->name}}</td>
                 @endif
             </tr>
         </table>
@@ -144,8 +147,8 @@
                 @php ($sum_capital_payment = 0)
                 @php ($sum_interest_payment = 0)
                 @php ($sum_penal_payment = 0)
-                <!--@php ($sum_interest_remaining = 0)
-                @php ($sum_penal_remaining = 0)-->
+                @php ($sum_interest_remaining = 0)
+                @php ($sum_penal_remaining = 0)
                 @php ($sum_estimated_quota = 0)
                 @php ($res_saldo_capital = 0)
                 @php ($sum_capital_payment = 0)
@@ -159,8 +162,6 @@
                     <th class="w-9"><div>Amortización</div><div>capital</div></td>
                     <th class="w-9"><div>Interés</div><div>corriente</div></td>
                     <th class="w-9"><div>Interés</div><div>Penal</div></td>
-                    <th class="w-8"><div>Interes Corriente</div><div>Pendiente</div></td>
-                    <th class="w-8"><div>Interés Penal</div><div>Pendiente</div></td>
                     <th class="w-9"><div>Total Pagado</div></th>
                     <th class="w-9"><div>Saldo</div><div>Capital</div> </th>
                     <th class="w-9"><div>Cbte</div> </th>
@@ -174,50 +175,46 @@
                 @php ($capital = $loan->parent_loan->amount_approved)
                 @foreach ($loan->parent_loan->paymentsKardex->sortBy('quota_number') as $parent_loan_payment)
                 @php ($res_saldo_capital = $capital-$parent_loan_payment->capital_payment)
-                <tr>
-                    <td class="w-5">{{ $parent_loan_payment->quota_number }}</td>
-                    <td class="w-9">{{ Carbon::parse($parent_loan_payment->estimated_date)->format('d/m/Y') }}</td>
-                    <td class="w-9">{{ Carbon::parse($parent_loan_payment->loan_payment_date)->format('d/m/Y') }}</td>
-                    <td class="w-9 text-right">{{ Util::money_format($parent_loan_payment->capital_payment) }}</td> {{-- capital --}}
-                    <td class="w-9 text-right">{{ Util::money_format($parent_loan_payment->interest_payment) }}</td>{{-- interes corriente --}}
-                    <td class="w-9 text-right">{{ Util::money_format($parent_loan_payment->penal_payment) }}</td>{{-- interes penal --}}
-                    <td class="w-10 text-right">{{ Util::money_format($parent_loan_payment->interest_remaining) }}</td>{{-- Interes acumulados --}}
-                    <td class="w-10 text-right">{{ Util::money_format($parent_loan_payment->penal_remaining) }}</td>{{-- Penal verificar --}}
-                    <td class="w-9 text-right">{{ Util::money_format($parent_loan_payment->estimated_quota) }}</td> {{-- total pagado--}}
-                    <td class="w-9 text-right">{{ Util::money_format($parent_loan_payment->previous_balance - $parent_loan_payment->capital_payment) }}</td>
-                    <td class="w-9 text-right">{{ $parent_loan_payment->voucher }}</td>
-                    <td class="w-11 text-right">{{ $parent_loan_payment->voucher_treasury ? $parent_loan_payment->voucher_treasury->code : ''}}</td>
-                    <td class="w-9">{{ $parent_loan_payment->state->name }}</td>
-                    <td class="w-12">{{ $parent_loan_payment->paid_by }}-{{ $parent_loan_payment->initial_affiliate }}</td>
-                    <td class="w-9">{{ $parent_loan_payment->modality->shortened }}</td>
+                <tr class="text-xs">
+                    <td>{{ $parent_loan_payment->quota_number }}</td>
+                    <td>{{ Carbon::parse($parent_loan_payment->estimated_date)->format('d/m/Y') }}</td>
+                    <td>{{ Carbon::parse($parent_loan_payment->loan_payment_date)->format('d/m/Y') }}</td>
+                    <td class=" text-right">{{ Util::money_format($parent_loan_payment->capital_payment) }}</td> {{-- capital --}}
+                    <td class=" text-right">{{ Util::money_format($parent_loan_payment->interest_payment) }}</td>{{-- interes corriente --}}
+                    <td class=" text-right">{{ Util::money_format($parent_loan_payment->penal_payment) }}</td>{{-- interes penal --}}
+                    <td class=" text-right">{{ Util::money_format($parent_loan_payment->estimated_quota) }}</td> {{-- total pagado--}}
+                    <td class=" text-right">{{ Util::money_format($parent_loan_payment->previous_balance - $parent_loan_payment->capital_payment) }}</td>
+                    <td class=" text-right">{{ $parent_loan_payment->voucher }}</td>
+                    <td class=" text-right">{{ $parent_loan_payment->voucher_treasury ? $parent_loan_payment->voucher_treasury->code : ''}}</td>
+                    <td> {{ $parent_loan_payment->state->name }}</td>
+                    <td> {{ $parent_loan_payment->paid_by }}-{{ $parent_loan_payment->initial_affiliate }}</td>
+                    <td> {{ $parent_loan_payment->modality->shortened }}</td>
                 </tr>
                 @php ($sum_estimated_quota += $parent_loan_payment->estimated_quota)
                 @php ($sum_capital_payment += $parent_loan_payment->capital_payment)
                 @php ($sum_interest_payment += $parent_loan_payment->interest_payment)
                 @php ($sum_penal_payment += $parent_loan_payment->penal_payment)
-                <!--@php ($sum_interest_remaining += $parent_loan_payment->interest_remaining )
-                @php ($sum_penal_remaining += $parent_loan_payment->penal_remaining)    -->
+                @php ($sum_interest_remaining += $parent_loan_payment->interest_remaining )
+                @php ($sum_penal_remaining += $parent_loan_payment->penal_remaining)
                 @endforeach
                 @endif
                 <thead>
-                <tr class="bg-grey-darker text-xxxs text-white">
-                    <th class="w-5">Nº</th>
-                    <th class="w-9"><div>Fecha de</div><div>cálculo</div></td>
-                    <th class="w-9"><div>Fecha de</div><div>Cobro</div></td>
-                    <th class="w-9"><div>Amortización</div><div>capital</div></td>
-                    <th class="w-9"><div>Interés</div><div>corriente</div></td>
-                    <th class="w-9"><div>Interés</div><div>Penal</div></td>
-                    <th class="w-8"><div>Interes Corriente</div><div>Pendiente</div></td>
-                    <th class="w-8"><div>Interés Penal</div><div>Pendiente</div></td>
-                    <th class="w-9"><div>Total Pagado</div></th>
-                    <th class="w-9"><div>Saldo</div><div>Capital</div> </th>
-                    <th class="w-9" style="Word-wrap: break-all; width:20px;"><div>Cbte</div> </th>
-                    <th class="w-9" style="Word-wrap: break-all; width:20px;"><div>Código de</div><div> Transaccion</div> </th>
-                    <th class="w-11" style="Word-wrap: break-all; width:20px;"><div>Estado</div> </th>
-                    <th class="w-9" style="Word-wrap: width:20px;"><div>Pagado por</div> </th>
-                    <th class="w-9" style="Word-wrap: break-all; width:20px;" ><div>Observación</div> </th>
-                </tr>
-            </thead>
+                    <tr class="bg-grey-darker text-xxs text-white">
+                        <th class="w-5">Nº</th>
+                        <th class="w-8"><div>Fecha de</div><div>cálculo</div></td>
+                        <th class="w-8"><div>Fecha de</div><div>Cobro</div></td>
+                        <th class="w-9"><div>Amortización</div><div>capital</div></td>
+                        <th class="w-9"><div>Interés</div><div>corriente</div></td>
+                        <th class="w-9"><div>Interés</div><div>Penal</div></td>
+                        <th class="w-9"><div>Total Pagado</div></th>
+                        <th class="w-9"><div>Saldo</div><div>Capital</div> </th>
+                        <th class="w-9"><div>Cbte</div> </th>
+                        <th class="w-11"><div>Código de</div><div> Transacción</div> </th>
+                        <th class="w-9"><div>Estado</div> </th>
+                        <th class="w-9"><div>Pagado</div> </th>
+                        <th class="w-9"><div>Observación</div> </th>
+                    </tr>
+                </thead>
                 @php ($res_saldo_capital = 0)
                 @php ($capital = $loan->amount_approved)
                 @foreach ($loan->paymentsKardex->sortBy('quota_number') as $payment)
@@ -229,8 +226,6 @@
                     <td class="w-9 text-right">{{ Util::money_format($payment->capital_payment) }}</td> {{-- capital --}}
                     <td class="w-9 text-right">{{ Util::money_format($payment->interest_payment) }}</td>{{-- interes corriente --}}
                     <td class="w-9 text-right">{{ Util::money_format($payment->penal_payment) }}</td>{{-- interes penal --}}
-                    <td class="w-10 text-right">{{ Util::money_format($payment->interest_remaining) }}</td>{{-- Dias acumulados --}}
-                    <td class="w-10 text-right">{{ Util::money_format($payment->penal_remaining) }}</td>{{-- dias verificar --}}
                     <td class="w-9 text-right">{{ Util::money_format($payment->estimated_quota) }}</td> {{-- total pagado--}}
                     <td class="w-9 text-right">{{ Util::money_format($res_saldo_capital) }}</td>
                     <td class="w-9 text-right">{{ $payment->voucher }}</td>
@@ -242,20 +237,16 @@
                 @php ($sum_capital_payment += $payment->capital_payment)
                 @php ($sum_interest_payment += $payment->interest_payment)
                 @php ($sum_penal_payment += $payment->penal_payment)
-                <!--@php ($sum_interest_remaining += $payment->interest_remaining )
-                @php ($sum_penal_remaining += $payment->penal_remaining)-->
                 @php ($sum_estimated_quota += $payment->estimated_quota)
                 @php ($capital = $res_saldo_capital)
                 @endforeach
                 <tr>
-                    <td colspan="3" class="data-row py-2 font-semibold leading-tight text-xs">TOTALES</td>
-                    <td class="w-9 text-right">{{ Util::money_format($sum_capital_payment) }}</td>
-                    <td class="w-9 text-right">{{ Util::money_format($sum_interest_payment) }}</td>
-                    <td class="w-9 text-right">{{ Util::money_format($sum_penal_payment) }}</td>
-                    <td class="w-10 text-right">{{ Util::money_format($sum_interest_remaining) }}</td>
-                    <td class="w-10 text-right">{{ Util::money_format($sum_penal_remaining) }}</td>
-                    <td class="w-9 text-right">{{ Util::money_format($sum_estimated_quota) }}</td>
-                    <td class="w-9 text-right">{{ Util::money_format($res_saldo_capital) }}</td>
+                    <td colspan="3" class="data-row py-2 font-semibold leading-tight text-xxs">TOTALES</td>
+                    <td class="text-right">{{ Util::money_format($sum_capital_payment) }}</td>
+                    <td class="text-right">{{ Util::money_format($sum_interest_payment) }}</td>
+                    <td class="text-right">{{ Util::money_format($sum_penal_payment) }}</td>
+                    <td class="text-right">{{ Util::money_format($sum_estimated_quota) }}</td>
+                    <td class="text-right">{{ Util::money_format($res_saldo_capital) }}</td>
                     <td colspan="4"></td>
                 </tr>
             </tbody>

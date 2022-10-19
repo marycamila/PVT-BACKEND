@@ -155,7 +155,12 @@ class Affiliate extends Model
         }
         return rtrim($data);
     }
-    
+    public function getTitleAttribute()
+    {
+      $data = "";
+      if ($this->degree) $data = $this->degree->shortened;;
+      return $data;
+    }
     public function sends() {
         return $this->morphMany(NotificationSend::class, 'sendable');
     }

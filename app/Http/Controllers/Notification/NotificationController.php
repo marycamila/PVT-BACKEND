@@ -802,7 +802,7 @@ class NotificationController extends Controller
             {
                 if($row[0] != null)
                 {
-                    if(Affiliate::find($row[0]) != null && Affiliate::find($row[0])->affiliate_token != null && Affiliate::find($row[0])->affiliate_token->firebase_token != null && Affiliate::find($row[0])->affiliate_token->api_token != null )
+                    if(Affiliate::find($row[0]) != null && Affiliate::find($row[0])->affiliate_token != null && Affiliate::find($row[0])->affiliate_token->firebase_token != null )
                     {
                         $affiliates->push([
                             'affiliate_id' => $row[0],

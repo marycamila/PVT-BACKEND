@@ -183,6 +183,8 @@ return [
         Barryvdh\DomPDF\ServiceProvider::class,
         // Barcode
         Milon\Barcode\BarcodeServiceProvider::class,
+        // Sanitizer
+        BinaryCats\Sanitizer\Laravel\SanitizerServiceProvider::class,
     ],
 
     /*
@@ -247,6 +249,8 @@ return [
         // Barcode
         'DNS1D' => Milon\Barcode\Facades\DNS1DFacade::class,
         'DNS2D' => Milon\Barcode\Facades\DNS2DFacade::class,
+        // Sanitizer
+        'Sanitizer' => BinaryCats\Sanitizer\Laravel\Facade::class,
     ],
 
 ];

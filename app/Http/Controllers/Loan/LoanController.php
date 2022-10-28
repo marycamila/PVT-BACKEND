@@ -266,6 +266,9 @@ class LoanController extends Controller
                 'error' => 'true',
                 'message' => 'El afiliado no tiene prestamos',
                 'payload' => [
+                    'inProcess'=> [],
+                    'current' => [],
+                    'liquited' => [],
                 ],
             ]);
         }

@@ -82,21 +82,20 @@ class ContributionController extends Controller
      * @return void
      */
 
-    public function show(Request $request, $affiliate_id)
+    public function show(Request $request)
     {
-        $request['affiliate_id'] = $affiliate_id;
         $request->validate([
             'affiliate_id' => 'required|integer|exists:affiliates,id'
         ]);
 
-        $affiliate = Affiliate::find($affiliate_id);
-        $year_min = $this->get_minimum_year($affiliate_id);
-        $year_max = $this->get_maximum_year($affiliate_id);
+        $affiliate = Affiliate::find($request->affiliate_id);
+        $year_min = $this->get_minimum_year($request->affiliate_id);
+        $year_max = $this->get_maximum_year($request->affiliate_id);
         $contribution_total = 0;
 
         $contributions_total = collect();
 
-        $reimbursements = Reimbursement::whereAffiliateId($affiliate_id)
+        $reimbursements = Reimbursement::whereAffiliateId($request->affiliate_id)
             ->orderBy('month_year', 'desc')
             ->get();
 
@@ -105,7 +104,7 @@ class ContributionController extends Controller
 
             $contributions = collect();
 
-            $contributions_actives = Contribution::whereAffiliateId($affiliate_id)
+            $contributions_actives = Contribution::whereAffiliateId($request->affiliate_id)
                 ->whereYear('month_year', $i)
                 ->get();
 

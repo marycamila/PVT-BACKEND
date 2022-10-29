@@ -81,7 +81,7 @@ class AffiliateUserController extends Controller
         ]);
         $AffiliateId = $request->affiliate_id;
         $isDead=Affiliate::find($AffiliateId)->dead;
-        $affiliate =Affiliate::find($AffiliateId)->first();
+        $affiliate =Affiliate::find($AffiliateId);
         $isAffiliateToken = DB::table('affiliate_tokens')->where('affiliate_id', $AffiliateId)->exists();
         if (!$isAffiliateToken) {
             $AffiliateToken = new AffiliateToken;
@@ -141,7 +141,6 @@ class AffiliateUserController extends Controller
                 }
             }
             else {
-                $affiliate = Affiliate::where('id',$AffiliateToken->affiliate_id)->first();
                 $AffiliateUser = new AffiliateUser;
                 $AffiliateUser->affiliate_token_id = $AffiliateToken->id;
                 if (Affiliate::find($AffiliateId)->spouse && $isDead) {

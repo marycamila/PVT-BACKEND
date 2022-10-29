@@ -2,10 +2,13 @@
 
 namespace App\Http\Requests\Affiliate;
 
+use BinaryCats\Sanitizer\Laravel\SanitizesInput;
 use Illuminate\Foundation\Http\FormRequest;
 
 class AffiliateRequest extends FormRequest
 {
+    use SanitizesInput;
+    
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -80,7 +83,6 @@ class AffiliateRequest extends FormRequest
             'gender' => 'trim|uppercase',
             'civil_status' => 'trim|uppercase',
             'sigep_status' => 'trim|uppercase',
-            'cell_phone_number' => 'cast:string',
             'unit_police_description' => 'trim|uppercase'
         ];
     }

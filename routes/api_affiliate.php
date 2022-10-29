@@ -11,7 +11,6 @@ Route::group([
     // Rutas abiertas
     Route::patch('change_password', [App\Http\Controllers\Affiliate\AffiliateUserController::class, 'change_password']);
     Route::post('auth', [App\Http\Controllers\Affiliate\AffiliateUserController::class, 'auth']);
-    Route::post('store/{id}', [App\Http\Controllers\Affiliate\AffiliateUserController::class, 'store']);
     // Rutas autenticadas con token
     Route::group([
         'middleware' => ['auth:sanctum']
@@ -26,5 +25,6 @@ Route::group([
        Route::apiResource('/category',App\Http\Controllers\Affiliate\CategoryController::class)->only(['index','show']);
        Route::apiResource('/pension_entity',App\Http\Controllers\Affiliate\PensionEntityController::class)->only(['index','show']);
        Route::apiResource('/affiliate_state',App\Http\Controllers\Affiliate\AffiliateStateController::class)->only(['index','show']);
+       Route::post('store', [App\Http\Controllers\Affiliate\AffiliateUserController::class, 'store']);
     });
 });

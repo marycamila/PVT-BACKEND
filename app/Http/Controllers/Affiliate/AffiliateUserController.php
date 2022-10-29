@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Affiliate\Affiliate;
 use App\Models\Affiliate\AffiliateToken;
 use App\Models\Affiliate\AffiliateUser;
+use App\Models\Affiliate\Spouse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use PhpParser\Node\Stmt\Return_;
 
 class AffiliateUserController extends Controller
@@ -37,61 +39,171 @@ class AffiliateUserController extends Controller
      */
 
 
-    public function store(Request $request, $id)
+     /**
+     * @OA\Post(
+     *     path="/api/affiliate/store",
+     *     tags={"AFILIADO"},
+     *     summary="CREACION DE CREDENCIALES PARA AFILIADO",
+     *     operationId="create_credencials",
+     *      @OA\RequestBody(
+     *          description= "Provide auth credentials",
+     *          required=true,
+     *          @OA\JsonContent(
+     *              type="object",
+     *              @OA\Property(property="affiliate_id", type="int",description="id del afiliado required"),
+     *              @OA\Property(property="user_id", type="int",description="id del usuario required"),
+     *          )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *            type="object"
+     *         )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     }
+     * )
+     *
+     * Get affiliate
+     *
+     * @param Request $request
+     * @return void
+     */
+
+
+    public function store(Request $request)
     {
-        $request['id'] = $id;
         $request->validate([
-            'id' => 'required|integer|exists:affiliates,id'
+            'affiliate_id' => 'required|integer|exists:affiliates,id',
+            'user_id'=>'required|integer'
         ]);
-        $AffiliateId = $request->id;
+        $AffiliateId = $request->affiliate_id;
+        $UserId=$request->user_id;
+        $isDead=Affiliate::find($AffiliateId)->dead;
+        $affiliate =Affiliate::find($AffiliateId)->first();
         $isAffiliateToken = DB::table('affiliate_tokens')->where('affiliate_id', $AffiliateId)->exists();
         if (!$isAffiliateToken) {
             $AffiliateToken = new AffiliateToken;
             $AffiliateToken->affiliate_id = $AffiliateId;
             $AffiliateToken->save();
-            $affilliate = Affiliate::find($AffiliateToken->affiliate_id);
-            $user = new AffiliateUser;
-            $user->affiliate_token_id = $AffiliateToken->id;
-            $user->username = $affilliate->identity_card;
-            $password=$this->Generate_pin();
-            $user->password = Hash::make($password);
-            $user->save();
-            return response()->json([
-                'message' => 'Usuario Registrado Exitosamente',
-                'payload' => [
-                    'user'=> $user->username,
-                    'pin' => $password,
-                    'id' => $AffiliateToken->affiliate_id
-                ],
-            ]);
+            $AffiliateUser = new AffiliateUser;
+            $AffiliateUser->affiliate_token_id = $AffiliateToken->id;
+            if (Affiliate::find($AffiliateId)->spouse && $isDead) {
+                $spouse=Spouse::where('affiliate_id',$AffiliateId)->first();
+                $AffiliateUser->username=$spouse->identity_card;
+                $password=$this->Generate_pin();
+                $AffiliateUser->password = Hash::make($password);
+                $AffiliateUser->save();
+                $message='Credenciales registradas exitosamente para viuda';
+                return $this->send_messages($AffiliateUser->username,$password,$AffiliateId,$UserId,$message);
+            }
+            else {
+                $AffiliateUser->username= $affiliate->identity_card;
+                $password=$this->Generate_pin();
+                $AffiliateUser->password = Hash::make($password);
+                $AffiliateUser->save();
+                $message='Credenciales registradas exitosamente para titular';
+                return $this->send_messages($AffiliateUser->username,$password,$AffiliateId,$UserId,$message);
+            }
         }
         else {
             $AffiliateToken = AffiliateToken::where('affiliate_id',$AffiliateId)->first();
             $isAffiliateUser = DB::table('affiliate_users')->where('affiliate_token_id', $AffiliateToken->id)->exists();
             if ($isAffiliateUser) {
-                return response()->json([
-                    'message' => 'El Usuario ya estaba registrado'
+                $AffiliateUser=AffiliateUser::where('affiliate_token_id',$AffiliateToken->id)->first();
+                if ($AffiliateUser->access_status!='Activo'){
+                    if (Affiliate::find($AffiliateId)->spouse && $isDead) {
+                        $spouse=Spouse::where('affiliate_id',$AffiliateId)->first();
+                        $AffiliateUser->username=$spouse->identity_card;
+                        $password=$this->Generate_pin();
+                        $AffiliateUser->password = Hash::make($password);
+                        $AffiliateUser->access_status = 'Pendiente';
+                        $AffiliateUser->save();
+                        $message='Se reasigno credenciales para viudedad';
+                        return $this->send_messages($AffiliateUser->username,$password,$AffiliateId,$UserId,$message);
+                    }
+                    else {
+                        $AffiliateUser->username= $affiliate->identity_card;
+                        $password=$this->Generate_pin();
+                        $AffiliateUser->password = Hash::make($password);
+                        $AffiliateUser->access_status = 'Pendiente';
+                        $AffiliateUser->save();
+                        $message='Se reasigno credenciales para el titular';
+                        return $this->send_messages($AffiliateUser->username,$password,$AffiliateId,$UserId,$message);
+                    }
+                }
+                else{
+                    return response()->json([
+                    'message' => 'El afiliado ya tiene una cuenta activa',
+                    'payload'=>[]
                 ]);
+                }
             }
             else {
-                $affilliate = Affiliate::where('id',$AffiliateToken->affiliate_id)->first();
-                $user = new AffiliateUser;
-                $user->affiliate_token_id = $AffiliateToken->id;
-                $user->username = $affilliate->identity_card;
-                $password=$this->Generate_pin();
-                $user->password = Hash::make($password);
-                $user->save();
-                return response()->json([
-                    'message' => 'Usuario Registrado Exitosamente',
-                    'payload' => [
-                        'user'=> $user->username,
-                        'pin' => $password,
-                        'id' => $AffiliateToken->affiliate_id
-                    ],
-                ]);
+                $affiliate = Affiliate::where('id',$AffiliateToken->affiliate_id)->first();
+                $AffiliateUser = new AffiliateUser;
+                $AffiliateUser->affiliate_token_id = $AffiliateToken->id;
+                if (Affiliate::find($AffiliateId)->spouse && $isDead) {
+                    $spouse=Spouse::where('affiliate_id',$AffiliateId)->first();
+                    $AffiliateUser->username=$spouse->identity_card;
+                    $password=$this->Generate_pin();
+                    $AffiliateUser->password = Hash::make($password);
+                    $AffiliateUser->save();
+                    $message='Credenciales registradas exitosamente para viuda';
+                    return $this->send_messages($AffiliateUser->username,$password,$AffiliateId,$UserId,$message);
+                }
+                else {
+                    $AffiliateUser->username= $affiliate->identity_card;
+                    $password=$this->Generate_pin();
+                    $AffiliateUser->password = Hash::make($password);
+                    $AffiliateUser->save();
+                    $message='Credenciales registradas exitosamente para titular';
+                    return $this->send_messages($AffiliateUser->username,$password,$AffiliateId,$UserId,$message);
+                }
             }
         }
     }
+
+
+    public static function send_messages($username,$password,$affiliateId,$userId,$message ) {
+        $cell_phone_number=Affiliate::find($affiliateId)->cell_phone_number;
+                $cadena = $cell_phone_number;
+                $separador = ",";
+                $separada = explode($separador, $cadena);
+                $response= Http::timeout(60)->post('http://192.168.2.201:8989/api/notification/send_credentials',[
+                    "user_id"=>1,
+                    "shipments"=> [
+                        [
+                            "id"=>$userId,
+                            "sms_num"=> $separada[0],
+                            "message"=> "usuario: ".$username." contraseña: ". $password
+                        ]
+                    ]
+                ]);
+                if (!(json_decode($response->getBody())->error)) {
+                        return response()->json([
+                        'message' => $message,
+                        'cell_phone'=>$separada[0],
+                        'telular_response' => json_decode($response->getBody()),
+                        'payload' => [
+                            'user'=> $username,
+                            'pin' => $password,
+                            'affiliate_id' => $affiliateId
+                        ],
+                    ]);
+                }
+                else {
+                    return response()->json([
+                        'message' => 'No se envio el mensaje',
+                        'telular_response' => json_decode($response->getBody()),
+                        'payload' => [
+                        ],
+                    ]);
+                }
+    }
+
     /**
      * Display the specified resource.
      *
@@ -257,6 +369,17 @@ class AffiliateUserController extends Controller
             'error' => false,
             'message' => 'Sesión terminada',
             'data' => (object)[]
+        ], 200);
+    }
+    public static function switch_states()
+    {
+        $AllAffiliateUser=AffiliateUser::where('access_status','Pendiente')->get();
+        foreach ($AllAffiliateUser as $AffiliateUser) {
+            $AffiliateUser->access_status='Inactivo';
+            $AffiliateUser->save();
+        }
+        return response()->json([
+            'message' => 'cambiada',
         ], 200);
     }
 }

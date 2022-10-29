@@ -46,41 +46,39 @@ class ContributionController extends Controller
         //
     }
 
-
+     
     /**
-     * @OA\Get(
-     * path="/api/contribution/contribution/{affiliate_id}",
-     * tags={"CONTRIBUCION"},
-     * summary="CONTRIBUCIONES DEL AFILIADO",
-     * operationId="getContributions",
-     * @OA\Parameter(
-     * name="affiliate_id",
-     * in="path",
-     * description="",
-     * required=true,
-     * @OA\Schema(
-     * type="integer",
-     * format="int64",
-     * example=123 
-     * )
-     * ),
-     * @OA\Response(
-     * response=200,
-     * description="Success",
-     * @OA\JsonContent(
-     * type="object"
-     * )
-     * ),
-     * security={
-     * {"bearerAuth": {}}
-     * }
+     * @OA\Post(
+     *      path="/api/contribution/active_affiliate_contribution",
+     *      tags={"CONTRIBUCION"},
+     *      summary="CONTRIBUCIONES DEL AFILIADO",
+     *      operationId="getContributions",
+     *      description="contribuciones del afiliado",
+     *      @OA\RequestBody(
+     *          description= "affiliate_id",
+     *          required=true,
+     *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
+     *             @OA\Property(property="affiliate_id", type="integer",description="affiliate_id",example=123)
+     *            )
+     *          ),
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     },
+     *      @OA\Response(
+     *          response=200,
+     *          description="Success",
+     *          @OA\JsonContent(
+     *            type="object"
+     *         )
+     *      )
      * )
      *
-     * Get affiliate
+     * Logs user into the system.
      *
      * @param Request $request
      * @return void
-     */
+    */
 
     public function show(Request $request)
     {

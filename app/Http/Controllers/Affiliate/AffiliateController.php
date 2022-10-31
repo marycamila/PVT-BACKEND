@@ -518,14 +518,11 @@ class AffiliateController extends Controller
             $created_at = null;
             $updated_at = null;
         }
-        return response()->json([
-            'message' => 'Realizado con éxito',
-            'payload' => [
-                'credential_status' => $access_status,
-                'account_type' => $account_type,
-                'created_at' => $created_at,
-                'updated_at' => $updated_at
-            ],
-        ]);
+        return [
+            'credential_status' => $access_status,
+            'account_type' => $account_type,
+            'created_at' => $created_at,
+            'updated_at' => $updated_at
+        ];
     }
 }

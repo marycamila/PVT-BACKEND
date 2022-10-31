@@ -136,8 +136,6 @@ class ContributionController extends Controller
         }
 
         return response()->json([
-            "error" => "false",
-            'message' => 'Contribuciones del Afiliado',
             'payload' => [
                 'first_name' => $affiliate->first_name,
                 'second_name' => $affiliate->second_name,

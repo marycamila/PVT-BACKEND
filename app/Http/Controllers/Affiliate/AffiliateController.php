@@ -519,7 +519,7 @@ class AffiliateController extends Controller
             $updated_at = null;
         }
         return [
-            'credential_status' => $access_status,
+            'access_status' => $access_status,
             'account_type' => $account_type,
             'created_at' => $created_at,
             'updated_at' => $updated_at

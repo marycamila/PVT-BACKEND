@@ -82,6 +82,13 @@ class AffiliateUserController extends Controller
         $AffiliateId = $request->affiliate_id;
         $isDead=Affiliate::find($AffiliateId)->dead;
         $affiliate =Affiliate::find($AffiliateId);
+        if (!$affiliate->cell_phone_number) {
+            return response()->json([
+                'error'=>true,
+                'message' => 'El afiliado no tiene registrado su numero',
+                'payload'=>[]
+            ]);
+        }
         $isAffiliateToken = DB::table('affiliate_tokens')->where('affiliate_id', $AffiliateId)->exists();
         if (!$isAffiliateToken) {
             $AffiliateToken = new AffiliateToken;
@@ -96,7 +103,15 @@ class AffiliateUserController extends Controller
                 $AffiliateUser->password = Hash::make($password);
                 $AffiliateUser->save();
                 $message='Credenciales registradas exitosamente para viuda';
-                return $this->send_messages($AffiliateUser->username,$password,$AffiliateId,$message);
+                $response=$this->send_messages($AffiliateUser->username,$password,$AffiliateId,$message);
+                $existsError=$response->original['error'];
+                if (!$existsError) {
+                    $AffiliateUser->save();
+                    return $response;
+                }
+                else{
+                    return $response;
+                }
             }
             else {
                 $AffiliateUser->username= $affiliate->identity_card;
@@ -104,7 +119,15 @@ class AffiliateUserController extends Controller
                 $AffiliateUser->password = Hash::make($password);
                 $AffiliateUser->save();
                 $message='Credenciales registradas exitosamente para titular';
-                return $this->send_messages($AffiliateUser->username,$password,$AffiliateId,$message);
+                $response=$this->send_messages($AffiliateUser->username,$password,$AffiliateId,$message);
+                $existsError=$response->original['error'];
+                if (!$existsError) {
+                    $AffiliateUser->save();
+                    return $response;
+                }
+                else{
+                    return $response;
+                }
             }
         }
         else {
@@ -119,9 +142,16 @@ class AffiliateUserController extends Controller
                         $password=$this->Generate_pin();
                         $AffiliateUser->password = Hash::make($password);
                         $AffiliateUser->access_status = 'Pendiente';
-                        $AffiliateUser->save();
                         $message='Se reasigno credenciales para viudedad';
-                        return $this->send_messages($AffiliateUser->username,$password,$AffiliateId,$message);
+                        $response=$this->send_messages($AffiliateUser->username,$password,$AffiliateId,$message);
+                        $existsError=$response->original['error'];
+                        if (!$existsError) {
+                            $AffiliateUser->save();
+                            return $response;
+                        }
+                        else{
+                            return $response;
+                        }
                     }
                     else {
                         $AffiliateUser->username= $affiliate->identity_card;
@@ -130,11 +160,20 @@ class AffiliateUserController extends Controller
                         $AffiliateUser->access_status = 'Pendiente';
                         $AffiliateUser->save();
                         $message='Se reasigno credenciales para el titular';
-                        return $this->send_messages($AffiliateUser->username,$password,$AffiliateId,$message);
+                        $response=$this->send_messages($AffiliateUser->username,$password,$AffiliateId,$message);
+                        $existsError=$response->original['error'];
+                        if (!$existsError) {
+                            $AffiliateUser->save();
+                            return $response;
+                        }
+                        else{
+                            return $response;
+                        }
                     }
                 }
                 else{
                     return response()->json([
+                    'error'=>false,
                     'message' => 'El afiliado ya tiene una cuenta activa',
                     'payload'=>[]
                 ]);
@@ -150,7 +189,15 @@ class AffiliateUserController extends Controller
                     $AffiliateUser->password = Hash::make($password);
                     $AffiliateUser->save();
                     $message='Credenciales registradas exitosamente para viuda';
-                    return $this->send_messages($AffiliateUser->username,$password,$AffiliateId,$message);
+                    $response=$this->send_messages($AffiliateUser->username,$password,$AffiliateId,$message);
+                    $existsError=$response->original['error'];
+                    if (!$existsError) {
+                        $AffiliateUser->save();
+                        return $response;
+                    }
+                    else{
+                        return $response;
+                    }
                 }
                 else {
                     $AffiliateUser->username= $affiliate->identity_card;
@@ -158,7 +205,15 @@ class AffiliateUserController extends Controller
                     $AffiliateUser->password = Hash::make($password);
                     $AffiliateUser->save();
                     $message='Credenciales registradas exitosamente para titular';
-                    return $this->send_messages($AffiliateUser->username,$password,$AffiliateId,$message);
+                    $response=$this->send_messages($AffiliateUser->username,$password,$AffiliateId,$message);
+                    $existsError=$response->original['error'];
+                    if (!$existsError) {
+                        $AffiliateUser->save();
+                        return $response;
+                    }
+                    else{
+                        return $response;
+                    }
                 }
             }
         }
@@ -167,43 +222,41 @@ class AffiliateUserController extends Controller
 
     public static function send_messages($username,$password,$affiliateId,$message ) {
         $cell_phone_number=Affiliate::find($affiliateId)->cell_phone_number;
-                $cadena = $cell_phone_number;
-                $user=Auth::user()->id;
-                $separador = ",";
-                $separada = explode($separador, $cadena);
-                $response= Http::timeout(60)->post('http://192.168.2.201:8989/api/notification/send_credentials',[
-                    "user_id"=>$user,
-                    "shipments"=> [
-                        [
-                            "id"=>$affiliateId,
-                            "sms_num"=> $separada[0],
-                            "message"=> "usuario: ".$username." contraseña: ". $password
-                        ]
-                    ]
-                ]);
-                if (!(json_decode($response->getBody())->error)) {
-                        return response()->json([
-                            "user_id"=>$user,
-                        'message' => $message,
-                        'cell_phone'=>$separada[0],
-                        'telular_response' => json_decode($response->getBody()),
-                        'payload' => [
-                            'username'=> $username,
-                            'pin' => $password,
-                            'affiliate_id' => $affiliateId
-                        ],
-                    ]);
-                }
-                else {
-                    return response()->json([
-                        'message' => 'No se envio el mensaje',
-                        'telular_response' => json_decode($response->getBody()),
-                        'payload' => [
-                        ],
-                    ]);
-                }
+        $user=Auth::user()->id;
+        $separator = ",";
+        $separate = explode($separator,$cell_phone_number);
+        $response= Http::timeout(60)->post('http://192.168.2.201:8989/api/notification/send_credentials',[
+            "user_id"=>$user,
+            "shipments"=> [
+                [
+                    "id"=>$affiliateId,
+                    "sms_num"=> $separate[0],
+                    "message"=> "usuario: ".$username." contraseña: ". $password
+                ]
+            ]
+        ]);
+        if (!(json_decode($response->getBody())->error)) {
+                return response()->json([
+                'message' => $message,
+                'error'=>false,
+                'telular_response' => json_decode($response->getBody()),
+                'payload' => [
+                    'username'=> $username,
+                    'pin' => $password,
+                    'affiliate_id' => $affiliateId
+                ],
+            ]);
+        }
+        else {
+            return response()->json([
+                'error'=>true,
+                'message' => 'No se envio el mensaje',
+                'telular_response' => json_decode($response->getBody()),
+                'payload' => [
+                ],
+            ]);
+        }
     }
-
     /**
      * Display the specified resource.
      *

@@ -5,6 +5,10 @@ namespace App\Helpers;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Models\Affiliate\AffiliateRecord;
+use App\Models\Affiliate\Affiliate;
+use Auth;
+use Config;
 
 class Util
 {
@@ -165,5 +169,89 @@ class Util
     public static function round2($value)
     {
         return round($value, 2, PHP_ROUND_HALF_EVEN);
+    }
+    public static function save_record_affiliate($object,$action)
+    {
+        if(!empty($action) && $action != 'modificó'){
+            $old = Affiliate::find($object->id);
+            $message = 'El usuario '.Auth::user()->username.' ';
+            $affiliate_record = new AffiliateRecord;
+            $affiliate_record->user_id = Auth::user()->id;
+            $affiliate_record->affiliate_id = $object->id;
+            $affiliate_record->message = $message.$action;
+            $affiliate_record->save();
+        }
+    }
+    public static function concat_action($object, $message = 'modificó')//aqui
+    {
+        $old = app(get_class($object));
+        $old->fill($object->getOriginal());
+        $action = $message;
+        $updated_values = $object->getDirty();
+        try {
+            $relationships = $object->relationships();
+        } catch (\Exception $e) {
+            $relationships = [];
+        }
+        foreach ($updated_values as $key => $value) {
+            $concat = false;
+            if (substr($key, -3, 3) != '_id' && substr($key, -3, 3) != '_at') {
+                $action .= ' [' . self::translate($key) . '] ';
+                if (!$concat) {
+                    $action .= self::bool_to_string($old[$key]) . ' a ' . self::bool_to_string($object[$key]);
+                }
+                if (next($updated_values)) {
+                    $action .= ', ';
+                }
+            }
+        }
+        return $action;
+    }
+    public static function translate($string)
+    {
+        $translation = static::translate_table($string);
+        if ($translation) {
+            return $translation;
+        } else {
+            return static::translate_attribute($string);
+        }
+    }
+
+    public static function translate_table($string)
+    {
+        if (array_key_exists($string, Config::get('translations'))) {
+            return Config::get('translations')[$string];
+        } else {
+            return null;
+        }
+    }
+
+    public static function translate_attribute($string)
+    {
+        $path = app_path() . '/resources/lang/es/validation.php';
+        if(@include $path) {
+            $translations_file = include(app_path().'/resources/lang/es/validation.php');
+        }
+        if (isset($translations_file)) {
+            if (array_key_exists($string, $translations_file['attributes'])) {
+                return $translations_file['attributes'][$string];
+            }
+        }
+        return $string;
+    }
+    public static function bool_to_string($value)
+    {
+        if (is_bool($value)) {
+            if ($value) {
+                $value = 'SI';
+            } else {
+                $value = 'NO';
+            }
+        } else {
+            try {
+                $value = Carbon::createFromFormat('Y-m-d', $value)->format('d-m-Y');
+            } catch (\Exception $e) {}
+        }
+        return $value;
     }
 }

@@ -177,7 +177,8 @@ return [
         // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
-
+        App\Providers\AffiliateModelServiceProvider::class,
+        App\Providers\AffiliateUserModelServiceProvider::class,
         //libreria para generar PDF
         // Barryvdh\DomPDF\ServiceProvider::class,
         Barryvdh\DomPDF\ServiceProvider::class,

@@ -432,6 +432,40 @@ class AffiliateUserController extends Controller
             ],403);
         }
     }
+/**
+     * @OA\Patch(
+     *     path="/api/affiliate/change_password",
+     *     tags={"OFICINA VIRTUAL"},
+     *     summary="CAMBIAR DE CONTRASEÑA",
+     *     operationId="Change Password",
+     *      @OA\RequestBody(
+     *          description= "Provide auth credentials",
+     *          required=true,
+     *          @OA\JsonContent(
+     *              type="object",
+     *              @OA\Property(property="username", type="string",description="usuario del afiliado ci del que tiene las cedenciales required"),
+     *              @OA\Property(property="password", type="string",description="pin proporcionado required"),
+     *              @OA\Property(property="new_password", type="string",description="password nueva o pin required"),
+     *              @OA\Property(property="device_id", type="string",description="device_id required"),
+     *              @OA\Property(property="firebase_token", type="string",description="token proporcionado por firebase required"),
+     *          )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *            type="object"
+     *         )
+     *     ),
+     * )
+     *
+     * Get affiliate
+     *
+     * @param Request $request
+     * @return void
+     */
+
+
     public function change_password(Request $request){
         $request->validate([
             'username' => 'required|integer|exists:affiliate_users,username',
@@ -462,7 +496,7 @@ class AffiliateUserController extends Controller
         else {
             return response()->json(
                 [
-                    'message' => 'Token invalido '
+                    'message' => 'Pin invalido '
                 ],403);
         }
     }

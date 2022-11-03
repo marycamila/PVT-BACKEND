@@ -105,6 +105,25 @@ class ContributionPassiveController extends Controller
         ]);
     }
 
+    public function SearchContributionPassive(Request $request)
+    {
+       
+        $request->validate([
+            'affiliate_id' => 'required|integer|exists:contribution_passives,affiliate_id',
+        ]);
+        $search = request('search') ?? '';
+        $per_page = $request->per_page ?? 10;
+        $contributions_passives = ContributionPassive::whereAffiliateId($request->affiliate_id)->where('month_year', 'like', "%{$search}%")->paginate($per_page);
+
+        foreach ($contributions_passives as $contributions_passive) {
+            $year = Carbon::parse($contributions_passive->month_year)->format('Y');
+            $month = Carbon::parse($contributions_passive->month_year)->format('m');
+            $contributions_passive->year= $year;
+            $contributions_passive->month= $month;
+        }
+        return $contributions_passives;
+    }
+
     public function get_minimum_year($id)
     {
         $data = DB::table('contribution_passives')->where('affiliate_id', $id)->min('month_year');

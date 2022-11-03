@@ -286,10 +286,41 @@ class AffiliateUserController extends Controller
      * @param  \App\Models\Affiliate\AffiliateUser  $affiliateUser
      * @return \Illuminate\Http\Response
      */
+/**
+     * @OA\Post(
+     *     path="/api/affiliate/auth",
+     *     tags={"OFICINA VIRTUAL"},
+     *     summary="AUTENTIFICACION",
+     *     operationId="Auth credendial",
+     *      @OA\RequestBody(
+     *          description= "Provide auth credentials",
+     *          required=true,
+     *          @OA\JsonContent(
+     *              type="object",
+     *              @OA\Property(property="username", type="string",description="usuario del afiliado ci del que tiene las cedenciales required"),
+     *              @OA\Property(property="password", type="string",description="password o pin required"),
+     *              @OA\Property(property="device_id", type="string",description="device_id required"),
+     *              @OA\Property(property="firebase_token", type="string",description="token proporcionado por firebase required"),
+     *          )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *            type="object"
+     *         )
+     *     ),
+     * )
+     *
+     * Get affiliate
+     *
+     * @param Request $request
+     * @return void
+     */
 
     public static function auth(Request $request){
         $request->validate([
-            'username' => 'required|integer',
+            'username' => 'required',
             'password' => 'required',
             'device_id' => 'required',
             'firebase_token' => 'required'
@@ -300,63 +331,95 @@ class AffiliateUserController extends Controller
             $AffiliateUser=AffiliateUser::where('username',$request->username)->first();
             $state=$AffiliateUser->access_status;
             $password=$AffiliateUser->password;
-            if ($state=='Pendiente') {
-                if (Hash::check($request->password,$password)) {
-                    return response()->json([
-                        "error"=> false,
-                        'message' => 'Acceso Correcto cambie la password',
-                        'data'=> [
-                            'status'=> $state
+            switch ($state) {
+                case 'Pendiente':
+                    if (Hash::check($request->password,$password)) {
+                        return response()->json([
+                            "error"=> false,
+                            'message' => 'Acceso Correcto cambie la password',
+                            'data'=> [
+                                'status'=> $state
+                            ]
+                        ]);
+                    }
+                    else {
+                        return response()->json([
+                            "error"=> true,
+                            'message' => 'El pin es incorrecto',
+                            'data'=> [
+                                'status'=> $state
+                                ]
+                        ],403);
+                    }
+                    break;
+                case 'Activo':
+                    if (Hash::check($request->password,$password)) {
+                        $AffiliateToken=AffiliateToken::find($AffiliateUser->affiliate_token_id);
+                        // $AffiliateToken->device_id=$request->device_id;
+                        $AffiliateToken->api_token=Hash::make($request->device_id);
+                        $token=$AffiliateToken;
+                        $AffiliateToken->firebase_token=$request->firebase_token;
+                        $AffiliateToken->save();
+                        $affiliate=Affiliate::find($AffiliateToken->affiliate_id);
+                        if ($affiliate->identity_card==$request->username) {
+                            return response()->json(
+                                [
+                                    'error' => false,
+                                    'message' => 'Acceso Correcto',
+                                    'data'=> [
+                                        'api_token'=>$token->api_token,
+                                        'status'=> $state,
+                                        "user"=> [
+                                            "id" => $affiliate->id,
+                                            "full_name"=> $affiliate->FullName,
+                                            "identity_card"=> $affiliate->identity_card,
+                                            "degree"=> $affiliate->degree->name,
+                                            "category"=> $affiliate->category->name,
+                                        ],
+                                    ],
+                                ]
+                                );
+                        }
+                        else {
+                        $spouse=Spouse::where('affiliate_id',$affiliate->id)->first();
+                        return response()->json(
+                            [
+                                'error' => false,
+                                'message' => 'Acceso Correcto',
+                                'data'=> [
+                                    'api_token'=>$token->api_token,
+                                    'status'=> $state,
+                                    "user"=> [
+                                        "id" => $spouse->id,
+                                        "full_name"=> $spouse->FullName,
+                                        "identity_card"=> $spouse->identity_card,
+                                        "degree"=> $affiliate->degree->name,
+                                        "category"=> $affiliate->category->name,
+                                    ],
+                                ],
+                            ]
+                            );
+                        }
+                        }
+                        else {
+                            return response()->json([
+                                "error"=> true,
+                                'message' => 'El password es incorrecto',
+                                'data'=> [
+                                    'status'=> $state
+                                    ]
+                            ],403);
+                        }
+                    break;
+                default:
+                return response()->json([
+                    "error"=> true,
+                    'message' => 'Credenciales Inactivas',
+                    'data'=> [
+                        'status'=> $state
                         ]
-                    ]);
-                }
-                else {
-                    return response()->json([
-                        "error"=> true,
-                        'message' => 'El pin es incorrecto',
-                        'data'=> [
-                            'status'=> $state
-                            ]
-                    ],403);
-                }
-            }
-            else {
-                if (Hash::check($request->password,$password)) {
-                $AffiliateToken=AffiliateToken::find($AffiliateUser->affiliate_token_id);
-                // $AffiliateToken->device_id=$request->device_id;
-                $AffiliateToken->api_token=Hash::make($request->device_id);
-                $token=$AffiliateToken;
-                $AffiliateToken->firebase_token=$request->firebase_token;
-                $AffiliateToken->save();
-                $affiliate=Affiliate::where('identity_card',$request->username)->first();
-                return response()->json(
-                    [
-                        'error' => false,
-                        'message' => 'Acceso Correcto',
-                        'data'=> [
-                            'api_token'=>$token->api_token,
-                            'status'=> $state,
-                            "user"=> [
-                                "id" => $affiliate->id,
-                                "full_name"=> $affiliate->FullName,
-                                "degree"=> $affiliate->degree->name,
-                                "identity_card"=> $affiliate->identity_card,
-                                "category"=> $affiliate->category->name,
-                            ],
-                        ],
-                    ]
-                    );
-                }
-
-                else {
-                    return response()->json([
-                        "error"=> true,
-                        'message' => 'El password es incorrecto',
-                        'data'=> [
-                            'status'=> $state
-                            ]
-                    ],403);
-                }
+                ],403);
+                    break;
             }
         }
         else{

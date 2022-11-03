@@ -77,14 +77,13 @@ class ContributionPassiveController extends Controller
                     $m = ltrim(Carbon::parse($contributions_passive->month_year)->format('m'), "0");
                     // if (Str::contains($m, $mes)) {
                     if ($m == $mes) {
-                        $detail->push([
-                            'id' => $contributions_passive,
-                        ]);
+                        $detail->push($contributions_passive
+                        );
                     }
                 }
                 $contributions->push([
                     'month' => $month->name,
-                    'detail' => $detail
+                    'detail' => (object)$detail->first()
                 ]);
             }
             $all_contributions->push([

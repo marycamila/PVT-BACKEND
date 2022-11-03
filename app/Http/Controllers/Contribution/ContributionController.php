@@ -124,7 +124,8 @@ class ContributionController extends Controller
                     $m = ltrim(Carbon::parse($contributions_active->month_year)->format('m'), "0");
                     // if (Str::contains($m, $mes)) {
                     if ($m == $mes) {
-                        $detail->push([
+                        $detail=[
+                            'month' => $month->name,
                             'id' => $contributions_active->id,
                             'month_year' => $contributions_active->month_year,
                             'quotable' => Util::money_format($contributions_active->quotable),
@@ -134,12 +135,12 @@ class ContributionController extends Controller
                             'total' => Util::money_format($contribution_total),
                             'contribution_total' => Util::money_format($full_total),
                             'type' => $contributions_active->contributionable_type
-                        ]);
+                        ];
                     }
                 }
                 $contributions->push([
-                    'month' => $month->name,
-                    'detail' => $detail
+                    //'month' => $month->name,
+                    $detail
                 ]);
             }
             $all_contributions->push([

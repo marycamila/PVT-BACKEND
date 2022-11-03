@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\Affiliate\Affiliate;
 use App\Models\Affiliate\AffiliateToken;
 use App\Models\Affiliate\AffiliateUser;
+use App\Models\Affiliate\Spouse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -391,7 +392,7 @@ class AffiliateController extends Controller
     {
         return $affiliate->addresses;
     }
-     /**
+    /**
      * @OA\Patch(
      *      path="/api/affiliate/affiliate/{affiliate}/address",
      *      tags={"AFILIADO"},
@@ -496,19 +497,32 @@ class AffiliateController extends Controller
             'id' => 'required|integer|exists:affiliates,id'
         ]);
 
-        $data = Affiliate::find($id);
         $affiliate_token = AffiliateToken::whereAffiliateId($id)->first();
+        $affiliate = Affiliate::find($id);
         if (isset($affiliate_token)) {
-
             $affiliate_user = AffiliateUser::where('affiliate_token_id', $affiliate_token->id)->first();
             if ($affiliate_user == NULL) {
-                $access = "No asignadas";
+                $access_status = "No asignadas";
+                $account_type = null;
+                $created_at = null;
+                $updated_at = null;
             } else {
-                $access = $affiliate_user->access_status;
+                $access_status = $affiliate_user->access_status;
+                $account_type = ($affiliate_user->username == $affiliate->identity_card) ? 'Titular' : 'Viudedad';
+                $created_at = $affiliate_user->created_at;
+                $updated_at = $affiliate_user->updated_at;
             }
         } else {
-            $access = "No asignadas";
+            $access_status = "No asignadas";
+            $account_type = null;
+            $created_at = null;
+            $updated_at = null;
         }
-        return $data->access_status = $access;
+        return [
+            'access_status' => $access_status,
+            'account_type' => $account_type,
+            'created_at' => $created_at,
+            'updated_at' => $updated_at
+        ];
     }
 }

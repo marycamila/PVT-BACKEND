@@ -13,6 +13,7 @@ use App\Models\Contribution\Contribution;
 use App\Models\Contribution\Reimbursement;
 use App\Models\Affiliate\Address;
 use App\Models\Affiliate\AffiliateToken;
+use App\Models\Affiliate\AffiliateRecord;
 use App\Models\City;
 use App\Models\Contribution\PayrollCommand;
 use App\Models\Observation;
@@ -134,6 +135,10 @@ class Affiliate extends Model
     public function observations()
     {
         return $this->morphMany(Observation::class, 'observable')->latest('updated_at');
+    }
+    public function affiliate_records_pvt()
+    {
+        return $this->hasMany(AffiliateRecord::class);
     }
     public function getFullNameAttribute()
     {

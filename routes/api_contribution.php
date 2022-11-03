@@ -15,6 +15,7 @@ Route::group([
     ], function () {
         Route::get('/list_years', [App\Http\Controllers\Contribution\ImportationController::class, 'list_years']);
         Route::post('/active_affiliate_contribution', [App\Http\Controllers\Contribution\ContributionController::class, 'show']);
+        Route::post('/passive_affiliate_contribution', [App\Http\Controllers\Contribution\ContributionPassiveController::class, 'show']);
 
         Route::group([
             'middleware' => 'permission:read-import-payroll|create-import-payroll-senasir|create-import-payroll-command'

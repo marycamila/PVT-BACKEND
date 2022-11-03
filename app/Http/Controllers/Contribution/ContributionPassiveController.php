@@ -111,13 +111,45 @@ class ContributionPassiveController extends Controller
         $request->validate([
             'affiliate_id' => 'required|integer|exists:contribution_passives,affiliate_id',
         ]);
-        $search = request('search') ?? '';
+        $year = request('year') ?? '';
+        $month = request('month') ?? '';
+        $contributionable_type =request('contributionable_type') ?? '';
+        $order = request('sortDesc') ?? '';
+        if ($order != '') {
+            if ($order) {
+                $order_year = 'asc';
+            }
+            if (!$order) {
+                $order_year = 'desc';
+            }
+        } else {
+            $order_year = 'desc';
+        }
+        $conditions=[];
+        if ($year != '') {
+            array_push($conditions, array('month_year','like',"%{$year}%-%"));
+        }
+        if ($month != '') {
+            array_push($conditions, array('month_year','like',"%-%{$month}%-%"));
+        }
+        if ($contributionable_type != '') {
+            array_push($conditions, array('contributionable_type','like',"%{$contributionable_type}%"));
+        }
         $per_page = $request->per_page ?? 10;
-        $contributions_passives = ContributionPassive::whereAffiliateId($request->affiliate_id)->where('month_year', 'like', "%{$search}%")->paginate($per_page);
+        $contributions_passives = ContributionPassive::whereAffiliateId($request->affiliate_id)->where($conditions)->orderBy('month_year', $order_year)->paginate($per_page);
 
         foreach ($contributions_passives as $contributions_passive) {
             $year = Carbon::parse($contributions_passive->month_year)->format('Y');
             $month = Carbon::parse($contributions_passive->month_year)->format('m');
+            if($contributions_passive->contributionable_type=="discount_type_economic_complement"){
+                $contributions_passive->contributionable_type_name="Complemento Economico";
+            }else{
+                if($contributions_passive->contributionable_type=="payroll_senasirs"){
+                $contributions_passive->contributionable_type_name="Senasir";
+                }else{
+                $contributions_passive->contributionable_type_name="";
+                }
+            }
             $contributions_passive->year= $year;
             $contributions_passive->month= $month;
         }

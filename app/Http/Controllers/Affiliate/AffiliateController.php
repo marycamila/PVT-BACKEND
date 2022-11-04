@@ -525,4 +525,45 @@ class AffiliateController extends Controller
             'updated_at' => $updated_at
         ];
     }
+    /**
+     * @OA\Get(
+     *     path="/api/affiliate/affiliate_record/{affiliate}",
+     *     tags={"AFILIADO"},
+     *     summary="RECORDS",
+     *     operationId="getRecord",
+     * @OA\Parameter(
+     *         name="affiliate",
+     *         in="path",
+     *         description="",
+     *         required=true,
+     *         example=1,
+     *         @OA\Schema(
+     *             type="integer",
+     *             format = "int64"
+     *         )
+     *       ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *         type="object"
+     *         )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     }
+     * )
+     *
+     * Get status of virtual office.
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function get_record(Affiliate $affiliate)
+    {
+        $affiliate_records = $affiliate->affiliate_records_pvt()->with(['user:id,username'])->orderByDesc('created_at')->get();
+        $records = $affiliate->records()->with(['user:id,username'])->get();
+        $affiliate_activities = $affiliate->activities()->with('user:id,username')->orderByDesc('created_at')->get();
+        return compact('affiliate_records','records','affiliate_activities');
+    }
 }

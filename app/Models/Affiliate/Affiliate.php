@@ -14,7 +14,9 @@ use App\Models\Contribution\Reimbursement;
 use App\Models\Affiliate\Address;
 use App\Models\Affiliate\AffiliateToken;
 use App\Models\Affiliate\AffiliateRecord;
+use App\Models\Loan\Record;
 use App\Models\City;
+use App\Models\Activities;
 use App\Models\Contribution\PayrollCommand;
 use App\Models\Observation;
 use App\Models\Notification\NotificationSend;
@@ -140,6 +142,14 @@ class Affiliate extends Model
     {
         return $this->hasMany(AffiliateRecord::class);
     }
+    public function records()
+    {
+      return $this->morphMany(Record::class, 'recordable');
+    }
+    public function activities()
+  {
+      return $this->hasMany(Activities::class);
+  }
     public function getFullNameAttribute()
     {
         return rtrim(preg_replace('/[[:blank:]]+/', ' ', join(' ', [$this->first_name, $this->second_name, $this->last_name, $this->mothers_last_name, $this->surname_husband])));

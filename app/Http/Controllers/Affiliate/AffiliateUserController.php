@@ -89,6 +89,7 @@ class AffiliateUserController extends Controller
                 'payload'=>[]
             ]);
         }
+        $user=Auth::user()->id;
         $isAffiliateToken = DB::table('affiliate_tokens')->where('affiliate_id', $AffiliateId)->exists();
         if (!$isAffiliateToken) {
             $AffiliateToken = new AffiliateToken;
@@ -103,7 +104,7 @@ class AffiliateUserController extends Controller
                 $AffiliateUser->password = Hash::make($password);
                 $AffiliateUser->save();
                 $message='Credenciales registradas exitosamente para viuda';
-                $response=$this->send_messages($AffiliateUser->username,$password,$AffiliateId,$message);
+                $response=$this->send_messages($AffiliateUser->username,$password,$AffiliateId,$message,$user);
                 $existsError=$response->original['error'];
                 if (!$existsError) {
                     $AffiliateUser->save();
@@ -119,7 +120,7 @@ class AffiliateUserController extends Controller
                 $AffiliateUser->password = Hash::make($password);
                 $AffiliateUser->save();
                 $message='Credenciales registradas exitosamente para titular';
-                $response=$this->send_messages($AffiliateUser->username,$password,$AffiliateId,$message);
+                $response=$this->send_messages($AffiliateUser->username,$password,$AffiliateId,$message,$user);
                 $existsError=$response->original['error'];
                 if (!$existsError) {
                     $AffiliateUser->save();
@@ -143,7 +144,7 @@ class AffiliateUserController extends Controller
                         $AffiliateUser->password = Hash::make($password);
                         $AffiliateUser->access_status = 'Pendiente';
                         $message='Se reasigno credenciales para viudedad';
-                        $response=$this->send_messages($AffiliateUser->username,$password,$AffiliateId,$message);
+                        $response=$this->send_messages($AffiliateUser->username,$password,$AffiliateId,$message,$user);
                         $existsError=$response->original['error'];
                         if (!$existsError) {
                             $AffiliateUser->save();
@@ -160,7 +161,7 @@ class AffiliateUserController extends Controller
                         $AffiliateUser->access_status = 'Pendiente';
                         $AffiliateUser->save();
                         $message='Se reasigno credenciales para el titular';
-                        $response=$this->send_messages($AffiliateUser->username,$password,$AffiliateId,$message);
+                        $response=$this->send_messages($AffiliateUser->username,$password,$AffiliateId,$message,$user);
                         $existsError=$response->original['error'];
                         if (!$existsError) {
                             $AffiliateUser->save();
@@ -189,7 +190,7 @@ class AffiliateUserController extends Controller
                     $AffiliateUser->password = Hash::make($password);
                     $AffiliateUser->save();
                     $message='Credenciales registradas exitosamente para viuda';
-                    $response=$this->send_messages($AffiliateUser->username,$password,$AffiliateId,$message);
+                    $response=$this->send_messages($AffiliateUser->username,$password,$AffiliateId,$message,$user);
                     $existsError=$response->original['error'];
                     if (!$existsError) {
                         $AffiliateUser->save();
@@ -205,7 +206,7 @@ class AffiliateUserController extends Controller
                     $AffiliateUser->password = Hash::make($password);
                     $AffiliateUser->save();
                     $message='Credenciales registradas exitosamente para titular';
-                    $response=$this->send_messages($AffiliateUser->username,$password,$AffiliateId,$message);
+                    $response=$this->send_messages($AffiliateUser->username,$password,$AffiliateId,$message,$user);
                     $existsError=$response->original['error'];
                     if (!$existsError) {
                         $AffiliateUser->save();
@@ -220,13 +221,12 @@ class AffiliateUserController extends Controller
     }
 
 
-    public static function send_messages($username,$password,$affiliateId,$message ) {
+    public static function send_messages($username,$password,$affiliateId,$message,$userId) {
         $cell_phone_number=Affiliate::find($affiliateId)->cell_phone_number;
-        $user=Auth::user()->id;
         $separator = ",";
         $separate = explode($separator,$cell_phone_number);
         $response= Http::timeout(60)->post('http://192.168.2.201:8989/api/notification/send_credentials',[
-            "user_id"=>$user,
+            "user_id"=>$userId,
             "shipments"=> [
                 [
                     "id"=>$affiliateId,
@@ -468,7 +468,7 @@ class AffiliateUserController extends Controller
 
     public function change_password(Request $request){
         $request->validate([
-            'username' => 'required|integer|exists:affiliate_users,username',
+            'username' => 'required|exists:affiliate_users,username',
             'password' => 'required',
             'new_password' => 'required',
             'device_id' => 'required',
@@ -501,6 +501,192 @@ class AffiliateUserController extends Controller
         }
     }
 
+    /**
+    * @OA\Patch(
+    *     path="/api/app/send_code_reset_password",
+    *     tags={"OFICINA VIRTUAL"},
+    *     summary="ENVIO DE CODIGO PARA ACTUALIZAR LA CONTRASEÑA",
+    *     operationId="send code by sms ",
+    *      @OA\RequestBody(
+    *          description= "it send code to update password",
+    *          required=true,
+    *          @OA\JsonContent(
+    *              type="object",
+    *              @OA\Property(property="ci", type="string",description="ci de la persona que tiene los credenciales required"),
+    *              @OA\Property(property="birth_date", type="string",description="fecha de nacimiento de la persona que tiene los credenciales required"),
+    *              @OA\Property(property="cell_phone_number", type="string",description="numero de celular required")
+    *          )
+    *     ),
+    *     @OA\Response(
+    *         response=200,
+    *         description="Success",
+    *         @OA\JsonContent(
+    *            type="object"
+    *         )
+    *     ),
+    * )
+    *
+    *
+    * @param Request $request
+    * @return void
+    */
+
+    public function send_code_reset_password(Request $request){
+        $request->validate([
+            'ci' => 'required',
+            'birth_date' => 'required',
+            'cell_phone_number' => 'required',
+        ]);
+        $affiliateUser=AffiliateUser::where('username',$request->ci)->first();
+        if ($affiliateUser) {
+            $affiliateToken=AffiliateToken::find($affiliateUser->affiliate_token_id);
+            $affiliate=Affiliate::find($affiliateToken->affiliate_id);
+            $separator = ",";
+            $separate = explode($separator,$affiliate->cell_phone_number);
+            $cellPhoneNumber=preg_replace('/[\(\)\-]+/', '', $separate[0]);
+            $isDead=Affiliate::find($affiliate->id)->dead;
+            if ($isDead && $affiliate->spouse) {
+                $spouse=Spouse::where('affiliate_id',$affiliate->id)->first();
+                if ($spouse->identity_card==$request->ci && $spouse->birth_date == $request->birth_date && $cellPhoneNumber==$request->cell_phone_number ) {
+                    $message='Pin enviado a su numero de celular';
+                    $password=$this->Generate_pin();
+                    $response=$this->send_messages($affiliateUser->username,$password,$affiliate->id,$message,171);
+                    $existsError=$response->original['error'];
+                    if (!$existsError) {
+                        $affiliateUser->password_update_code=$password;
+                        $affiliateUser->save();
+                        return $response;
+                    }
+                    else{
+                        return $response;
+                    }
+                }
+                else{
+                    return response()->json(
+                        [
+                            'error'=> true,
+                            'message'=> 'datos incorrectos',
+                            'telular_response'=>
+                            [],
+                            'payload'=>
+                            []
+                        ],403
+                        );
+                }
+            }
+            else {
+                if ($affiliate->identity_card==$request->ci && $affiliate->birth_date == $request->birth_date && $cellPhoneNumber==$request->cell_phone_number ) {
+                    $message='contraseña reestablecida correctamente';
+                    $password=$this->Generate_pin();
+                    $response=$this->send_messages($affiliateUser->username,$password,$affiliate->id,$message,171);
+                    $existsError=$response->original['error'];
+                    if (!$existsError) {
+                        $affiliateUser->password_update_code=$password;
+                        $affiliateUser->save();
+                        return $response;
+                    }
+                    else{
+                        return $response;
+                    }
+                }
+                else{
+                    return response()->json(
+                        [
+                            'error'=> true,
+                            'message'=> 'datos incorrectos',
+                            'telular_response'=>
+                            [],
+                            'payload'=>
+                            []
+                        ],403
+                        );
+                }
+            }
+        }
+        else{
+            return response()->json(
+                [
+                    'error'=> true,
+                    'message'=> 'no existe el afiliado',
+                    'telular_response'=>
+                    [],
+                    'payload'=>
+                    []
+                ],403
+                );
+        }
+
+
+    }
+
+/**
+     * @OA\Patch(
+     *     path="/api/app/reset_password",
+     *     tags={"OFICINA VIRTUAL"},
+     *     summary="RESETEAR CONTRASEÑA",
+     *     operationId="Reset Password",
+     *      @OA\RequestBody(
+     *          description= "With the code we can update the password",
+     *          required=true,
+     *          @OA\JsonContent(
+     *              type="object",
+     *              @OA\Property(property="username", type="string",description="usuario del afiliado ci del que tiene las cedenciales required"),
+     *              @OA\Property(property="code_to_update", type="string",description="codigo proporcionado required"),
+     *              @OA\Property(property="new_password", type="string",description="password nueva required")
+     *          )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *            type="object"
+     *         )
+     *     ),
+     * )
+     *
+     *
+     * @param Request $request
+     * @return void
+*/
+
+    public function reset_password(Request $request){
+        $request->validate([
+            'username'=>'required',
+            'code_to_update'=>'required',
+            'new_password' => 'required',
+        ]);
+        $affiliateUser=AffiliateUser::where('username',$request->username)->first();
+        if ($affiliateUser) {
+            $password=$affiliateUser->password_update_code;
+            if ($password==$request->code_to_update){
+                $affiliateUser->password=Hash::make($request->new_password);;
+                $affiliateUser->password_update_code=null;
+                $affiliateUser->save();
+                return response()->json(
+                    [
+                        'error'=> false,
+                        'message'=> 'contraseña guardada existosamente'
+                    ],403
+                    );
+            }
+            else {
+                return response()->json(
+                    [
+                        'error'=> true,
+                        'message'=> 'El codigo de actualizacion es incorrecto'
+                    ],403
+                    );
+                }
+            }
+        else {
+            return response()->json(
+                [
+                    'error'=> true,
+                    'message'=> 'no existe el afiliado',
+                ],403
+                );
+        }
+        }
     public function update(Request $request, AffiliateUser $affiliateUser)
     {
 

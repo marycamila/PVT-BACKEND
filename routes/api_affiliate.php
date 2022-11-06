@@ -26,5 +26,6 @@ Route::group([
        Route::apiResource('/pension_entity',App\Http\Controllers\Affiliate\PensionEntityController::class)->only(['index','show']);
        Route::apiResource('/affiliate_state',App\Http\Controllers\Affiliate\AffiliateStateController::class)->only(['index','show']);
        Route::post('store', [App\Http\Controllers\Affiliate\AffiliateUserController::class, 'store']);
+       Route::get('/affiliate_record/{affiliate}', [App\Http\Controllers\Affiliate\AffiliateController::class, 'get_record']);
     });
 });

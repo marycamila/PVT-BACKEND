@@ -501,6 +501,36 @@ class AffiliateUserController extends Controller
         }
     }
 
+    /**
+    * @OA\Patch(
+    *     path="/api/app/send_code_reset_password",
+    *     tags={"OFICINA VIRTUAL"},
+    *     summary="ENVIO DE CODIGO PARA ACTUALIZAR LA CONTRASEÑA",
+    *     operationId="send code by sms ",
+    *      @OA\RequestBody(
+    *          description= "it send code to update password",
+    *          required=true,
+    *          @OA\JsonContent(
+    *              type="object",
+    *              @OA\Property(property="ci", type="string",description="ci de la persona que tiene los credenciales required"),
+    *              @OA\Property(property="birth_date", type="string",description="fecha de nacimiento de la persona que tiene los credenciales required"),
+    *              @OA\Property(property="cell_phone_number", type="string",description="numero de celular required")
+    *          )
+    *     ),
+    *     @OA\Response(
+    *         response=200,
+    *         description="Success",
+    *         @OA\JsonContent(
+    *            type="object"
+    *         )
+    *     ),
+    * )
+    *
+    *
+    * @param Request $request
+    * @return void
+    */
+
     public function send_code_reset_password(Request $request){
         $request->validate([
             'ci' => 'required',
@@ -588,6 +618,37 @@ class AffiliateUserController extends Controller
 
 
     }
+
+/**
+     * @OA\Patch(
+     *     path="/api/app/reset_password",
+     *     tags={"OFICINA VIRTUAL"},
+     *     summary="RESETEAR CONTRASEÑA",
+     *     operationId="Reset Password",
+     *      @OA\RequestBody(
+     *          description= "With the code we can update the password",
+     *          required=true,
+     *          @OA\JsonContent(
+     *              type="object",
+     *              @OA\Property(property="username", type="string",description="usuario del afiliado ci del que tiene las cedenciales required"),
+     *              @OA\Property(property="code_to_update", type="string",description="codigo proporcionado required"),
+     *              @OA\Property(property="new_password", type="string",description="password nueva required")
+     *          )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *            type="object"
+     *         )
+     *     ),
+     * )
+     *
+     *
+     * @param Request $request
+     * @return void
+*/
+
     public function reset_password(Request $request){
         $request->validate([
             'username'=>'required',
@@ -595,14 +656,8 @@ class AffiliateUserController extends Controller
             'new_password' => 'required',
         ]);
         $affiliateUser=AffiliateUser::where('username',$request->username)->first();
-        // return $affiliateUser;
-        $isAffiliateUser = DB::table('affiliate_users')->where('username', $request->username)->exists();
-        // if ($isAffiliateUser) {
-        //     // return 'siiiiiiiuuuuuuuu';
-        // }
         if ($affiliateUser) {
             $password=$affiliateUser->password_update_code;
-            // return $password;
             if ($password==$request->code_to_update){
                 $affiliateUser->password=Hash::make($request->new_password);;
                 $affiliateUser->password_update_code=null;
@@ -610,7 +665,7 @@ class AffiliateUserController extends Controller
                 return response()->json(
                     [
                         'error'=> false,
-                        'message'=> 'todo ok',
+                        'message'=> 'contraseña guardada existosamente'
                     ],403
                     );
             }
@@ -618,7 +673,7 @@ class AffiliateUserController extends Controller
                 return response()->json(
                     [
                         'error'=> true,
-                        'message'=> 'no da',
+                        'message'=> 'El codigo de actualizacion es incorrecto'
                     ],403
                     );
                 }

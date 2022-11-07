@@ -87,7 +87,7 @@ class AffiliateUserController extends Controller
                 'error'=>true,
                 'message' => 'El afiliado no tiene registrado su numero',
                 'payload'=>[]
-            ]);
+            ],403);
         }
         $user=Auth::user()->id;
         $isAffiliateToken = DB::table('affiliate_tokens')->where('affiliate_id', $AffiliateId)->exists();
@@ -254,7 +254,7 @@ class AffiliateUserController extends Controller
                 'telular_response' => json_decode($response->getBody()),
                 'payload' => [
                 ],
-            ]);
+            ],403);
         }
     }
     /**
@@ -371,7 +371,7 @@ class AffiliateUserController extends Controller
                                         'status'=> $state,
                                         "user"=> [
                                             "id" => $affiliate->id,
-                                            "full_name"=> $affiliate->FullName,
+                                            "full_name"=> $affiliate->fullname,
                                             "identity_card"=> $affiliate->identity_card,
                                             "degree"=> $affiliate->degree->name,
                                             "category"=> $affiliate->category->name,
@@ -391,7 +391,7 @@ class AffiliateUserController extends Controller
                                     'status'=> $state,
                                     "user"=> [
                                         "id" => $spouse->id,
-                                        "full_name"=> $spouse->FullName,
+                                        "full_name"=> $spouse->fullname,
                                         "identity_card"=> $spouse->identity_card,
                                         "degree"=> $affiliate->degree->name,
                                         "category"=> $affiliate->category->name,
@@ -661,6 +661,9 @@ class AffiliateUserController extends Controller
             if ($password==$request->code_to_update){
                 $affiliateUser->password=Hash::make($request->new_password);;
                 $affiliateUser->password_update_code=null;
+                if ($affiliateUser->access_status=='Pendiente') {
+                    $affiliateUser->access_status='Activo';
+                }
                 $affiliateUser->save();
                 return response()->json(
                     [

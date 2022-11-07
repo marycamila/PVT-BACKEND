@@ -2,6 +2,7 @@
 
 namespace App\Helpers;
 
+use App\Models\Admin\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -179,10 +180,11 @@ class Util
     public static function save_record_affiliate($object,$action)
     {
         if(!empty($action) && $action != 'modificó'){
+            $user= Auth::user()?? User::find(171);
             $old = Affiliate::find($object->id);
-            $message = 'El usuario '.Auth::user()->username.' ';
+            $message = 'El usuario '.$user->username.' ';
             $affiliate_record = new AffiliateRecord;
-            $affiliate_record->user_id = Auth::user()->id;
+            $affiliate_record->user_id = $user->id;
             $affiliate_record->affiliate_id = $object->id;
             $affiliate_record->message = $message.$action;
             $affiliate_record->save();
@@ -260,8 +262,8 @@ class Util
         }
         return $value;
     }
-    
-     // Enviar un array de objetos 
+
+     // Enviar un array de objetos
      public static function delegate_shipping($shipments, $user_id, $transmitter_id=1, $morph_type=null) {
 
         try{
@@ -276,7 +278,7 @@ class Util
 
             foreach($shipments as $shipping) {
                 $shipping['sms_num'] = Util::remove_special_char($shipping['sms_num']);
-                $code_num = '591' . $shipping['sms_num']; 
+                $code_num = '591' . $shipping['sms_num'];
                 $message = $shipping['message'];
                 logger("==================================");
                 logger($shipping['sms_num']);
@@ -291,7 +293,7 @@ class Util
                     $result = Http::timeout(60)->get($sms_server_url . "resend.php?messageid=$id&USERNAME=$root&PASSWORD=$password");
                     if($result->successful()) {
                         $var = $result->getBody();
-                        if(strpos($var, "ERROR") === false || strpos($var, "logout,") === false) { 
+                        if(strpos($var, "ERROR") === false || strpos($var, "logout,") === false) {
                             $flag = true;
                             $obj = $morph_type ? new Affiliate() : new Loan();
                             $alias = $obj->getMorphClass();
@@ -309,9 +311,9 @@ class Util
                             ]);
                         }
                         else $flag = false;
-                    } 
+                    }
                     else $flag = false;
-                } 
+                }
                 else $flag = false;
             }
             return $flag;
@@ -319,7 +321,7 @@ class Util
             logger($e->getMessage());
         }
     }
-    
+
     public static function remove_special_char($string) {
         return preg_replace('/[\(\)\-]+/', '', $string);
     }

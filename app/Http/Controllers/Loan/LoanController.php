@@ -193,9 +193,9 @@ class LoanController extends Controller
             }
         return $areas;
     }
-    public function get_information_loan(Request $request, $id_affiliate)
+    public function get_information_loan(Request $request, $idAffiliate)
     {
-        $request['affiliate_id'] = $id_affiliate;
+        $request['affiliate_id'] = $idAffiliate;
         $hasLoans = DB::table('loans')->where('affiliate_id',$request->id_affiliate)->exists();
         if ($hasLoans) {
             $loans = Loan::where([['affiliate_id', '=',$request->id_affiliate]])->whereIn('state_id',[1,3,4])->get();
@@ -205,23 +205,20 @@ class LoanController extends Controller
         foreach ($loans as $loan ) {
             switch ($loan->state_id) {
                 case 1:
-                    $data = Loan::where('uuid',$loan->uuid)->first();
-                $state = LoanState::find($data->state_id);
-                $procedure = ProcedureModality::find($data->procedure_modality_id);
-                $type = Loan::find($data->id)->modality->procedure_type->name;
-                $role = Role::find($data->role_id);
-                $flow=$this->get_workflow($data->id);
-                $data->state_name = $state->name;
-                $data->procedure_modality_name = $procedure->name;
-                $data->procedure_type_name = $type;
-                $data->location =$role->display_name;
+                $state = LoanState::find($loan->state_id);
+                $procedure = ProcedureModality::find($loan->procedure_modality_id);
+                $type = $loan->modality->procedure_type->name;
+                $role = Role::find($loan->role_id);
+                $flow=$this->get_workflow($loan->id);
+                $loan->state_name = $state->name;
+                $loan->procedure_modality_name = $procedure->name;
                 array_push($inProcess,array(
-                    'code' => $data->code,
-                    'procedure_modality_name' => $data->procedure_modality_name,
-                    'procedure_type_name' => $data->procedure_type_name,
-                    'location' => $data->location,
-                    'validated' => $data->validated,
-                    'state_name' => $data->state_name,
+                    'code' => $loan->code,
+                    'procedure_modality_name' => $procedure->name,
+                    'procedure_type_name' => $type,
+                    'location' => $role->display_name,
+                    'validated' => $loan->validated,
+                    'state_name' => $loan->state_name,
                     'flow'=> $flow
                 )
                 );

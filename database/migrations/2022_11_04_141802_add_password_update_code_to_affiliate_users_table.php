@@ -14,7 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('affiliate_users', function (Blueprint $table) {
-            $table->string('password_update_code')->nullable()->after('password')->comment('Codigo para cambiar la contraseña del usuario');
+            $table->string('password_update_code')->nullable()->comment('Codigo para cambiar la contraseña del usuario');
         });
     }
 

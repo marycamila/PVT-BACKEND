@@ -666,7 +666,7 @@ class AffiliateUserController extends Controller
                     [
                         'error'=> false,
                         'message'=> 'contraseña guardada existosamente'
-                    ],403
+                    ]
                     );
             }
             else {

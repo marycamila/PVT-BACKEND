@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Loan;
 use App\Http\Controllers\Controller;
 use App\Models\Admin\Module;
 use App\Models\Admin\Role;
+use App\Models\Admin\RoleSequence;
 use App\Models\Loan\Loan;
 use App\Models\Loan\LoanBorrower;
 use App\Models\Loan\LoanState;
@@ -176,24 +177,40 @@ class LoanController extends Controller
      * @param Request $request
      * @return void
      */
+
+    public function get_workflow($idloan){
+        $procedure=Loan::find($idloan)->modality->procedure_type->id;
+        $flows=RoleSequence::where('procedure_type_id',$procedure)->get();
+        $location=Loan::find($idloan)->role->display_name;
+        $areas=[];
+        foreach($flows as $flow){
+            $name=$flow->current_role->display_name;
+            array_push($areas,array(
+                "display_name"=> $name,
+                "state"=> $location==$name?? true
+                )
+            );
+            }
+        return $areas;
+    }
     public function get_information_loan(Request $request, $id_affiliate)
     {
         $request['affiliate_id'] = $id_affiliate;
         $hasLoans = DB::table('loans')->where('affiliate_id',$request->id_affiliate)->exists();
         if ($hasLoans) {
-            $loans = Loan::where([
-                ['affiliate_id', '=',$request->id_affiliate]
-            ])->whereIn('state_id',[1,3,4])->get();
+            $loans = Loan::where([['affiliate_id', '=',$request->id_affiliate]])->whereIn('state_id',[1,3,4])->get();
         $current=[];
         $inProcess=[];
         $liquidated=[];
         foreach ($loans as $loan ) {
-            if ($loan->state_id == 1) {
-                $data = Loan::where('uuid',$loan->uuid)->first();
+            switch ($loan->state_id) {
+                case 1:
+                    $data = Loan::where('uuid',$loan->uuid)->first();
                 $state = LoanState::find($data->state_id);
                 $procedure = ProcedureModality::find($data->procedure_modality_id);
                 $type = Loan::find($data->id)->modality->procedure_type->name;
                 $role = Role::find($data->role_id);
+                $flow=$this->get_workflow($data->id);
                 $data->state_name = $state->name;
                 $data->procedure_modality_name = $procedure->name;
                 $data->procedure_type_name = $type;
@@ -205,11 +222,11 @@ class LoanController extends Controller
                     'location' => $data->location,
                     'validated' => $data->validated,
                     'state_name' => $data->state_name,
+                    'flow'=> $flow
                 )
                 );
-            }
-            else {
-                if ($loan->state_id == 3) {
+                    break;
+                case 3:
                     array_push($current,array(
                         "id"=> $loan->id,
                         "code"=> $loan->code,
@@ -228,8 +245,8 @@ class LoanController extends Controller
                         "quota"=> $loan->EstimatedQuota,
                         )
                     );
-                }
-                else {
+                    break;
+                case 4:
                     array_push($liquidated,array(
                         "id"=> $loan->id,
                         "code"=> $loan->code,
@@ -248,7 +265,9 @@ class LoanController extends Controller
                         "quota"=> $loan->EstimatedQuota,
                         )
                     );
-                }
+                    break;
+                default:
+                    break;
             }
         }
         return response()->json([

@@ -6,6 +6,8 @@ use App\Models\Affiliate\Affiliate;
 use App\Helpers\Util;
 use App\Models\Affiliate\PensionEntity;
 use App\Models\Affiliate\AffiliateState;
+use App\Models\Affiliate\AffiliateToken;
+use App\Models\Affiliate\AffiliateUser;
 use App\Models\Affiliate\Category;
 use App\Models\Affiliate\Degree;
 use App\Models\City;
@@ -64,7 +66,16 @@ class AffiliateObserver
             $id = $affiliate->getOriginal('affiliate_state_id');
             $old = AffiliateState::find($id);
             $message = $message . ' [Estado] '.($old->name ?? 'Sin Estado').' a '.($affiliate->affiliate_state->name ?? 'Sin Estado').', ';
-
+            if ($affiliate->affiliate_state_id==4) {
+                $affiliateToken=AffiliateToken::where('affiliate_id',$affiliate->id)->first();
+                if ($affiliateToken) {
+                    $affiliateUser=AffiliateUser::where('affiliate_token_id',$affiliateToken->id)->first();
+                    if ($affiliateUser) {
+                        $affiliateUser->access_status='Inactivo';
+                        $affiliateUser->save();
+                    }
+                }
+            }
         }
         if($affiliate->category_id != $affiliate->getOriginal('category_id'))
         {

@@ -5,25 +5,172 @@ namespace App\Http\Controllers\Contribution;
 use App\Helpers\Util;
 use App\Http\Controllers\Controller;
 use App\Models\Affiliate\Affiliate;
-use App\Models\Affiliate\Degree;
+use App\Models\Affiliate\Breakdown;
 use App\Models\Contribution\Contribution;
-use App\Models\Contribution\ContributionPassive;
 use App\Models\Contribution\Reimbursement;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class ContributionController extends Controller
 {
+
     /**
-     * Display a listing of the resource.
+     * @OA\Get(
+     *     path="/api/contribution/search_active_affiliate_contribution",
+     *     tags={"CONTRIBUCION"},
+     *     summary="Filtrado y listado de contribuciones - Sector Activo",
+     *     operationId="getContributionActive",
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         description="Página a mostrar",
+     *         example=1,
+     *         required=false, 
+     *       ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Por Página",
+     *         example=10,
+     *         required=false,
+     *     ),
+     *     @OA\Parameter(
+     *         name="sortDesc",
+     *         in="query",
+     *         description="Vector de orden descendente(0) o ascendente(1)",
+     *         example=1,
+     *         required=false,
+     *     ),
+     *    @OA\Parameter(
+     *         name="affiliate_id",
+     *         in="query",
+     *         description="Id del Afiliado",
+     *         required=false,
+     *     ),
+     *     @OA\Parameter(
+     *         name="year",
+     *         in="query",
+     *         description="Filtro por Año",
+     *         required=false,
+     *     ),
+     *     @OA\Parameter(
+     *         name="month",
+     *         in="query",
+     *         description="Filtro por Mes",
+     *         required=false,
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *         type="object"
+     *         )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     }
+     * )
      *
-     * @return \Illuminate\Http\Response
+     * Get list of contributions active
+     *
+     * @param Request $request
+     * @return void
      */
-    public function index()
+
+    public function SearchContributionActive(Request $request)
     {
-        //
+        $request->validate([
+            'affiliate_id' => 'required|integer|exists:contributions,affiliate_id',
+        ]);
+
+        $year = request('year') ?? '';
+        $month = request('month') ?? '';
+        $breakdown = request('breakdown') ?? '';
+
+        $order = request('sortDesc') ?? '';
+        if ($order != '') {
+            if ($order) {
+                $order_year = 'asc';
+            }
+            if (!$order) {
+                $order_year = 'desc';
+            }
+        } else {
+            $order_year = 'desc';
+        }
+
+        $conditions = [];
+        if ($year != '') {
+            array_push($conditions, array('month_year', 'like', "%{$year}%-%"));
+        }
+        if ($month != '') {
+            array_push($conditions, array('month_year', 'like', "%-%{$month}%-%"));
+        }
+
+        // $breakdown_id = Breakdown::where('name', 'ilike', '%' . $breakdown . '%')->first()->id;
+
+        // if ($breakdown_id != '') {
+        //     array_push($conditions, array('breakdown_id', $breakdown_id));
+        // }
+
+        $per_page = $request->per_page ?? 10;
+
+        $affiliate = Affiliate::find($request->affiliate_id);
+
+        $reimbursements = $affiliate->reimbursements()->selectRaw(
+            "
+            affiliate_id,
+            month_year,
+            extract(month from month_year) as month,
+            extract(year from month_year) as year,
+            null,
+            null,
+            base_wage,
+            seniority_bonus,
+            study_bonus,
+            position_bonus,
+            border_bonus,
+            east_bonus,
+            public_security_bonus,
+            gain,
+            quotable,
+            retirement_fund,
+            mortuary_quota,
+            total,
+            null,
+            'RE' as title,
+            type"
+        )->where($conditions)
+            ->orderBy('month_year', $order_year);
+
+        return $contributions = $affiliate->contributions()->selectRaw(
+            "
+            affiliate_id,
+            month_year,
+            extract(month from month_year) as month,
+            extract(year from month_year) as year,
+            degree_id,
+            unit_id,
+            base_wage,
+            seniority_bonus,
+            study_bonus,
+            position_bonus,
+            border_bonus,
+            east_bonus,
+            public_security_bonus,
+            gain,
+            quotable,
+            retirement_fund,
+            mortuary_quota,
+            total,
+            breakdown_id,
+            'C' as title,
+            type"
+        )->union($reimbursements)
+            ->where($conditions)
+            ->orderBy('month_year', $order_year)
+            ->paginate($per_page);
     }
 
     /**
@@ -47,12 +194,11 @@ class ContributionController extends Controller
         //
     }
 
-
     /**
      * @OA\Post(
      *      path="/api/contribution/active_affiliate_contribution",
      *      tags={"CONTRIBUCION"},
-     *      summary="CONTRIBUCIONES DEL AFILIADO",
+     *      summary="CONTRIBUCIONES DEL AFILIADO - SECTOR ACTIVO",
      *      operationId="getContributions",
      *      description="contribuciones del afiliado",
      *      @OA\RequestBody(
@@ -122,14 +268,14 @@ class ContributionController extends Controller
                         }
                     }
                     $m = ltrim(Carbon::parse($contributions_active->month_year)->format('m'), "0");
-                    // if (Str::contains($m, $mes)) {
+
                     if ($m == $mes) {
                         $detail->push([
                             'id' => $contributions_active->id,
                             'month_year' => $contributions_active->month_year,
                             'quotable' => Util::money_format($contributions_active->quotable),
                             'retirement_fund' => Util::money_format($contributions_active->retirement_fund),
-                            'mortuary_quo ta' => Util::money_format($contributions_active->mortuary_quota),
+                            'mortuary_quota' => Util::money_format($contributions_active->mortuary_quota),
                             'reimbursement_total' => Util::money_format($reimbursement_total),
                             'total' => Util::money_format($contribution_total),
                             'contribution_total' => Util::money_format($full_total),
@@ -190,7 +336,7 @@ class ContributionController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update the specified resource in storage.co
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id

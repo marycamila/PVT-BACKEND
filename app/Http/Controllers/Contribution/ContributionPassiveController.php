@@ -45,15 +45,41 @@ class ContributionPassiveController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * @OA\Post(
+     *      path="/api/contribution/passive_affiliate_contribution",
+     *      tags={"CONTRIBUCION"},
+     *      summary="CONTRIBUCIONES DEL AFILIADO - SECTOR PASIVO",
+     *      operationId="getContributionsPassive",
+     *      description="contribuciones del afiliado - sector pasivo",
+     *      @OA\RequestBody(
+     *          description= "affiliate_id",
+     *          required=true,
+     *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
+     *             @OA\Property(property="affiliate_id", type="integer",description="affiliate_id",example=33)
+     *            )
+     *          ),
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     },
+     *      @OA\Response(
+     *          response=200,
+     *          description="Success",
+     *          @OA\JsonContent(
+     *            type="object"
+     *         )
+     *      )
+     * )
      *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     *
+     * @param Request $request
+     * @return void
      */
+
     public function show(Request $request)
     {
         $request->validate([
-            'affiliate_id' => 'required|integer|exists:affiliates,id'
+            'affiliate_id' => 'required|integer|exists:contribution_passives,affiliate_id'
         ]);
 
         $affiliate = Affiliate::find($request->affiliate_id);
@@ -75,9 +101,9 @@ class ContributionPassiveController extends Controller
                 $detail = collect();
                 foreach ($contribution_passives as $contributions_passive) {
                     $m = ltrim(Carbon::parse($contributions_passive->month_year)->format('m'), "0");
-                    // if (Str::contains($m, $mes)) {
                     if ($m == $mes) {
-                        $detail->push($contributions_passive
+                        $detail->push(
+                            $contributions_passive
                         );
                     }
                 }
@@ -87,7 +113,7 @@ class ContributionPassiveController extends Controller
                 ]);
             }
             $all_contributions->push([
-                'year' => (String)$i,
+                'year' => (string)$i,
                 'contributions' => $contributions
             ]);
         }
@@ -105,15 +131,78 @@ class ContributionPassiveController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/contribution/search_passive_affiliate_contribution",
+     *     tags={"CONTRIBUCION"},
+     *     summary="Filtrado y listado de contribuciones - Sector Pasivo",
+     *     operationId="getContributionPassive",
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         description="Página a mostrar",
+     *         example=1,
+     *         required=false, 
+     *       ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Por Página",
+     *         example=10,
+     *         required=false,
+     *     ),
+     *     @OA\Parameter(
+     *         name="sortDesc",
+     *         in="query",
+     *         description="Vector de orden descendente(0) o ascendente(1)",
+     *         example=1,
+     *         required=false,
+     *     ),
+     *    @OA\Parameter(
+     *         name="affiliate_id",
+     *         in="query",
+     *         description="Id del Afiliado",
+     *         required=false,
+     *     ),
+     *     @OA\Parameter(
+     *         name="year",
+     *         in="query",
+     *         description="Filtro por Año",
+     *         required=false,
+     *     ),
+     *     @OA\Parameter(
+     *         name="month",
+     *         in="query",
+     *         description="Filtro por Mes",
+     *         required=false,
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *         type="object"
+     *         )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     }
+     * )
+     *
+     * Get list of contributions passive.
+     *
+     * @param Request $request
+     * @return void
+     */
+
     public function SearchContributionPassive(Request $request)
     {
-       
+
         $request->validate([
             'affiliate_id' => 'required|integer|exists:contribution_passives,affiliate_id',
         ]);
         $year = request('year') ?? '';
         $month = request('month') ?? '';
-        $contributionable_type =request('contributionable_type') ?? '';
+        $contributionable_type = request('contributionable_type') ?? '';
         $order = request('sortDesc') ?? '';
         if ($order != '') {
             if ($order) {
@@ -125,15 +214,15 @@ class ContributionPassiveController extends Controller
         } else {
             $order_year = 'desc';
         }
-        $conditions=[];
+        $conditions = [];
         if ($year != '') {
-            array_push($conditions, array('month_year','like',"%{$year}%-%"));
+            array_push($conditions, array('month_year', 'like', "%{$year}%-%"));
         }
         if ($month != '') {
-            array_push($conditions, array('month_year','like',"%-%{$month}%-%"));
+            array_push($conditions, array('month_year', 'like', "%-%{$month}%-%"));
         }
         if ($contributionable_type != '') {
-            array_push($conditions, array('contributionable_type','like',"%{$contributionable_type}%"));
+            array_push($conditions, array('contributionable_type', 'like', "%{$contributionable_type}%"));
         }
         $per_page = $request->per_page ?? 10;
         $contributions_passives = ContributionPassive::whereAffiliateId($request->affiliate_id)->where($conditions)->orderBy('month_year', $order_year)->paginate($per_page);
@@ -141,17 +230,17 @@ class ContributionPassiveController extends Controller
         foreach ($contributions_passives as $contributions_passive) {
             $year = Carbon::parse($contributions_passive->month_year)->format('Y');
             $month = Carbon::parse($contributions_passive->month_year)->format('m');
-            if($contributions_passive->contributionable_type=="discount_type_economic_complement"){
-                $contributions_passive->contributionable_type_name="Complemento Economico";
-            }else{
-                if($contributions_passive->contributionable_type=="payroll_senasirs"){
-                $contributions_passive->contributionable_type_name="Senasir";
-                }else{
-                $contributions_passive->contributionable_type_name="";
+            if ($contributions_passive->contributionable_type == "discount_type_economic_complement") {
+                $contributions_passive->contributionable_type_name = "Complemento Economico";
+            } else {
+                if ($contributions_passive->contributionable_type == "payroll_senasirs") {
+                    $contributions_passive->contributionable_type_name = "Senasir";
+                } else {
+                    $contributions_passive->contributionable_type_name = "";
                 }
             }
-            $contributions_passive->year= $year;
-            $contributions_passive->month= $month;
+            $contributions_passive->year = $year;
+            $contributions_passive->month = $month;
         }
         return $contributions_passives;
     }

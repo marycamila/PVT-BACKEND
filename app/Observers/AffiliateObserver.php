@@ -70,8 +70,10 @@ class AffiliateObserver
                 $affiliateToken=AffiliateToken::where('affiliate_id',$affiliate->id)->first();
                 if ($affiliateToken) {
                     $affiliateUser=AffiliateUser::where('affiliate_token_id',$affiliateToken->id)->first();
-                    $affiliateUser->access_status='Inactivo';
-                    $affiliateUser->save();
+                    if ($affiliateUser) {
+                        $affiliateUser->access_status='Inactivo';
+                        $affiliateUser->save();
+                    }
                 }
             }
         }

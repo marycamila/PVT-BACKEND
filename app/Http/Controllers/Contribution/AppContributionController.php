@@ -17,7 +17,6 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Auth;
-use Illuminate\Support\Facades\Hash;
 
 class AppContributionController extends Controller
 {
@@ -202,7 +201,7 @@ class AppContributionController extends Controller
             'affiliate' => $affiliate,
             'contributions' => $contributions
         ];
-        $pdf = PDF::loadView('contribution.print.certification_contribution_eco_com', $data);
+        $pdf = PDF::loadView('contribution.print.app_certification_contribution_eco_com', $data);
         return $pdf->download('contributions.pdf');
     }
 
@@ -239,7 +238,7 @@ class AppContributionController extends Controller
             'reimbursements' => $reimbursements
         ];
 
-        $pdf = PDF::loadView('contribution.print.certification_contribution_active', $data);
+        $pdf = PDF::loadView('contribution.print.app_certification_contribution_active', $data);
         
         $pdf->setPaper('L');
         $pdf->output();
@@ -249,11 +248,14 @@ class AppContributionController extends Controller
         $width = $canvas->get_width();
 
         $canvas->set_opacity(.2,"Multiply");
-        $canvas->set_opacity(.2);
 
-        $canvas->page_text($width/5, $height/2, 'VÁLIDO SÓLO A EFECTOS INFORMATIVOS', null,
-        25, array(0,0,0),2,1,-30);
+        $canvas->page_text($width/7, $height/2, 'NO VÁLIDO PARA TRÁMITES', null,
+        35, array(0,0,0),2,1,-30);
 
+        $canvas->set_opacity(.2,"Multiply");
+        
+        $canvas->page_text($width/3, $height/2, 'ADMINISTRATIVOS', null,
+        35, array(0,0,0),2,1,-30);
         return $pdf->download('contribution_act.pdf');
     }
 

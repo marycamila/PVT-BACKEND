@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Contribution;
 
-use App\Helpers\Util;
 use App\Http\Controllers\Controller;
 use App\Models\Affiliate\Affiliate;
+use App\Models\Affiliate\Degree;
 use App\Models\Contribution\ContributionPassive;
-use App\Models\Month;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -260,6 +260,66 @@ class ContributionPassiveController extends Controller
 
         return $max;
     }
+
+    public function printCertificationContributionPassive(Request $request, $affiliate_id)
+    {
+        $request['affiliate_id'] = $affiliate_id;
+        $request->validate([
+            'affiliate_id' => 'required|integer|exists:contribution_passives,affiliate_id',
+        ]);
+
+        $affiliate = Affiliate::find($affiliate_id);
+        $degree = Degree::find($affiliate->degree_id);
+        $contributions = collect();
+        $contributions_passives = ContributionPassive::whereAffiliateId($affiliate_id)
+            ->orderBy('month_year', 'asc')
+            ->get();
+        foreach ($contributions_passives as $contributions_passive) {
+            $year = Carbon::parse($contributions_passive->month_year)->format('Y');
+            $month = Carbon::parse($contributions_passive->month_year)->format('m');
+            if ($contributions_passive->affiliate_rent_class == 'VEJEZ') {
+                $rent_class = 'Titular';
+            } else {
+                $rent_class = 'Viuda';
+            }
+            $modality = $contributions_passive->contributionable->economic_complement->eco_com_procedure;
+            $modality_year = Carbon::parse($modality->year)->format('Y');
+            $text = "C.E." . $modality->semester . " Semestre " . $modality_year;
+            $contributions->push([
+                'id' => $contributions_passive->id,
+                'month_year' => $contributions_passive->month_year,
+                'month' => $month,
+                'year' => $year,
+                'rent_class' => $rent_class,
+                'description' => $text,
+                'quotable' => $contributions_passive->quotable,
+                'retirement_fund' => null,
+                'mortuary_quota' => null,
+                'total' => $contributions_passive->total,
+                'type' => $contributions_passive->contributionable_type
+            ]);
+        }
+        $num = 0;
+        $data = [
+            'header' => [
+                'direction' => 'DIRECCIÓN DE BENEFICIOS ECONÓMICOS',
+                'unity' => 'UNIDAD DE OTORGACIÓN DE FONDO DE RETIRO
+                            POLICIAL, CUOTA MORTUORIA Y AUXILIO MORTUORIO',
+                'table' => [
+                    ['Fecha', Carbon::now()->format('d-m-Y')],
+                    ['Hora', Carbon::now()->format('H:i:s')],
+                ]
+            ],
+            'num' => $num,
+            'degree' => $degree,
+            'affiliate' => $affiliate,
+            'contributions' => $contributions
+        ];
+        $pdf = PDF::loadView('contribution.print.app_certification_contribution_eco_com', $data);
+        return $pdf->download('contributions_p.pdf');
+    }
+
+
     /**
      * Show the form for editing the specified resource.
      *

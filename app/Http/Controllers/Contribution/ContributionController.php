@@ -6,11 +6,14 @@ use App\Helpers\Util;
 use App\Http\Controllers\Controller;
 use App\Models\Affiliate\Affiliate;
 use App\Models\Affiliate\Breakdown;
+use App\Models\Affiliate\Degree;
 use App\Models\Contribution\Contribution;
 use App\Models\Contribution\Reimbursement;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Auth;
 
 class ContributionController extends Controller
 {
@@ -108,11 +111,13 @@ class ContributionController extends Controller
             array_push($conditions, array('month_year', 'like', "%-%{$month}%-%"));
         }
 
-        // $breakdown_id = Breakdown::where('name', 'ilike', '%' . $breakdown . '%')->first()->id;
+        if ($breakdown != '') {
+            $breakdown_id = Breakdown::where('name', 'ilike', '%' . $breakdown . '%')->first() ?? null;
 
-        // if ($breakdown_id != '') {
-        //     array_push($conditions, array('breakdown_id', $breakdown_id));
-        // }
+            if ($breakdown_id != null) {
+                array_push($conditions, array('breakdown_id', $breakdown_id->id));
+            }
+        }
 
         $per_page = $request->per_page ?? 10;
 
@@ -322,6 +327,43 @@ class ContributionController extends Controller
         return $max2;
     }
 
+    public function printCertificationContributionActive(Request $request, $affiliate_id)
+    {
+        $request['affiliate_id'] = $affiliate_id;
+        $request->validate([
+            'affiliate_id' => 'required|integer|exists:contributions,affiliate_id',
+        ]);
+
+        $affiliate = Affiliate::find($affiliate_id);
+        $degree = Degree::find($affiliate->degree_id);
+        $contributions = Contribution::whereAffiliateId($affiliate_id)
+            ->orderBy('month_year', 'asc')
+            ->get();
+        $reimbursements = Reimbursement::whereAffiliateId($affiliate_id)
+            ->orderBy('month_year', 'asc')
+            ->get();
+        $num = 0;
+        $data = [
+            'header' => [
+                'direction' => 'DIRECCIÓN DE BENEFICIOS ECONÓMICOS',
+                'unity' => 'UNIDAD DE OTORGACIÓN DE FONDO DE RETIRO
+                            POLICIAL, CUOTA MORTUORIA Y AUXILIO MORTUORIO',
+                'table' => [
+                    ['Usuario', Auth::user()->username],
+                    ['Fecha', Carbon::now()->format('d-m-Y')],
+                    ['Hora', Carbon::now('GMT-4')->format('H:i:s')],
+                ]
+            ],
+            'num' => $num,
+            'degree' => $degree,
+            'affiliate' => $affiliate,
+            'contributions' => $contributions,
+            'reimbursements' => $reimbursements
+        ];
+
+        $pdf = PDF::loadView('contribution.print.certification_contribution_active', $data);
+        return $pdf->stream('contributions_a.pdf');
+    }
 
 
     /**

@@ -10,6 +10,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Auth;
 
 class ContributionPassiveController extends Controller
 {
@@ -269,6 +270,7 @@ class ContributionPassiveController extends Controller
         ]);
 
         $affiliate = Affiliate::find($affiliate_id);
+        $user = Auth::user();
         $degree = Degree::find($affiliate->degree_id);
         $contributions = collect();
         $contributions_passives = ContributionPassive::whereAffiliateId($affiliate_id)
@@ -313,9 +315,10 @@ class ContributionPassiveController extends Controller
             'num' => $num,
             'degree' => $degree,
             'affiliate' => $affiliate,
+            'user' => $user,
             'contributions' => $contributions
         ];
-        $pdf = PDF::loadView('contribution.print.app_certification_contribution_eco_com', $data);
+        $pdf = PDF::loadView('contribution.print.certification_contribution_eco_com', $data);
         return $pdf->download('contributions_p.pdf');
     }
 

@@ -93,7 +93,10 @@
             </tbody>
         </table>
     </div>
-    
+    <br>
+    <div>
+        @include('partials.footer_app', $header)
+    </div>
 </body>
 
 </html>

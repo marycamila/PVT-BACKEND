@@ -29,7 +29,8 @@ class ContributionPassive extends Model
         'aps_total_fsa',
         'aps_total_fs',
         'aps_total_death',
-        'aps_disability'
+        'aps_disability',
+        'aps_reimbursement'
     ];
     
     public function affiliate()

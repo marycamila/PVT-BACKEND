@@ -111,13 +111,15 @@ class ContributionController extends Controller
             array_push($conditions, array('month_year', 'like', "%-%{$month}%-%"));
         }
 
-        if ($breakdown != '') {
-            $breakdown_id = Breakdown::where('name', 'ilike', '%' . $breakdown . '%')->first() ?? null;
-
-            if ($breakdown_id != null) {
-                array_push($conditions, array('breakdown_id', $breakdown_id->id));
-            }
-        }
+        // if ($breakdown != '') {
+        //     $breakdown_id = array();
+        //     $breakdown_id = Breakdown::where('name', 'ilike', '%' . $breakdown . '%')->first();
+        //     echo $breakdown_id;
+        //     return;
+        //     if ($breakdown_id != null) {
+        //         array_push($conditions, array('breakdown_id', $breakdown_id->id));
+        //     }
+        // }
 
         $per_page = $request->per_page ?? 10;
 
@@ -335,6 +337,7 @@ class ContributionController extends Controller
         ]);
 
         $affiliate = Affiliate::find($affiliate_id);
+        $user = Auth::user();
         $degree = Degree::find($affiliate->degree_id);
         $contributions = Contribution::whereAffiliateId($affiliate_id)
             ->orderBy('month_year', 'asc')
@@ -349,14 +352,15 @@ class ContributionController extends Controller
                 'unity' => 'UNIDAD DE OTORGACIÓN DE FONDO DE RETIRO
                             POLICIAL, CUOTA MORTUORIA Y AUXILIO MORTUORIO',
                 'table' => [
-                    ['Usuario', Auth::user()->username],
-                    ['Fecha', Carbon::now()->format('d-m-Y')],
+                    ['Usuario', $user->username],
+                    ['Fecha', Carbon::now('GMT-4')->format('d-m-Y')],
                     ['Hora', Carbon::now('GMT-4')->format('H:i:s')],
                 ]
             ],
             'num' => $num,
             'degree' => $degree,
             'affiliate' => $affiliate,
+            'user' => $user,
             'contributions' => $contributions,
             'reimbursements' => $reimbursements
         ];

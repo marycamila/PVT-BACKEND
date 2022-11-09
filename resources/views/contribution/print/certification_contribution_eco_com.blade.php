@@ -82,7 +82,7 @@
     </div>
     <br>
     <div>
-        @include('partials.footer_app', $header)
+        @include('partials.signature_footer')
     </div>
 </body>
 

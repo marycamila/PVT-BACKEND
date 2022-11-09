@@ -76,8 +76,8 @@
                 <tr class="bg-grey-darker text-xxs text-white">
                     <th class="w-10 text-justify">
                         <p>NOTA: Toda vez que, la presente certificación detalla información referencial
-                            respecto a los aportes para los beneficios del Fondo de Retiro y Cuota Mortuoria, 
-                            se requiere al solicitante efectuar la verificación correspondiente de los datos, 
+                            respecto a los aportes para los beneficios del Fondo de Retiro y Cuota Mortuoria,
+                            se requiere al solicitante efectuar la verificación correspondiente de los datos,
                             a fin de no existir reclamos posteriores.</p>
                     </th>
                 </tr>
@@ -93,7 +93,10 @@
             </tbody>
         </table>
     </div>
-    
+    <br>
+    <div>
+        @include('partials.signature_footer')
+    </div>
 </body>
 
 </html>

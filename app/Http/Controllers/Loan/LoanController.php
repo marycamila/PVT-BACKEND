@@ -178,7 +178,7 @@ class LoanController extends Controller
      * @return void
      */
 
-    public function get_workflow($idloan){
+    public static function get_workflow($idloan){
         $procedure=Loan::find($idloan)->modality->procedure_type->id;
         $flows=RoleSequence::where('procedure_type_id',$procedure)->get();
         $location=Loan::find($idloan)->role->display_name;
@@ -190,7 +190,14 @@ class LoanController extends Controller
                 "state"=> $location==$name?? true
                 )
             );
-            }
+        }
+        $last=RoleSequence::where('procedure_type_id',$procedure)->orderby('sequence_number_flow','desc')->first()->next_role_id;
+        $roleName=Role::find($last)->display_name;
+        array_push($areas,array(
+            "display_name"=> $roleName,
+                "state"=> $location==$name?? true
+                )
+        );
         return $areas;
     }
     public function get_information_loan(Request $request, $idAffiliate)

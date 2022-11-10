@@ -195,7 +195,7 @@ class LoanController extends Controller
         $roleName=Role::find($last)->display_name;
         array_push($areas,array(
             "display_name"=> $roleName,
-                "state"=> $location==$name?? true
+                "state"=> $location==$roleName?? true
                 )
         );
         return $areas;

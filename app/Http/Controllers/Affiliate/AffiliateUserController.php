@@ -375,6 +375,7 @@ class AffiliateUserController extends Controller
                                             "identity_card"=> $affiliate->identity_card,
                                             "degree"=> $affiliate->degree->name,
                                             "category"=> $affiliate->category->name,
+                                            "pension_entity"=>$affiliate->pension_entity->name
                                         ],
                                     ],
                                 ]

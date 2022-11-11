@@ -320,7 +320,7 @@ class AffiliateController extends Controller
     public function update(AffiliateRequest $request, $id)
     {
         if (!Auth::user()->can('update-affiliate-primary')) {
-            $update = $request->except('first_name', 'second_name', 'last_name', 'mothers_last_name', 'surname_husband', 'identity_card');
+            $update = $request->except('first_name', 'second_name', 'last_name', 'mothers_last_name', 'surname_husband', 'identity_card','category_id','degree_id','affiliate_state_id');
         } else {
             $update = $request->all();
         }

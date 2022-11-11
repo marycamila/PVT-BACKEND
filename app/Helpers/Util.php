@@ -179,7 +179,7 @@ class Util
     }
     public static function save_record_affiliate($object,$action)
     {
-        if(!empty($action) && $action != 'modificó'){
+        if(!empty($action) && $action != 'modificó' && $action != 'modificó cónyugue'){
             $user= Auth::user()?? User::find(171);
             $old = Affiliate::find($object->id);
             $message = 'El usuario '.$user->username.' ';

@@ -45,6 +45,10 @@ class AppContributionController extends Controller
 
         $contributions_total = collect();
 
+        $reimbursements = Reimbursement::whereAffiliateId($affiliate_id)
+            ->orderBy('month_year', 'asc')
+            ->get();
+
         for ($i = $year_min; $i <= $year_max; $i++) {
             $contributions = collect();
             $contributions_passives = ContributionPassive::whereAffiliateId($affiliate_id)
@@ -68,40 +72,34 @@ class AppContributionController extends Controller
                 ]);
             }
 
+            $full_total = 0;
             $contributions_actives = Contribution::whereAffiliateId($affiliate_id)
                 ->whereYear('month_year', $i)
-                ->orderBy('month_year', 'asc')
-                ->get();
-            $reimbursements = Reimbursement::whereAffiliateId($affiliate_id)
-                ->whereYear('month_year', '2015')
-                ->orderBy('month_year', 'asc')
                 ->get();
 
             foreach ($contributions_actives as $contributions_active) {
+                $contribution_total = $contributions_active->total;
+                $reimbursement_total = 0;
+                $full_total = $contributions_active->total;
                 foreach ($reimbursements as $reimbursement) {
-                    if ($reimbursement->month_year == $contributions_active->month_year) {
-                        $contribution_total = $contributions_active->total;
+                    if ($contributions_active->month_year == $reimbursement->month_year) {
                         $reimbursement_total = $reimbursement->total;
                         $full_total = $contribution_total + $reimbursement_total;
-                    } else {
-                        $contribution_total = null;
-                        $reimbursement_total = null;
-                        $full_total = $contributions_active->total;
                     }
-                    $contributions->push([
-                        'state' => 'ACTIVO',
-                        'id' => $contributions_active->id,
-                        'month_year' => $contributions_active->month_year,
-                        'description' => null,
-                        'quotable' => Util::money_format($contributions_active->quotable),
-                        'retirement_fund' => Util::money_format($contributions_active->retirement_fund),
-                        'mortuary_quota' => Util::money_format($contributions_active->mortuary_quota),
-                        'contribution_total' => Util::money_format($contribution_total),
-                        'reimbursement_total' => Util::money_format($reimbursement_total),
-                        'total' => Util::money_format($full_total),
-                        'type' => $contributions_active->contributionable_type
-                    ]);
                 }
+                $contributions->push([
+                    'state' => 'ACTIVO',
+                    'id' => $contributions_active->id,
+                    'month_year' => $contributions_active->month_year,
+                    'description' => null,
+                    'quotable' => Util::money_format($contributions_active->quotable),
+                    'retirement_fund' => Util::money_format($contributions_active->retirement_fund),
+                    'mortuary_quota' => Util::money_format($contributions_active->mortuary_quota),
+                    'contribution_total' => Util::money_format($contribution_total),
+                    'reimbursement_total' => Util::money_format($reimbursement_total),
+                    'total' => Util::money_format($full_total),
+                    'type' => $contributions_active->contributionable_type
+                ]);
             }
             $contributions_total->push([
                 'year' => $i . "",

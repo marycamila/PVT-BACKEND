@@ -111,17 +111,10 @@ class ContributionController extends Controller
         if ($month != '') {
             array_push($conditions, array('month_year', 'like', "%-%{$month}%-%"));
         }
-
-        // if ($breakdown != '') {
-        //     $breakdown_id = array();
-        //     $breakdown_id = Breakdown::where('name', 'ilike', '%' . $breakdown . '%')->first();
-        //     echo $breakdown_id;
-        //     return;
-        //     if ($breakdown_id != null) {
-        //         array_push($conditions, array('breakdown_id', $breakdown_id->id));
-        //     }
-        // }
-
+        if ($breakdown != '') {
+            array_push($conditions, array('breakdowns.name', 'ilike', "%{$breakdown}%"));
+        }
+        
         $per_page = $request->per_page ?? 10;
 
         $affiliate = Affiliate::find($request->affiliate_id);

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Contribution;
 
 use App\Helpers\Util;
 use App\Http\Controllers\Controller;
+use App\Models\Admin\User;
 use App\Models\Affiliate\Affiliate;
 use App\Models\Affiliate\Degree;
 use App\Models\City;
@@ -155,11 +156,28 @@ class AppContributionController extends Controller
         ]);
 
         $affiliate = Affiliate::find($affiliate_id);
+        $user = User::find(171);
         $degree = Degree::find($affiliate->degree_id);
         $contributions = collect();
-        $contributions_passives = ContributionPassive::whereAffiliateId($affiliate_id)
-            ->orderBy('month_year', 'asc')
-            ->get();
+        $value = false;
+        if ($affiliate->dead) {
+            if ($affiliate->spouse->dead != null || $affiliate->spouse->dead) {
+                $contributions_passives = ContributionPassive::whereAffiliateId($affiliate_id)
+                    ->orderBy('month_year', 'asc')
+                    ->get();
+            } else {
+                $contributions_passives = ContributionPassive::whereAffiliateId($affiliate_id)
+                    ->where('affiliate_rent_class', 'VIUDEDAD')
+                    ->orderBy('month_year', 'asc')
+                    ->get();
+                $value = true;
+            }
+        } else {
+            $contributions_passives = ContributionPassive::whereAffiliateId($affiliate_id)
+                ->orderBy('month_year', 'asc')
+                ->get();
+        }
+
         foreach ($contributions_passives as $contributions_passive) {
             $year = Carbon::parse($contributions_passive->month_year)->format('Y');
             $month = Carbon::parse($contributions_passive->month_year)->format('m');
@@ -168,9 +186,13 @@ class AppContributionController extends Controller
             } else {
                 $rent_class = 'Viuda';
             }
-            $modality = $contributions_passive->contributionable->economic_complement->eco_com_procedure;
-            $modality_year = Carbon::parse($modality->year)->format('Y');
-            $text = "C.E." . $modality->semester . " Semestre " . $modality_year;
+            if ($contributions_passive->contributionable_type == 'discount_type_economic_complement') {
+                $modality = $contributions_passive->contributionable->economic_complement->eco_com_procedure;
+                $modality_year = Carbon::parse($modality->year)->format('Y');
+                $text = "C.E." . $modality->semester . " Semestre " . $modality_year;
+            } else {
+                $text = $contributions_passive->contributionable_type == 'payroll_senasirs' ? 'Tipo de descuento Senasir' : 'Tipo de descuento No Especificado';
+            }
             $contributions->push([
                 'id' => $contributions_passive->id,
                 'month_year' => $contributions_passive->month_year,
@@ -192,6 +214,7 @@ class AppContributionController extends Controller
                 'unity' => 'UNIDAD DE OTORGACIÓN DE FONDO DE RETIRO
                             POLICIAL, CUOTA MORTUORIA Y AUXILIO MORTUORIO',
                 'table' => [
+                    ['Usuario', $user->username],
                     ['Fecha', Carbon::now()->format('d-m-Y')],
                     ['Hora', Carbon::now()->format('H:i:s')],
                 ]
@@ -199,6 +222,8 @@ class AppContributionController extends Controller
             'num' => $num,
             'degree' => $degree,
             'affiliate' => $affiliate,
+            'user' => $user,
+            'value' => $value,
             'contributions' => $contributions
         ];
         $pdf = PDF::loadView('contribution.print.app_certification_contribution_eco_com', $data);
@@ -213,8 +238,10 @@ class AppContributionController extends Controller
         ]);
 
         $affiliate = Affiliate::find($affiliate_id);
+        $user = User::find(171);
         $degree = Degree::find($affiliate->degree_id);
         $contributions = Contribution::whereAffiliateId($affiliate_id)
+            ->where('total', '>', 0)
             ->orderBy('month_year', 'asc')
             ->get();
         $reimbursements = Reimbursement::whereAffiliateId($affiliate_id)
@@ -227,6 +254,7 @@ class AppContributionController extends Controller
                 'unity' => 'UNIDAD DE OTORGACIÓN DE FONDO DE RETIRO
                             POLICIAL, CUOTA MORTUORIA Y AUXILIO MORTUORIO',
                 'table' => [
+                    ['Usuario', $user->username],
                     ['Fecha', Carbon::now()->format('d-m-Y')],
                     ['Hora', Carbon::now('GMT-4')->format('H:i:s')],
                 ]
@@ -239,7 +267,7 @@ class AppContributionController extends Controller
         ];
 
         $pdf = PDF::loadView('contribution.print.app_certification_contribution_active', $data);
-        
+
         $pdf->setPaper('L');
         $pdf->output();
         $canvas = $pdf->getDomPDF()->getCanvas();
@@ -247,15 +275,12 @@ class AppContributionController extends Controller
         $height = $canvas->get_height();
         $width = $canvas->get_width();
 
-        $canvas->set_opacity(.2,"Multiply");
+        $canvas->set_opacity(.2, "Multiply");
+        $canvas->page_text($width / 7, $height / 2, 'NO VÁLIDO PARA TRÁMITES', null, 35, array(0, 0, 0), 2, 1, -30);
 
-        $canvas->page_text($width/7, $height/2, 'NO VÁLIDO PARA TRÁMITES', null,
-        35, array(0,0,0),2,1,-30);
+        $canvas->set_opacity(.2, "Multiply");
+        $canvas->page_text($width / 3, $height / 2, 'ADMINISTRATIVOS', null, 35, array(0, 0, 0), 2, 1, -30);
 
-        $canvas->set_opacity(.2,"Multiply");
-        
-        $canvas->page_text($width/3, $height/2, 'ADMINISTRATIVOS', null,
-        35, array(0,0,0),2,1,-30);
         return $pdf->download('contribution_act.pdf');
     }
 

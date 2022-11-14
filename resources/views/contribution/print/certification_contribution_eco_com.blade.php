@@ -22,7 +22,17 @@
     </div>
 
     <div>
+        <p class="font-bold">DATOS TITULAR</p>
         @include('affiliate.police_info')
+
+        @if ($value)
+            <div>
+                <p class="font-bold">
+                    DATOS DEL(A) VIUDO(A)
+                </p>
+                @include('spouse.spouse_info')
+            </div>
+        @endif
         <p class="font-bold">
             CERTIFICA
         </p>

@@ -273,9 +273,25 @@ class ContributionPassiveController extends Controller
         $user = Auth::user();
         $degree = Degree::find($affiliate->degree_id);
         $contributions = collect();
-        $contributions_passives = ContributionPassive::whereAffiliateId($affiliate_id)
-            ->orderBy('month_year', 'asc')
-            ->get();
+        $value = false;
+        if ($affiliate->dead) {
+            if ($affiliate->spouse->dead != null || $affiliate->spouse->dead) {
+                $contributions_passives = ContributionPassive::whereAffiliateId($affiliate_id)
+                    ->orderBy('month_year', 'asc')
+                    ->get();
+            } else {
+                $contributions_passives = ContributionPassive::whereAffiliateId($affiliate_id)
+                    ->where('affiliate_rent_class', 'VIUDEDAD')
+                    ->orderBy('month_year', 'asc')
+                    ->get();
+                $value = true;
+            }
+        } else {
+            $contributions_passives = ContributionPassive::whereAffiliateId($affiliate_id)
+                ->orderBy('month_year', 'asc')
+                ->get();
+        }
+
         foreach ($contributions_passives as $contributions_passive) {
             $year = Carbon::parse($contributions_passive->month_year)->format('Y');
             $month = Carbon::parse($contributions_passive->month_year)->format('m');
@@ -284,9 +300,13 @@ class ContributionPassiveController extends Controller
             } else {
                 $rent_class = 'Viuda';
             }
-            $modality = $contributions_passive->contributionable->economic_complement->eco_com_procedure;
-            $modality_year = Carbon::parse($modality->year)->format('Y');
-            $text = "C.E." . $modality->semester . " Semestre " . $modality_year;
+            if ($contributions_passive->contributionable_type == 'discount_type_economic_complement') {
+                $modality = $contributions_passive->contributionable->economic_complement->eco_com_procedure;
+                $modality_year = Carbon::parse($modality->year)->format('Y');
+                $text = "C.E." . $modality->semester . " Semestre " . $modality_year;
+            } else {
+                $text = $contributions_passive->contributionable_type == 'payroll_senasirs' ? 'Tipo de descuento Senasir' : 'Tipo de descuento No Especificado';
+            }
             $contributions->push([
                 'id' => $contributions_passive->id,
                 'month_year' => $contributions_passive->month_year,
@@ -295,8 +315,6 @@ class ContributionPassiveController extends Controller
                 'rent_class' => $rent_class,
                 'description' => $text,
                 'quotable' => $contributions_passive->quotable,
-                'retirement_fund' => null,
-                'mortuary_quota' => null,
                 'total' => $contributions_passive->total,
                 'type' => $contributions_passive->contributionable_type
             ]);
@@ -308,6 +326,7 @@ class ContributionPassiveController extends Controller
                 'unity' => 'UNIDAD DE OTORGACIÓN DE FONDO DE RETIRO
                             POLICIAL, CUOTA MORTUORIA Y AUXILIO MORTUORIO',
                 'table' => [
+                    ['Usuario', $user->username],
                     ['Fecha', Carbon::now()->format('d-m-Y')],
                     ['Hora', Carbon::now()->format('H:i:s')],
                 ]
@@ -316,10 +335,11 @@ class ContributionPassiveController extends Controller
             'degree' => $degree,
             'affiliate' => $affiliate,
             'user' => $user,
+            'value' => $value,
             'contributions' => $contributions
         ];
         $pdf = PDF::loadView('contribution.print.certification_contribution_eco_com', $data);
-        return $pdf->download('contributions_p.pdf');
+        return $pdf->stream('contributions_p.pdf');
     }
 
 

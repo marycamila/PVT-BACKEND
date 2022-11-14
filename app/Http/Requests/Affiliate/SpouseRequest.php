@@ -43,7 +43,7 @@ class SpouseRequest extends FormRequest
         ];
         switch ($this->method()) {
             case 'POST': {
-                foreach (array_slice($rules, 0, 8) as $key => $rule) {
+                foreach (array_slice($rules, 0, 7) as $key => $rule) {
                     $rules[$key] = implode('|', ['required', $rule]);
                 }
                 $rules['identity_card'] = implode('|', ['unique:spouses', $rules['identity_card']]);
@@ -88,11 +88,6 @@ class SpouseRequest extends FormRequest
         if (isset($this->reason_death)) {
             $this->merge([
                 'reason_death' => trim(mb_strtoupper($this->reason_death)),
-            ]);
-        }
-        if (isset($this->surname_husband)) {
-            $this->merge([
-                'surname_husband' => trim(mb_strtoupper($this->surname_husband)),
             ]);
         }
         if (isset($this->identity_card)) {

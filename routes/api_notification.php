@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 Route::group([
     'middleware' => 'api', 
@@ -28,8 +29,10 @@ Route::group([
     // Ruta para el envío de credenciales
     Route::post('send_credentials', [App\Http\Controllers\Notification\SMSController::class, 'send_credentials']);
     // Ruta para enviar SMS's desde un archivo para préstamos en Mora
-    Route::post('files', [App\Http\Controllers\Notification\SMSController::class, 'send_from_a_file']);
+    Route::post('file', [App\Http\Controllers\Notification\SMSController::class, 'send_from_a_file']);
     // Ruta para consultar saldo
     Route::get('balance', [App\Http\Controllers\Notification\SMSController::class, 'check_balance']);
+
+    // Route::get('total_affiliates', [App\Http\Controllers\Notification\NotificationController::class, 'affiliates']);
 
 });

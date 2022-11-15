@@ -120,7 +120,7 @@ class SMSController extends Controller
             'error' => false,
             'message' => 'Saldo disponible',
             'data' => [
-                'saldo' => Util::check_balance() . ' Bs'
+                ['saldo' => Util::check_balance() . ' Bs']
             ]
         ]);
     }

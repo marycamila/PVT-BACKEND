@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Affiliate;
 
+use App\Helpers\Util;
 use App\Http\Controllers\Controller;
 use App\Models\Admin\User;
 use App\Models\Affiliate\Affiliate;
@@ -225,21 +226,19 @@ class AffiliateUserController extends Controller
         $cell_phone_number=Affiliate::find($affiliateId)->cell_phone_number;
         $separator = ",";
         $separate = explode($separator,$cell_phone_number);
-        $response= Http::timeout(60)->post('http://192.168.2.201:8989/api/notification/send_credentials',[
-            "user_id"=>$userId,
-            "shipments"=> [
-                [
-                    "id"=>$affiliateId,
-                    "sms_num"=> $separate[0],
-                    "message"=> "usuario: ".$username." contraseña: ". $password
-                ]
+        $shipments = [
+            [
+                'id'=>$affiliateId,
+                'sms_num' => $separate[0],
+                'message' => "usuario: ".$username." contraseña: ".$password
             ]
-        ]);
-        if (!(json_decode($response->getBody())->error)) {
+            ];
+        $response = Util::delegate_shipping($shipments, $userId, 1, 'affiliate');
+        if ($response) {
                 return response()->json([
                 'message' => $message,
                 'error'=>false,
-                'telular_response' => json_decode($response->getBody()),
+                'telular_response' => $response,
                 'payload' => [
                     'username'=> $username,
                     'pin' => $password,
@@ -251,7 +250,7 @@ class AffiliateUserController extends Controller
             return response()->json([
                 'error'=>true,
                 'message' => 'No se envio el mensaje',
-                'telular_response' => json_decode($response->getBody()),
+                'telular_response' => $response,
                 'payload' => [
                 ],
             ],403);
@@ -391,7 +390,7 @@ class AffiliateUserController extends Controller
                                     'api_token'=>$token->api_token,
                                     'status'=> $state,
                                     "user"=> [
-                                        "id" => $spouse->id,
+                                        "id" => $affiliate->id,
                                         "full_name"=> $spouse->fullname,
                                         "identity_card"=> $spouse->identity_card,
                                         "degree"=> $affiliate->degree->name,
@@ -662,7 +661,7 @@ class AffiliateUserController extends Controller
             if ($password==$request->code_to_update){
                 $affiliateUser->password=Hash::make($request->new_password);;
                 $affiliateUser->password_update_code=null;
-                if ($affiliateUser->access_status=='Pendiente') {
+                if ($affiliateUser->access_status!='Activo') {
                     $affiliateUser->access_status='Activo';
                 }
                 $affiliateUser->save();

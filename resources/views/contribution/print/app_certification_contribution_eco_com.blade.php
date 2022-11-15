@@ -22,7 +22,15 @@
     </div>
 
     <div>
+        <p class="font-bold">DATOS TITULAR</p>
         @include('affiliate.police_info')
+
+        @if ($value)
+            <div>
+                <p class="font-bold">DATOS DEL(A) VIUDO(A)</p>
+                @include('spouse.spouse_info')
+            </div>
+        @endif
         <p class="font-bold">
             CERTIFICA
         </p>
@@ -63,7 +71,7 @@
                 <tr class="bg-grey-darker text-xxs text-white">
                     <th class="w-10 text-justify">
                         <p>NOTA: Toda vez que, la presente certificación detalla información referencial
-                            respecto a los aportes para el beneficio del Auxulio Mortuorio, se requiere al solicitante
+                            respecto a los aportes para el beneficio del Auxilio Mortuorio, se requiere al solicitante
                             efectuar la verificación correspondiente de los datos, a fin de no existir reclamos
                             posteriores.</p>
                     </th>

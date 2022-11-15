@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Auth;
+use Illuminate\Support\Facades\App;
 
 class ContributionController extends Controller
 {
@@ -110,17 +111,10 @@ class ContributionController extends Controller
         if ($month != '') {
             array_push($conditions, array('month_year', 'like', "%-%{$month}%-%"));
         }
-
-        // if ($breakdown != '') {
-        //     $breakdown_id = array();
-        //     $breakdown_id = Breakdown::where('name', 'ilike', '%' . $breakdown . '%')->first();
-        //     echo $breakdown_id;
-        //     return;
-        //     if ($breakdown_id != null) {
-        //         array_push($conditions, array('breakdown_id', $breakdown_id->id));
-        //     }
-        // }
-
+        if ($breakdown != '') {
+            array_push($conditions, array('breakdowns.name', 'ilike', "%{$breakdown}%"));
+        }
+        
         $per_page = $request->per_page ?? 10;
 
         $affiliate = Affiliate::find($request->affiliate_id);
@@ -147,8 +141,11 @@ class ContributionController extends Controller
             total,
             null,
             'RE' as title,
-            type"
-        )->where($conditions)
+            type,
+            breakdowns.id as breakdown_id,
+            breakdowns.name as breakdown_name"
+        )->join("breakdowns", "breakdowns.id", "=", "reimbursements.breakdown_id")
+            ->where($conditions)
             ->orderBy('month_year', $order_year);
 
         return $contributions = $affiliate->contributions()->selectRaw(
@@ -173,8 +170,11 @@ class ContributionController extends Controller
             total,
             breakdown_id,
             'C' as title,
-            type"
-        )->union($reimbursements)
+            type,
+            breakdowns.id as breakdown_id,
+            breakdowns.name as breakdown_name"
+        )->join("breakdowns", "breakdowns.id", "=", "contributions.breakdown_id")
+            ->union($reimbursements)
             ->where($conditions)
             ->orderBy('month_year', $order_year)
             ->paginate($per_page);
@@ -340,6 +340,7 @@ class ContributionController extends Controller
         $user = Auth::user();
         $degree = Degree::find($affiliate->degree_id);
         $contributions = Contribution::whereAffiliateId($affiliate_id)
+            ->where('total', '>', 0)
             ->orderBy('month_year', 'asc')
             ->get();
         $reimbursements = Reimbursement::whereAffiliateId($affiliate_id)
@@ -366,6 +367,7 @@ class ContributionController extends Controller
         ];
 
         $pdf = PDF::loadView('contribution.print.certification_contribution_active', $data);
+
         return $pdf->stream('contributions_a.pdf');
     }
 

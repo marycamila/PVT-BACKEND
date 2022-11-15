@@ -429,25 +429,41 @@ class NotificationController extends Controller
                 'data' => $paginate,
                 'all' => $base
             ]);
-        }
-        // filtros
+        } 
+        // filtros        
+        intval($filters[4]);
+        intval($filters[5]);
         $result = $base->filter(function ($value, $key) use ($filters) {
-            return str_contains($value->last_name, $filters[0])
-                && str_contains($value->mothers_last_name, $filters[1])
-                && str_contains($value->first_name, $filters[2])
-                && str_contains($value->second_name, $filters[3])
-                && str_contains($value->identity_card, $filters[4])
-                && str_contains($value->affiliate_id, $filters[5]);
+            return stripos($value->last_name, $filters[0]) !== false 
+                && stripos($value->mothers_last_name, $filters[1]) !== false
+                && stripos($value->first_name, $filters[2]) !== false
+                && stripos($value->second_name, $filters[3]) !== false
+                && stripos($value->identity_card, $filters[4]) !== false
+                && stripos($value->affiliate_id, $filters[5]) !== false;            
         });
 
         $all = collect($result); 
         $paginate = new LengthAwarePaginator($all->forPage($page, $per_page)->values(), $all->count(), $per_page, $page);
 
+        $body = [
+            'error' => false,
+            'message' => 'Listado de personas a notificar',
+            'data' => $paginate
+        ];
+    
+        // if($request->has('filter') && $request->filter) 
+        //     $body['all'] = $all->values();
+        // else 
+        //     $body['all'] = [];
+
+        // logger($body);
+            
         return response()->json([
             'error' => false,
             'message' => 'Listado de personas a notificar',
-            'data' => $paginate,
+            'data' => $paginate
         ]);
+        // return response()->json($body);
     }
 
     // Proceso de consulta 
@@ -585,7 +601,7 @@ class NotificationController extends Controller
                         on at2.affiliate_id = a.id
                         where at2.api_token is not null
                         and at2.firebase_token is not null
-                        order by at2.affiliate_id desc";
+                        order by at2.affiliate_id asc";
             } else {
                 if($action === 2) { // Pago de complemento económico
                     $payment_method = $request->payment_method;
@@ -688,7 +704,7 @@ class NotificationController extends Controller
             $filters[3] = $request->second_name ?? "";
             $filters[4] = $request->identity_card ?? "";
             $filters[5] = $request->affiliate_id ?? "";
-            logger($filters);
+            // logger($filters);
 
             return $this->shippable_list($query, $filters, $request);
         } catch(\Exception $e) {
@@ -865,18 +881,4 @@ class NotificationController extends Controller
             ], 500);
         }*/
     }
-
-    // public function affiliates() {
-    //     $result = AffiliateToken::select('affiliate_id')->whereNotNull('api_token')->whereNotNull('firebase_token')->orderBy('affiliate_id')->get();
-    //     // $affiliates = collect();
-    //     foreach($result as $affiliate) {
-    //         $affiliate->send = true;
-    //         // $affiliates->push($affiliate->affiliate_id);
-    //     }
-    //     return response()->json([
-    //         'error' => false,
-    //         'message' => 'Total affiliados notificables',
-    //         'data' => $result
-    //     ]);
-    // }
 }

@@ -33,6 +33,4 @@ Route::group([
     // Ruta para consultar saldo
     Route::get('balance', [App\Http\Controllers\Notification\SMSController::class, 'check_balance']);
 
-    // Route::get('total_affiliates', [App\Http\Controllers\Notification\NotificationController::class, 'affiliates']);
-
 });

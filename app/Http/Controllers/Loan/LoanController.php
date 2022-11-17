@@ -8,6 +8,7 @@ use App\Models\Admin\Role;
 use App\Models\Admin\RoleSequence;
 use App\Models\Loan\Loan;
 use App\Models\Loan\LoanBorrower;
+use App\Models\Loan\LoanPayment;
 use App\Models\Loan\LoanState;
 use App\Models\Procedure\ProcedureModality;
 use Illuminate\Http\Request;
@@ -144,7 +145,6 @@ class LoanController extends Controller
                 return "prestamo no desembolsado";
             }
     }
-
      /**
      * @OA\Get(
      *     path="/api/app/get_information_loan/{id_affiliate}",
@@ -200,6 +200,12 @@ class LoanController extends Controller
         );
         return $areas;
     }
+    public static function  get_percentaje_loan(Loan $loan){
+        $amount=$loan->amount_approved;
+        $balance=$loan->balance;
+        $percentage=(100*($amount-$balance))/$amount;
+        return $percentage;
+    }
     public function get_information_loan(Request $request, $idAffiliate)
     {
         $request['affiliate_id'] = $idAffiliate;
@@ -247,6 +253,7 @@ class LoanController extends Controller
                         "payment_type"=> $loan->payment_type->name,
                         "destiny_id"=> $loan->destiny->name,
                         "quota"=> $loan->EstimatedQuota,
+                        "percentage_paid"=>$this->get_percentaje_loan($loan)
                         )
                     );
                     break;
@@ -267,6 +274,7 @@ class LoanController extends Controller
                         "payment_type"=> $loan->payment_type->name,
                         "destiny_id"=> $loan->destiny->name,
                         "quota"=> $loan->EstimatedQuota,
+                        "percentage_paid"=>$this->get_percentaje_loan($loan)
                         )
                     );
                     break;

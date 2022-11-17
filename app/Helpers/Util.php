@@ -359,4 +359,8 @@ class Util
         }
         return 0;
     }
+    public static function round($value)
+    {
+        return round($value, 4, PHP_ROUND_HALF_EVEN);
+    }
 }

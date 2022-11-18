@@ -56,9 +56,14 @@ class AppContributionController extends Controller
                 ->orderBy('month_year', 'asc')
                 ->get();
             foreach ($contributions_passives as $contributions_passive) {
-                $modality = $contributions_passive->contributionable->economic_complement->eco_com_procedure;
-                $modality_year = Carbon::parse($modality->year)->format('Y');
-                $text = "C.E." . $modality->semester . " Semestre " . $modality_year;
+
+                if ($contributions_passive->contributionable_type == 'discount_type_economic_complement') {
+                    $modality = $contributions_passive->contributionable->economic_complement->eco_com_procedure;
+                    $modality_year = Carbon::parse($modality->year)->format('Y');
+                    $text = "C.E." . $modality->semester . " Semestre " . $modality_year;
+                } else {
+                    $text = $contributions_passive->contributionable_type == 'payroll_senasirs' ? 'Tipo de descuento Senasir' : 'Tipo de descuento No Especificado';
+                }
                 $contributions->push([
                     'state' => 'PASIVO',
                     'id' => $contributions_passive->id,
@@ -265,20 +270,7 @@ class AppContributionController extends Controller
         ];
 
         $pdf = PDF::loadView('contribution.print.app_certification_contribution_active', $data);
-
-        $pdf->setPaper('L');
-        $pdf->output();
-        $canvas = $pdf->getDomPDF()->getCanvas();
-
-        $height = $canvas->get_height();
-        $width = $canvas->get_width();
-
-        $canvas->set_opacity(.2, "Multiply");
-        $canvas->page_text($width / 7, $height / 2, 'NO VÁLIDO PARA TRÁMITES', null, 35, array(0, 0, 0), 2, 1, -30);
-
-        $canvas->set_opacity(.2, "Multiply");
-        $canvas->page_text($width / 3, $height / 2, 'ADMINISTRATIVOS', null, 35, array(0, 0, 0), 2, 1, -30);
-
+        $pdf->setPaper('letter', 'portrait');
         return $pdf->download('contribution_act.pdf');
     }
 

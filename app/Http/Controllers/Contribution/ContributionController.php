@@ -114,7 +114,7 @@ class ContributionController extends Controller
         if ($breakdown != '') {
             array_push($conditions, array('breakdowns.name', 'ilike', "%{$breakdown}%"));
         }
-        
+
         $per_page = $request->per_page ?? 10;
 
         $affiliate = Affiliate::find($request->affiliate_id);
@@ -144,7 +144,7 @@ class ContributionController extends Controller
             type,
             breakdowns.id as breakdown_id,
             breakdowns.name as breakdown_name"
-        )->join("breakdowns", "breakdowns.id", "=", "reimbursements.breakdown_id")
+        )->leftjoin("breakdowns", "breakdowns.id", "=", "reimbursements.breakdown_id")
             ->where($conditions)
             ->orderBy('month_year', $order_year);
 
@@ -173,7 +173,7 @@ class ContributionController extends Controller
             type,
             breakdowns.id as breakdown_id,
             breakdowns.name as breakdown_name"
-        )->join("breakdowns", "breakdowns.id", "=", "contributions.breakdown_id")
+        )->leftjoin("breakdowns", "breakdowns.id", "=", "contributions.breakdown_id")
             ->union($reimbursements)
             ->where($conditions)
             ->orderBy('month_year', $order_year)

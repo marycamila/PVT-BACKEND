@@ -1,15 +1,33 @@
 <!DOCTYPE html>
 <html>
-
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>Contributions</title>
     <link rel="stylesheet" href="{{ public_path('/css/report-print.min.css') }}" media="all" />
+    <style>
+        body:before {
+            content: 'NO VÁLIDO PARA TRÁMITES ADMINISTRATIVOS';
+            position: fixed;
+            z-index: -1;
+            color: #9b9b9b;
+            font-size: 65px;
+            font-weight: 500px;
+            display: grid;
+            opacity: 0.3;
+            transform: rotate(-30deg);
+            
+            top: 35%; 
+            left: 18%;
+            bottom: 30%;
+            right: 18%;
+            text-align: center; 
+        }
+    </style>
 </head>
 
 <body class="no-border">
     <div>
-        @include('partials.header', $header)
+        @include('partials.header_app', $header)
     </div>
 
     <div class="text-center">
@@ -76,8 +94,8 @@
                 <tr class="bg-grey-darker text-xxs text-white">
                     <th class="w-10 text-justify">
                         <p>NOTA: Toda vez que, la presente certificación detalla información referencial
-                            respecto a los aportes para los beneficios del Fondo de Retiro y Cuota Mortuoria, 
-                            se requiere al solicitante efectuar la verificación correspondiente de los datos, 
+                            respecto a los aportes para los beneficios del Fondo de Retiro y Cuota Mortuoria,
+                            se requiere al solicitante efectuar la verificación correspondiente de los datos,
                             a fin de no existir reclamos posteriores.</p>
                     </th>
                 </tr>
@@ -94,9 +112,9 @@
         </table>
     </div>
     <br>
-    <div>
+    {{-- <div>
         @include('partials.footer_app', $header)
-    </div>
+    </div> --}}
 </body>
 
 </html>

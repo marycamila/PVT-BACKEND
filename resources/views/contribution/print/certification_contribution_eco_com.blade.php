@@ -22,7 +22,6 @@
     </div>
 
     <div>
-        <p class="font-bold">DATOS TITULAR</p>
         @include('affiliate.police_info')
 
         @if ($value)

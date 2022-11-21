@@ -54,7 +54,7 @@ class NotificationController extends Controller
      */
     public function get_semesters(){
         $semesters = EcoComProcedure::select(['id', 'year', 'semester'])
-        ->orderBy('year', 'desc')
+        ->orderBy('year', 'asc')
         ->get();
         $results = [];
         foreach($semesters as $semester) {
@@ -365,7 +365,7 @@ class NotificationController extends Controller
                 inner join procedure_modalities pm
                 on ecm.procedure_modality_id = pm.id
                 where ts.api_token is not null
-                --and ts.firebase_token is not null
+                and ts.firebase_token is not null
                 and ecs.id in (24, 25, 29)
                 order by ts.affiliate_id, ecp.year desc)');
             DB::statement('create or replace procedure fill_temp()
@@ -406,7 +406,7 @@ class NotificationController extends Controller
                 where ecp.year = '$year'
                 and ecp.semester = '$semester'
                 and at.api_token is not null
-                --and at.firebase_token is not null
+                and at.firebase_token is not null
             )");
         });
     }

@@ -267,29 +267,23 @@ class ContributionPassiveController extends Controller
         $request['affiliate_id'] = $affiliate_id;
         $request->validate([
             'affiliate_id' => 'required|integer|exists:contribution_passives,affiliate_id',
+            'affiliate_rent_class' => 'required'
         ]);
 
         $affiliate = Affiliate::find($affiliate_id);
         $user = Auth::user();
         $degree = Degree::find($affiliate->degree_id);
         $contributions = collect();
+
         $value = false;
-        if ($affiliate->dead) {
-            if ($affiliate->spouse->dead != null || $affiliate->spouse->dead) {
-                $contributions_passives = ContributionPassive::whereAffiliateId($affiliate_id)
-                    ->orderBy('month_year', 'asc')
-                    ->get();
-            } else {
-                $contributions_passives = ContributionPassive::whereAffiliateId($affiliate_id)
-                    ->where('affiliate_rent_class', 'VIUDEDAD')
-                    ->orderBy('month_year', 'asc')
-                    ->get();
-                $value = true;
-            }
-        } else {
-            $contributions_passives = ContributionPassive::whereAffiliateId($affiliate_id)
-                ->orderBy('month_year', 'asc')
-                ->get();
+
+        $contributions_passives = ContributionPassive::whereAffiliateId($affiliate_id)
+            ->where('affiliate_rent_class', 'ilike', $request->affiliate_rent_class)
+            ->orderBy('month_year', 'asc')
+            ->get();
+
+        if ($affiliate->dead && $affiliate->spouse != null) {
+            $value = true;
         }
 
         foreach ($contributions_passives as $contributions_passive) {
@@ -305,7 +299,7 @@ class ContributionPassiveController extends Controller
                 $modality_year = Carbon::parse($modality->year)->format('Y');
                 $text = "C.E." . $modality->semester . " Semestre " . $modality_year;
             } else {
-                $text = $contributions_passive->contributionable_type == 'payroll_senasirs' ? 'Tipo de descuento Senasir' : 'Tipo de descuento No Especificado';
+                $text = $contributions_passive->contributionable_type == 'payroll_senasirs' ? 'Descuento SENASIR' : 'Descuento No Especificado';
             }
             $contributions->push([
                 'id' => $contributions_passive->id,
@@ -327,8 +321,8 @@ class ContributionPassiveController extends Controller
                             POLICIAL, CUOTA MORTUORIA Y AUXILIO MORTUORIO',
                 'table' => [
                     ['Usuario', $user->username],
-                    ['Fecha', Carbon::now()->format('d-m-Y')],
-                    ['Hora', Carbon::now()->format('H:i:s')],
+                    ['Fecha', Carbon::now('GMT-4')->format('d-m-Y')],
+                    ['Hora', Carbon::now('GMT-4')->format('H:i:s')],
                 ]
             ],
             'num' => $num,
@@ -339,7 +333,7 @@ class ContributionPassiveController extends Controller
             'contributions' => $contributions
         ];
         $pdf = PDF::loadView('contribution.print.certification_contribution_eco_com', $data);
-        return $pdf->stream('contributions_p.pdf');
+        return $pdf->stream('aportes_pas_' . $affiliate_id . '.pdf');
     }
 
 

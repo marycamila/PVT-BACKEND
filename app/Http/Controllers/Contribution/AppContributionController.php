@@ -163,18 +163,13 @@ class AppContributionController extends Controller
         $degree = Degree::find($affiliate->degree_id);
         $contributions = collect();
         $value = false;
-        if ($affiliate->dead) {
-            if ($affiliate->spouse->dead != null || $affiliate->spouse->dead) {
-                $contributions_passives = ContributionPassive::whereAffiliateId($affiliate_id)
-                    ->orderBy('month_year', 'asc')
-                    ->get();
-            } else {
-                $contributions_passives = ContributionPassive::whereAffiliateId($affiliate_id)
-                    ->where('affiliate_rent_class', 'VIUDEDAD')
-                    ->orderBy('month_year', 'asc')
-                    ->get();
-                $value = true;
-            }
+
+        if ($affiliate->dead && $affiliate->spouse != null) {
+            $contributions_passives = ContributionPassive::whereAffiliateId($affiliate_id)
+                ->where('affiliate_rent_class', 'VIUDEDAD')
+                ->orderBy('month_year', 'asc')
+                ->get();
+            $value = true;
         } else {
             $contributions_passives = ContributionPassive::whereAffiliateId($affiliate_id)
                 ->orderBy('month_year', 'asc')
@@ -194,7 +189,7 @@ class AppContributionController extends Controller
                 $modality_year = Carbon::parse($modality->year)->format('Y');
                 $text = "C.E." . $modality->semester . " Semestre " . $modality_year;
             } else {
-                $text = $contributions_passive->contributionable_type == 'payroll_senasirs' ? 'Tipo de descuento Senasir' : 'Tipo de descuento No Especificado';
+                $text = $contributions_passive->contributionable_type == 'payroll_senasirs' ? 'Descuento SENASIR' : 'Descuento No Especificado';
             }
             $contributions->push([
                 'id' => $contributions_passive->id,
@@ -230,7 +225,7 @@ class AppContributionController extends Controller
             'contributions' => $contributions
         ];
         $pdf = PDF::loadView('contribution.print.app_certification_contribution_eco_com', $data);
-        return $pdf->download('contributions.pdf');
+        return $pdf->download('aportes_pas_' . $affiliate_id . '.pdf');
     }
 
     public function printCertificationContributionActive(Request $request, $affiliate_id)
@@ -271,7 +266,7 @@ class AppContributionController extends Controller
 
         $pdf = PDF::loadView('contribution.print.app_certification_contribution_active', $data);
         $pdf->setPaper('letter', 'portrait');
-        return $pdf->download('contribution_act.pdf');
+        return $pdf->download('aportes_act_' . $affiliate_id . '.pdf');
     }
 
     /**

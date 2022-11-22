@@ -248,7 +248,7 @@ class ContributionController extends Controller
         $all_contributions = collect();
 
         $reimbursements = Reimbursement::whereAffiliateId($request->affiliate_id)
-            ->orderBy('month_year', 'desc')
+            ->orderBy('month_year', 'asc')
             ->get();
         $months = DB::table('months')->get();
         for ($i = $year_max; $i >= $year_min; $i--) {
@@ -257,6 +257,7 @@ class ContributionController extends Controller
             $contributions = collect();
 
             $contributions_actives = Contribution::whereAffiliateId($request->affiliate_id)
+                ->orderBy('month_year', 'asc')
                 ->whereYear('month_year', $i)
                 ->get();
 
@@ -347,6 +348,7 @@ class ContributionController extends Controller
             ->orderBy('month_year', 'asc')
             ->get();
         $num = 0;
+        $value = false;
         $data = [
             'header' => [
                 'direction' => 'DIRECCIÓN DE BENEFICIOS ECONÓMICOS',
@@ -362,13 +364,14 @@ class ContributionController extends Controller
             'degree' => $degree,
             'affiliate' => $affiliate,
             'user' => $user,
+            'value' => $value,
             'contributions' => $contributions,
             'reimbursements' => $reimbursements
         ];
 
         $pdf = PDF::loadView('contribution.print.certification_contribution_active', $data);
 
-        return $pdf->stream('contributions_a.pdf');
+        return $pdf->stream('aportes_act_' . $affiliate_id . '.pdf');
     }
 
 

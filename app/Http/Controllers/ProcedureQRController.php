@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Loan\LoanController;
 use App\Models\Admin\Module;
 use App\Models\Admin\Role;
 use App\Models\Admin\RoleSequence;
@@ -110,6 +111,7 @@ class ProcedureQRController extends Controller
                 $data->person = $person;
                 $data->location =$role->display_name;
                 $data->porcentage= $this->get_porcentage_loan($RoleSeq,$role->id);
+                $data->flow=LoanController::get_workflow($data->id);
                 break;
 
             case 4:
@@ -144,6 +146,7 @@ class ProcedureQRController extends Controller
                 $data->location = $role->display_name;
                 $data->validated = $data->inbox_state;
                 $data->porcentage = $this->getPercentage($module_id, $wfseq);
+                $data->flow;
                 break;
 
             case 3:
@@ -177,6 +180,7 @@ class ProcedureQRController extends Controller
                 $data->location = $role->display_name;
                 $data->validated = $data->inbox_state;
                 $data->porcentage = $this->getPercentage($module_id, $wfseq);
+                $data->flow;
                 break;
 
             default:
@@ -195,7 +199,8 @@ class ProcedureQRController extends Controller
                 'location' => $data->location,
                 'validated' => $data->validated,
                 'state_name' => $data->state_name,
-                'porcentage' => $data->porcentage
+                'porcentage' => $data->porcentage,
+                'flow'=> $data->flow
             ],
         ]);
     }

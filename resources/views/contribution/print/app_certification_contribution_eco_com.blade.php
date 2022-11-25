@@ -5,23 +5,50 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>Contributions</title>
     <link rel="stylesheet" href="{{ public_path('/css/report-print.min.css') }}" media="all" />
+    <style>
+        body:before {
+            content: 'NO VÁLIDO PARA TRÁMITES ADMINISTRATIVOS';
+            position: fixed;
+            z-index: -1;
+            color: #9b9b9b;
+            font-size: 65px;
+            font-weight: 500px;
+            display: grid;
+            opacity: 0.3;
+            transform: rotate(-30deg);
+
+            top: 35%;
+            left: 18%;
+            bottom: 30%;
+            right: 18%;
+            text-align: center;
+        }
+    </style>
 </head>
 
 <body class="no-border">
     <div>
-        @include('partials.header', $header)
+        @include('partials.header_app', $header)
     </div>
 
     <div class="text-center">
         <span class="font-medium text-lg">CERTIFICACIÓN DE APORTES</span>
         <p class="text-justify">
             El suscrito Encargado de Cuentas Individuales en base a una revisión de la Base de Datos del Sistema
-            Informático de la MUSERPOL de aportes realizados, de:
+            Informático
+            de la MUSERPOL de aportes realizados, de:
         </p>
     </div>
 
     <div>
         @include('affiliate.police_info')
+
+        @if ($value)
+            <div>
+                <p class="font-bold">DATOS DEL(A) VIUDO(A)</p>
+                @include('spouse.spouse_info')
+            </div>
+        @endif
         <p class="font-bold">
             CERTIFICA
         </p>
@@ -34,9 +61,9 @@
                     <th class="data-row py-2">N°</th>
                     <th class="data-row py-2">AÑO</th>
                     <th class="data-row py-2">MES</th>
+                    <th class="data-row py-2">TITULAR/VIUDA</th>
+                    <th class="data-row py-2" colspan="2">MODALIDAD DE PAGO</th>
                     <th class="data-row py-2">TOTAL COTIZABLE</td>
-                    <th class="data-row py-2">AP. FONDO DE RETIRO</th>
-                    <th class="data-row py-2">AP. CUOTA MORTUORIA</th>
                     <th class="data-row py-2">APORTE</td>
                 </tr>
             </thead>
@@ -44,27 +71,13 @@
                 @foreach ($contributions as $contribution)
                     <tr>
                         <td class="data-row py-2">{{ $num = $num + 1 }}</td>
-                        <td class="data-row py-2">{{ date('Y', strtotime($contribution->month_year)) }}</td>
-                        <td class="data-row py-2">{{ date('m', strtotime($contribution->month_year)) }}</td>
-                        <td class="data-row py-2">{{ Util::money_format($contribution->quotable) }}</td>
-                        <td class="data-row py-2">{{ Util::money_format($contribution->retirement_fund) }}</td>
-                        <td class="data-row py-2">{{ Util::money_format($contribution->mortuary_quota) }}</td>
-                        <td class="data-row py-2">{{ Util::money_format($contribution->total) }}</td>
+                        <td class="data-row py-2">{{ $contribution['year'] }}</td>
+                        <td class="data-row py-2">{{ $contribution['month'] }}</td>
+                        <td class="data-row py-2">{{ $contribution['rent_class'] }}</td>
+                        <td class="data-row py-2" colspan="2">{{ $contribution['description'] }}</td>
+                        <td class="data-row py-2">{{ Util::money_format($contribution['quotable']) }}</td>
+                        <td class="data-row py-2">{{ Util::money_format($contribution['total']) }}</td>
                     </tr>
-                    @foreach ($reimbursements as $reimbursement)
-                        @if ($contribution->month_year == $reimbursement->month_year)
-                            <tr>
-                                <td class="data-row py-2"></td>
-                                <td class="data-row py-2">Ri</td>
-                                <td class="data-row py-2">{{ date('m', strtotime($reimbursement->month_year)) }}</td>
-                                <td class="data-row py-2">{{ Util::money_format($reimbursement->quotable) }}</td>
-                                <td class="data-row py-2">{{ Util::money_format($reimbursement->retirement_fund) }}
-                                </td>
-                                <td class="data-row py-2">{{ Util::money_format($reimbursement->mortuary_quota) }}</td>
-                                <td class="data-row py-2">{{ Util::money_format($reimbursement->total) }}</td>
-                            </tr>
-                        @endif
-                    @endforeach
                 @endforeach
             </tbody>
         </table>
@@ -76,9 +89,9 @@
                 <tr class="bg-grey-darker text-xxs text-white">
                     <th class="w-10 text-justify">
                         <p>NOTA: Toda vez que, la presente certificación detalla información referencial
-                            respecto a los aportes para los beneficios del Fondo de Retiro y Cuota Mortuoria,
-                            se requiere al solicitante efectuar la verificación correspondiente de los datos,
-                            a fin de no existir reclamos posteriores.</p>
+                            respecto a los aportes para el beneficio del Auxilio Mortuorio, se requiere al solicitante
+                            efectuar la verificación correspondiente de los datos, a fin de no existir reclamos
+                            posteriores.</p>
                     </th>
                 </tr>
             </thead>
@@ -94,9 +107,9 @@
         </table>
     </div>
     <br>
-    <div>
-        @include('partials.signature_footer')
-    </div>
+    {{-- <div>
+        @include('partials.footer_app', $header)
+    </div> --}}
 </body>
 
 </html>

@@ -19,6 +19,7 @@ return new class extends Migration
             $table->decimal('aps_total_fs', 13, 2)->default(0)->comment('Fracción Solidaria de Vejez');
             $table->decimal('aps_total_death', 13,2)->default(0)->comment('Renta por Muerte');
             $table->decimal('aps_disability', 13, 2)->default(0)->comment('Renta invalides');
+            $table->decimal('aps_reimbursement', 13, 2)->default(0)->comment('Reintegro');
         });
     }
 

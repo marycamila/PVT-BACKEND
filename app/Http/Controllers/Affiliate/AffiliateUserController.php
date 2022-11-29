@@ -100,7 +100,8 @@ class AffiliateUserController extends Controller
             $AffiliateUser->affiliate_token_id = $AffiliateToken->id;
             if (Affiliate::find($AffiliateId)->spouse && $isDead) {
                 $spouse=Spouse::where('affiliate_id',$AffiliateId)->first();
-                $AffiliateUser->username=$spouse->identity_card;
+                $existUser=DB::table('affiliate_users')->where('username', $spouse->identity_card)->exists();
+                $existUser?$AffiliateUser->username="V".$spouse->identity_card:$AffiliateUser->username=$spouse->identity_card;
                 $password=$this->Generate_pin();
                 $AffiliateUser->password = Hash::make($password);
                 $AffiliateUser->save();
@@ -116,7 +117,9 @@ class AffiliateUserController extends Controller
                 }
             }
             else {
-                $AffiliateUser->username= $affiliate->identity_card;
+                $existUser=DB::table('affiliate_users')->where('username', $affiliate->identity_card)->exists();
+                $existUser?$AffiliateUser->username="T".$affiliate->identity_card:$AffiliateUser->username=$affiliate->identity_card;
+                // $AffiliateUser->username= $affiliate->identity_card;
                 $password=$this->Generate_pin();
                 $AffiliateUser->password = Hash::make($password);
                 $AffiliateUser->save();
@@ -140,11 +143,13 @@ class AffiliateUserController extends Controller
                 if ($AffiliateUser->access_status!='Activo'){
                     if (Affiliate::find($AffiliateId)->spouse && $isDead) {
                         $spouse=Spouse::where('affiliate_id',$AffiliateId)->first();
-                        $AffiliateUser->username=$spouse->identity_card;
+                        // $AffiliateUser->username=$spouse->identity_card;
+                        $existUser=DB::table('affiliate_users')->where('username', $spouse->identity_card)->exists();
+                        $existUser?$AffiliateUser->username="V".$spouse->identity_card:$AffiliateUser->username=$spouse->identity_card;
                         $password=$this->Generate_pin();
                         $AffiliateUser->password = Hash::make($password);
                         $AffiliateUser->access_status = 'Pendiente';
-                        $message='Se reasigno credenciales para viudedad';
+                        $message='Se asigno credenciales para viudedad';
                         $response=$this->send_messages($AffiliateUser->username,$password,$AffiliateId,$message,$user);
                         $existsError=$response->original['error'];
                         if (!$existsError) {
@@ -156,7 +161,9 @@ class AffiliateUserController extends Controller
                         }
                     }
                     else {
-                        $AffiliateUser->username= $affiliate->identity_card;
+                        $existUser=DB::table('affiliate_users')->where('username', $affiliate->identity_card)->exists();
+                        $existUser?$AffiliateUser->username="T".$affiliate->identity_card:$AffiliateUser->username=$affiliate->identity_card;
+                        // $AffiliateUser->username= $affiliate->identity_card;
                         $password=$this->Generate_pin();
                         $AffiliateUser->password = Hash::make($password);
                         $AffiliateUser->access_status = 'Pendiente';
@@ -186,7 +193,9 @@ class AffiliateUserController extends Controller
                 $AffiliateUser->affiliate_token_id = $AffiliateToken->id;
                 if (Affiliate::find($AffiliateId)->spouse && $isDead) {
                     $spouse=Spouse::where('affiliate_id',$AffiliateId)->first();
-                    $AffiliateUser->username=$spouse->identity_card;
+                    $existUser=DB::table('affiliate_users')->where('username', $spouse->identity_card)->exists();
+                    $existUser?$AffiliateUser->username="V".$spouse->identity_card:$AffiliateUser->username=$spouse->identity_card;
+                    // $AffiliateUser->username=$spouse->identity_card;
                     $password=$this->Generate_pin();
                     $AffiliateUser->password = Hash::make($password);
                     $AffiliateUser->save();
@@ -202,7 +211,9 @@ class AffiliateUserController extends Controller
                     }
                 }
                 else {
-                    $AffiliateUser->username= $affiliate->identity_card;
+                    $existUser=DB::table('affiliate_users')->where('username', $affiliate->identity_card)->exists();
+                    $existUser?"T".$affiliate->identity_card:$AffiliateUser->username=$affiliate->identity_card;
+                    // $AffiliateUser->username= $affiliate->identity_card;
                     $password=$this->Generate_pin();
                     $AffiliateUser->password = Hash::make($password);
                     $AffiliateUser->save();
@@ -374,7 +385,7 @@ class AffiliateUserController extends Controller
                                             "identity_card"=> $affiliate->identity_card,
                                             "degree"=> $affiliate->degree->name,
                                             "category"=> $affiliate->category->name,
-                                            "pension_entity"=>$affiliate->pension_entity->name
+                                            "pension_entity"=>$affiliate->pension_entity->name??null
                                         ],
                                     ],
                                 ]

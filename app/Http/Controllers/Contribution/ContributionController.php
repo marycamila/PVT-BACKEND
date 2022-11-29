@@ -91,6 +91,7 @@ class ContributionController extends Controller
         $year = request('year') ?? '';
         $month = request('month') ?? '';
         $breakdown = request('breakdown') ?? '';
+        $title = request('title') ?? '';
 
         $order = request('sortDesc') ?? '';
         if ($order != '') {
@@ -119,65 +120,97 @@ class ContributionController extends Controller
 
         $affiliate = Affiliate::find($request->affiliate_id);
 
-        $reimbursements = $affiliate->reimbursements()->selectRaw(
-            "
-            affiliate_id,
-            month_year,
-            extract(month from month_year) as month,
-            extract(year from month_year) as year,
-            null,
-            null,
-            base_wage,
-            seniority_bonus,
-            study_bonus,
-            position_bonus,
-            border_bonus,
-            east_bonus,
-            public_security_bonus,
-            gain,
-            quotable,
-            retirement_fund,
-            mortuary_quota,
-            total,
-            null,
-            'RE' as title,
-            type,
-            breakdowns.id as breakdown_id,
-            breakdowns.name as breakdown_name"
-        )->leftjoin("breakdowns", "breakdowns.id", "=", "reimbursements.breakdown_id")
-            ->where($conditions)
-            ->orderBy('month_year', $order_year);
+        if ((strtoupper($title) == 'RE' || strtoupper($title) == 'R') || $title != '') {
+            return $reimbursements = $affiliate->reimbursements()->selectRaw(
+                "
+                affiliate_id,
+                month_year,
+                extract(month from month_year) as month,
+                extract(year from month_year) as year,
+                null,
+                null,
+                base_wage,
+                seniority_bonus,
+                study_bonus,
+                position_bonus,
+                border_bonus,
+                east_bonus,
+                public_security_bonus,
+                gain,
+                quotable,
+                retirement_fund,
+                mortuary_quota,
+                total,
+                null,
+                'RE' as title,
+                type,
+                breakdowns.id as breakdown_id,
+                breakdowns.name as breakdown_name"
+            )->leftjoin("breakdowns", "breakdowns.id", "=", "reimbursements.breakdown_id")
+                ->where($conditions)
+                ->orderBy('month_year', $order_year)
+                ->paginate($per_page);;
+        } else {
+            $reimbursements = $affiliate->reimbursements()->selectRaw(
+                "
+                affiliate_id,
+                month_year,
+                extract(month from month_year) as month,
+                extract(year from month_year) as year,
+                null,
+                null,
+                base_wage,
+                seniority_bonus,
+                study_bonus,
+                position_bonus,
+                border_bonus,
+                east_bonus,
+                public_security_bonus,
+                gain,
+                quotable,
+                retirement_fund,
+                mortuary_quota,
+                total,
+                null,
+                'RE' as title,
+                type,
+                breakdowns.id as breakdown_id,
+                breakdowns.name as breakdown_name"
+            )->leftjoin("breakdowns", "breakdowns.id", "=", "reimbursements.breakdown_id")
+                ->where($conditions)
+                ->orderBy('month_year', $order_year);
 
-        return $contributions = $affiliate->contributions()->selectRaw(
-            "
-            affiliate_id,
-            month_year,
-            extract(month from month_year) as month,
-            extract(year from month_year) as year,
-            degree_id,
-            unit_id,
-            base_wage,
-            seniority_bonus,
-            study_bonus,
-            position_bonus,
-            border_bonus,
-            east_bonus,
-            public_security_bonus,
-            gain,
-            quotable,
-            retirement_fund,
-            mortuary_quota,
-            total,
-            breakdown_id,
-            'C' as title,
-            type,
-            breakdowns.id as breakdown_id,
-            breakdowns.name as breakdown_name"
-        )->leftjoin("breakdowns", "breakdowns.id", "=", "contributions.breakdown_id")
-            ->union($reimbursements)
-            ->where($conditions)
-            ->orderBy('month_year', $order_year)
-            ->paginate($per_page);
+            return $contributions = $affiliate->contributions()->selectRaw(
+                "
+                affiliate_id,
+                month_year,
+                extract(month from month_year) as month,
+                extract(year from month_year) as year,
+                degree_id,
+                unit_id,
+                base_wage,
+                seniority_bonus,
+                study_bonus,
+                position_bonus,
+                border_bonus,
+                east_bonus,
+                public_security_bonus,
+                gain,
+                quotable,
+                retirement_fund,
+                mortuary_quota,
+                total,
+                breakdown_id,
+                'C' as title,
+                type,
+                breakdowns.id as breakdown_id,
+                breakdowns.name as breakdown_name"
+            )->leftjoin("breakdowns", "breakdowns.id", "=", "contributions.breakdown_id")
+                ->union($reimbursements)
+                ->where($conditions)
+                ->orderBy('month_year', $order_year)
+                ->paginate($per_page);
+        }
     }
 
     /**

@@ -273,6 +273,7 @@ class ContributionPassiveController extends Controller
         $affiliate = Affiliate::find($affiliate_id);
         $user = Auth::user();
         $degree = Degree::find($affiliate->degree_id);
+        $text = '';
         $contributions = collect();
 
         $value = false;
@@ -313,6 +314,7 @@ class ContributionPassiveController extends Controller
                 'type' => $contributions_passive->contributionable_type
             ]);
         }
+
         $num = 0;
         $data = [
             'header' => [
@@ -330,6 +332,7 @@ class ContributionPassiveController extends Controller
             'affiliate' => $affiliate,
             'user' => $user,
             'value' => $value,
+            'text' => $text,
             'contributions' => $contributions
         ];
         $pdf = PDF::loadView('contribution.print.certification_contribution_eco_com', $data);

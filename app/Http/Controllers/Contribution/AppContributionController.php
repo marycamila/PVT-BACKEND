@@ -163,6 +163,7 @@ class AppContributionController extends Controller
         $degree = Degree::find($affiliate->degree_id);
         $contributions = collect();
         $value = false;
+        $text = '';
 
         if ($affiliate->dead && $affiliate->spouse != null) {
             $contributions_passives = ContributionPassive::whereAffiliateId($affiliate_id)
@@ -222,6 +223,7 @@ class AppContributionController extends Controller
             'affiliate' => $affiliate,
             'user' => $user,
             'value' => $value,
+            'text' => $text,
             'contributions' => $contributions
         ];
         $pdf = PDF::loadView('contribution.print.app_certification_contribution_eco_com', $data);

@@ -140,12 +140,15 @@ class AppContributionController extends Controller
 
     public function get_maximum_year($id)
     {
-        $data1 = DB::table('contribution_passives')->where('affiliate_id', $id)->max('month_year');
-        $max1 = Carbon::parse($data1)->format('Y');
-
+        $max1 = $max2 = 0;
+        $data = DB::table('contribution_passives')->where('affiliate_id', $id)->max('month_year');
+        if ($data != null) {
+            $max1 = Carbon::parse($data)->format('Y');
+        }
         $data2 = DB::table('contributions')->where('affiliate_id', $id)->max('month_year');
-        $max2 = Carbon::parse($data2)->format('Y');
-
+        if ($data2 != null) {
+            $max2 = Carbon::parse($data2)->format('Y');
+        }
         if ($max1 > $max2)
             return $max1;
         return $max2;

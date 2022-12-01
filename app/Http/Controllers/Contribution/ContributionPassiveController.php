@@ -83,8 +83,8 @@ class ContributionPassiveController extends Controller
 
         if (isset($affiliate)) {
 
-            $year_min = $this->get_minimum_year($request->affiliate_id);
-            $year_max = $this->get_maximum_year($request->affiliate_id);
+            $year_min = $affiliate->minimum_year_contribution_passive;
+            $year_max = $affiliate->maximum_year_contribution_passive;
 
             $all_contributions = collect();
             $months = DB::table('months')->get();
@@ -250,24 +250,6 @@ class ContributionPassiveController extends Controller
             $contributions_passive->month = $month;
         }
         return $contributions_passives;
-    }
-
-    public function get_minimum_year($id)
-    {
-        $data = DB::table('contribution_passives')->where('affiliate_id', $id)->min('month_year');
-        $min = Carbon::parse($data)->format('Y');
-
-        return $min;
-    }
-
-    public function get_maximum_year($id)
-    {
-        $max = 0;
-        $data = DB::table('contribution_passives')->where('affiliate_id', $id)->max('month_year');
-        if ($data != null) {
-            $max = Carbon::parse($data)->format('Y');
-        }
-        return $max;
     }
 
     public function printCertificationContributionPassive(Request $request, $affiliate_id)

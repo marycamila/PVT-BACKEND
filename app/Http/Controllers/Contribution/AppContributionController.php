@@ -34,9 +34,10 @@ class AppContributionController extends Controller
             'affiliate_id' => 'required|integer|exists:affiliates,id'
         ]);
 
-        $year_min = $this->get_minimum_year($affiliate_id);
-        $year_max = $this->get_maximum_year($affiliate_id);
         $affiliate = Affiliate::find($affiliate_id);
+        $year_min = $affiliate->minimum_year_contribution_active;
+        $year_max = $this->get_maximum_year($affiliate_id);
+
         $degree = Degree::find($affiliate->degree_id);
         if ($affiliate->affiliate_state->affiliate_state_type->name == 'Pasivo')
             $affiliate_passive = true;
@@ -130,28 +131,16 @@ class AppContributionController extends Controller
         ]);
     }
 
-    public function get_minimum_year($id)
+    public function get_maximum_year($affiliate_id)
     {
-        $data = DB::table('contributions')->where('affiliate_id', $id)->min('month_year');
-        $min = Carbon::parse($data)->format('Y');
+        $maximum_year_contribution_passive = $maximum_year_contribution_active = 0;
+        $affiliate = Affiliate::find($affiliate_id);
+        $maximum_year_contribution_passive = $affiliate->maximum_year_contribution_passive;
+        $maximum_year_contribution_active = $affiliate->maximum_year_contribution_active;
 
-        return $min;
-    }
-
-    public function get_maximum_year($id)
-    {
-        $max1 = $max2 = 0;
-        $data = DB::table('contribution_passives')->where('affiliate_id', $id)->max('month_year');
-        if ($data != null) {
-            $max1 = Carbon::parse($data)->format('Y');
-        }
-        $data2 = DB::table('contributions')->where('affiliate_id', $id)->max('month_year');
-        if ($data2 != null) {
-            $max2 = Carbon::parse($data2)->format('Y');
-        }
-        if ($max1 > $max2)
-            return $max1;
-        return $max2;
+        if ($maximum_year_contribution_passive > $maximum_year_contribution_active)
+            return $maximum_year_contribution_passive;
+        return $maximum_year_contribution_active;
     }
 
     public function printCertificationContributionPassive(Request $request, $affiliate_id)

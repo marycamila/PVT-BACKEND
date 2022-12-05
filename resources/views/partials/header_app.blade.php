@@ -23,7 +23,7 @@
            
             <th class="w-20 no-padding no-margins align-top">
                 <table class="table-code no-padding no-margins text-xxxs uppercase">
-                    <tr><td colspan ="2" class="mb-3">{!! DNS1D::getBarcodeHTML((String)$affiliate->id, "UPCA",2,22) !!}</td></tr>
+                    <tr><td colspan ="2" class="mb-3 no-border">{!! DNS1D::getBarcodeHTML((String)$affiliate->id, "UPCA",1.5,25) !!}</td></tr>
                     @if (isset($table))
                         @if (count($table) > 0)
                             <tbody>

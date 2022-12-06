@@ -80,9 +80,8 @@ class ContributionPassiveController extends Controller
     public function show(Request $request)
     {
         $affiliate = Affiliate::find($request->affiliate_id);
-
-        if (isset($affiliate)) {
-
+        $hasContributionPassives = $affiliate->contribution_passives;
+        if (sizeof($hasContributionPassives) > 0) {
             $year_min = $affiliate->minimum_year_contribution_passive;
             $year_max = $affiliate->maximum_year_contribution_passive;
 
@@ -119,7 +118,7 @@ class ContributionPassiveController extends Controller
             }
 
             return response()->json([
-                'affiliateExist' => true,
+                'hasContributionPassives' => true,
                 'payload' => [
                     'first_name' => $affiliate->first_name,
                     'second_name' => $affiliate->second_name,
@@ -132,7 +131,7 @@ class ContributionPassiveController extends Controller
             ]);
         } else {
             return response()->json([
-                'affiliateExist' => false,
+                'hasContributionPassives' => false,
                 'payload' => []
             ]);
         }
@@ -236,7 +235,7 @@ class ContributionPassiveController extends Controller
 
         foreach ($contributions_passives as $contributions_passive) {
             $year = Carbon::parse($contributions_passive->month_year)->format('Y');
-            $month = Carbon::parse($contributions_passive->month_year)->format('m');
+            $month = ltrim(Carbon::parse($contributions_passive->month_year)->format('m'), "0");
             if ($contributions_passive->contributionable_type == "discount_type_economic_complement") {
                 $contributions_passive->contributionable_type_name = "Complemento Economico";
             } else {

@@ -959,21 +959,21 @@ class NotificationController extends Controller
                 case 'economic_complements':                                        
                     if(!is_null(EconomicComplement::find(intval($it->sendable_id)))) {
                         $type = 'Complemento Económico';
-                        $code = EconomicComplement::find(intval($it->sendable_id))->first()->code;
+                        $code = EconomicComplement::find(intval($it->sendable_id))->latest()->first()->code;
                         $message = json_decode($it->message)->data->text;
                     } else $flag = false;             
                     break;
                 case 'loans':                    
                     if(!is_null(Loan::find(intval($it->sendable_id)))) {
                         $type = 'Préstamo';
-                        $code = Loan::find(intval($it->sendable_id))->first()->code;
+                        $code = Loan::find(intval($it->sendable_id))->latest()->first()->code;
                         $message = json_decode($it->message)->data;
                     } else $flag = false;
                     break;
                 case 'affiliates':                    
                     if(!is_null(Affiliate::find(intval($it->sendable_id)))) {
                         $type = 'Afiliado';
-                        $code = Affiliate::find(intval($it->sendable_id))->first()->identity_card;
+                        $code = Affiliate::find(intval($it->sendable_id))->latest()->first()->identity_card;
                         $message = json_decode($it->message)->data; 
                     } else $flag = false;
                     break;
@@ -988,20 +988,5 @@ class NotificationController extends Controller
             
         }
         return Excel::download(new NotificacitonSendExport($result), 'notifications.xlsx');
-    }
-
-
-    public function test() {
-        $c = 0;
-        $array = [];
-        for($i = 0; $i < 1200 ; $i++) {
-            $array[$i] = $i;
-        }
-        
-        $groups = array_chunk($array, 500, true);
-        foreach($groups as $group) {
-            logger($group);
-            sleep(5);
-        }
     }
 }

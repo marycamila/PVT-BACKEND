@@ -816,13 +816,16 @@ class NotificationController extends Controller
             $i = 0;
             do {
                 $i++;
-                foreach($sends as $send) { //$sends[0]
-                    if($send['send']) {
-                        $firebase_token = AffiliateToken::whereAffiliateId($send['affiliate_id'])->select('firebase_token')->get()[0];
+
+                $groups = array_chunk($sends, 500, true);
+                foreach($groups as $group) {
+                    if($group['send']) {
+                        $firebase_token = AffiliateToken::whereAffiliateId($group['affiliate_id'])->select('firebase_token')->get()[0];
                         array_push($params['tokens'], $firebase_token['firebase_token']);
-                        array_push($params['ids'],   $send['affiliate_id']);
+                        array_push($params['ids'],   $group['affiliate_id']);
                     }
                 }
+
                 $res = $this->delegate_shipping($params['data'], $params['tokens'], $params['ids']); 
                 if($res['status'] && count($params['tokens']) != 0) {
                     $status = $res['delivered'];
@@ -983,5 +986,20 @@ class NotificationController extends Controller
             
         }
         return Excel::download(new NotificacitonSendExport($result), 'notifications.xlsx');
+    }
+
+
+    public function test() {
+        $c = 0;
+        $array = [];
+        for($i = 0; $i < 1200 ; $i++) {
+            $array[$i] = $i;
+        }
+        
+        $groups = array_chunk($array, 500, true);
+        foreach($groups as $group) {
+            logger($group);
+            sleep(5);
+        }
     }
 }

@@ -790,7 +790,7 @@ class NotificationController extends Controller
         }
 
         try {
-            ini_set('max_execution_time', 5); 
+            ini_set('max_execution_time', -1); 
             $title_notification = $request['title'];
             $message            = $request['message'];
             $image              = $request->image ?? "";
@@ -812,20 +812,19 @@ class NotificationController extends Controller
             $params['subject'] = $request['attached'];
             $params['user_id'] = $request['user_id'];
 
-            $interval = ceil(($amount * 1.0)/ 500);
+            // $interval = ceil(($amount * 1.0)/ 500);
             $i = 0;
-            do {
-                $i++;
-
-                $groups = array_chunk($sends, 500, true);
-                foreach($groups as $group) {
-                    if($group['send']) {
-                        $firebase_token = AffiliateToken::whereAffiliateId($group['affiliate_id'])->select('firebase_token')->get()[0];
+            $groups = array_chunk($sends, 500, true);
+            foreach($groups as $group) {
+                foreach($group as $person) {
+                    if($person['send']) {
+                        $firebase_token = AffiliateToken::whereAffiliateId($person['affiliate_id'])->select('firebase_token')->get()[0];
                         array_push($params['tokens'], $firebase_token['firebase_token']);
-                        array_push($params['ids'],   $group['affiliate_id']);
+                        array_push($params['ids'],   $person['affiliate_id']);
                     }
                 }
-
+                logger(count($params['tokens']));
+                             
                 $res = $this->delegate_shipping($params['data'], $params['tokens'], $params['ids']); 
                 if($res['status'] && count($params['tokens']) != 0) {
                     $status = $res['delivered'];
@@ -835,7 +834,10 @@ class NotificationController extends Controller
                 else { $result = false; break; }
                 logger("-----------------    ENVÍO LOTE NRO $i  --------------------------");
                 sleep(1);
-            } while($i < $interval);
+                $i++;
+                $params['tokens'] = [];  
+                $params['ids']  = [];
+            }
 
             return $result ? response()->json([
                 'error'   => false,

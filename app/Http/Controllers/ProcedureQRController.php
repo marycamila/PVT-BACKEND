@@ -221,7 +221,7 @@ class ProcedureQRController extends Controller
         $list_observations = collect();
         $observations = $data->observations;
         foreach ($observations as $observation) {
-            if ($observation->enabled == true)
+            if ($observation->enabled == false)
                 $list_observations->push([
                     'message' => $observation->message,
                     'enabled' => $observation->enabled,

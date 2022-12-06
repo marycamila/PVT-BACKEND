@@ -17,11 +17,11 @@ use App\Models\Affiliate\AffiliateRecord;
 use App\Models\Loan\Record;
 use App\Models\City;
 use App\Models\Activities;
+use App\Models\Contribution\ContributionPassive;
 use App\Models\Contribution\PayrollCommand;
 use App\Models\Observation;
 use App\Models\Notification\NotificationSend;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 
 class Affiliate extends Model
 {
@@ -104,6 +104,10 @@ class Affiliate extends Model
     {
         return $this->hasMany(Contribution::class);
     }
+    public function contribution_passives()
+    {
+        return $this->hasMany(ContributionPassive::class);
+    }
     public function reimbursements()
     {
         return $this->hasMany(Reimbursement::class);
@@ -174,7 +178,7 @@ class Affiliate extends Model
     }
     public function getMinimumYearContributionPassiveAttribute()
     {
-        $minimum_year = DB::table('contribution_passives')->where('affiliate_id', $this->id)->min('month_year');
+        $minimum_year = $this->contribution_passives()->min('month_year');
         $minimum_year_contribution_passive = Carbon::parse($minimum_year)->format('Y');
 
         return (int)$minimum_year_contribution_passive;
@@ -182,7 +186,7 @@ class Affiliate extends Model
     public function getMaximumYearContributionPassiveAttribute()
     {
         $maximum_year_contribution_passive = 0;
-        $maximum_year = DB::table('contribution_passives')->where('affiliate_id', $this->id)->max('month_year');
+        $maximum_year = $this->contribution_passives()->max('month_year');
         if ($maximum_year != null) {
             $maximum_year_contribution_passive = Carbon::parse($maximum_year)->format('Y');
         }
@@ -190,7 +194,7 @@ class Affiliate extends Model
     }
     public function getMinimumYearContributionActiveAttribute()
     {
-        $minimum_year = DB::table('contributions')->where('affiliate_id', $this->id)->min('month_year');
+        $minimum_year = $this->contributions()->min('month_year');
         $minimum_year_contribution_active = Carbon::parse($minimum_year)->format('Y');
 
         return (int)$minimum_year_contribution_active;
@@ -198,7 +202,7 @@ class Affiliate extends Model
     public function getMaximumYearContributionActiveAttribute()
     {
         $maximum_year_contribution_active = 0;
-        $maximum_year = DB::table('contributions')->where('affiliate_id', $this->id)->max('month_year');
+        $maximum_year = $this->contributions()->max('month_year');
         if ($maximum_year != null) {
             $maximum_year_contribution_active = Carbon::parse($maximum_year)->format('Y');
         }

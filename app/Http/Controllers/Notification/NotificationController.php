@@ -266,6 +266,18 @@ class NotificationController extends Controller
         ]);
     }
 
+    public function get_type_notification() {
+        $type_notification = NotificationCarrier::select('id', 'name')->get();
+        $results = [];
+        foreach($type_notification as $type) {
+            array_push($results, (object)['id' => $type->id, 'name' => $type->name]);
+        }
+        
+        return response()->json([
+            'type_notifications' => $results,
+        ]);        
+    }
+
     // Microservicio para consumir la ruta del backend node
     public function delegate_shipping($data, $tokens, $ids){ 
         $res = [];

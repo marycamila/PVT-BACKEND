@@ -907,8 +907,8 @@ class NotificationController extends Controller
     public function get_report(Request $request) {                
         $start_date = $request->start_date;
         $end_date = $request->end_date;
-        $type = $request->type; // todos, SMS, notificaciones App,
-        switch($type) {
+        $media_type = $request->type; // todos, SMS, notificaciones App,
+        switch($media_type) {
             case '1':
                 $sms = false;
                 $app = true;
@@ -922,7 +922,7 @@ class NotificationController extends Controller
                 $sms = false;
                 break;
         }
-
+        
         $iteration = NotificationSend::join('users', 'notification_sends.user_id', '=', 'users.id')                                
                                 ->when($sms, function ($query) {
                                     $query->where('carrier_id', 2);
@@ -930,16 +930,16 @@ class NotificationController extends Controller
                                 ->when($app, function ($query) {
                                     $query->where('carrier_id', 1);
                                 })          
-                                ->where('send_date', '>=', $start_date)                                               
+                                ->where('send_date', '>=', $start_date)
                                 ->where('send_date', '<=', $end_date)
-                                ->select('users.identity_card', 'notification_sends.delivered', 'notification_sends.carrier_id', 
+                                ->select('users.username', 'notification_sends.delivered', 'notification_sends.carrier_id', 
                                 'notification_sends.number_id', 'notification_sends.sendable_type', 'notification_sends.sendable_id', 
                                 'notification_sends.send_date', 'notification_sends.message')->get(); 
-        $result = collect();       
+        $result = collect();    
 
         foreach($iteration as $it) {
             $temp = collect();
-            $temp->push($it->identity_card);
+            $temp->push($it->username);
             if(intval($it->delivered) === 1) {
                 $delivered = "Enviado";
             } else $delivered = "No envidado";
@@ -949,31 +949,38 @@ class NotificationController extends Controller
                 if($name == 'Notifications') $name = 'Notificación APP';                
             } else $name = null;
             $temp->push($name);
-            if(!is_null(NotificationNumber::find(intval($it->number_id)))) {
-                $number = NotificationNumber::find(intval($it->number_id))->first()->number;
-            } else  $number = null;
-            $temp->push($number);             
+            if($media_type == 2) {
+                if(!is_null(NotificationNumber::find(intval($it->number_id)))) {
+                    $number = NotificationNumber::find(intval($it->number_id))->number;
+                } else  $number = null;
+                $temp->push($number);             
+            }
             $flag = true;
             switch($it->sendable_type) {
                 
                 case 'economic_complements':                                        
                     if(!is_null(EconomicComplement::find(intval($it->sendable_id)))) {
                         $type = 'Complemento Económico';
-                        $code = EconomicComplement::find(intval($it->sendable_id))->latest()->first()->code;
+                        $eco_com = EconomicComplement::find(intval($it->sendable_id));
+                        $nup = $eco_com->affiliate_id;
+                        $code = $eco_com->code;
                         $message = json_decode($it->message)->data->text;
                     } else $flag = false;             
                     break;
                 case 'loans':                    
                     if(!is_null(Loan::find(intval($it->sendable_id)))) {
                         $type = 'Préstamo';
-                        $code = Loan::find(intval($it->sendable_id))->latest()->first()->code;
+                        $loan = Loan::find(intval($it->sendable_id));
+                        $nup = $loan->affiliate_id;
+                        $code = $loan->code;
                         $message = json_decode($it->message)->data;
                     } else $flag = false;
                     break;
                 case 'affiliates':                    
                     if(!is_null(Affiliate::find(intval($it->sendable_id)))) {
                         $type = 'Afiliado';
-                        $code = Affiliate::find(intval($it->sendable_id))->latest()->first()->identity_card;
+                        $nup = Affiliate::find(intval($it->sendable_id))->identity_card;
+                        $code = null;
                         $message = json_decode($it->message)->data; 
                     } else $flag = false;
                     break;
@@ -981,12 +988,13 @@ class NotificationController extends Controller
             if($flag){
                 $temp->push($type);
                 $temp->push($code);
+                $temp->push($nup);
                 $temp->push($it->send_date);
                 $temp->push($message);
                 $result->push($temp);
             }
             
         }
-        return Excel::download(new NotificacitonSendExport($result), 'notifications.xlsx');
+        return Excel::download(new NotificacitonSendExport($result, $media_type), 'notifications.xlsx');
     }
 }

@@ -26,9 +26,10 @@ class NotificacitonSendExport implements FromCollection, WithHeadings, ShouldAut
     //     $this->start_date = $start_date;
     //     $this->end_date = $end_date;
     // }
-    public function __construct($data) {
+    public function __construct($data, $type) {
         $this->count = count($data);
         $this->data = $data;
+        $this->type = $type;
     }
 
     /**
@@ -45,23 +46,44 @@ class NotificacitonSendExport implements FromCollection, WithHeadings, ShouldAut
     }
 
     public function headings(): array {
-        return [
-            'C.I. USUARIO',
-            'ESTADO DEL ENVÍO',
-            'SMS/APP',
-            'NÚMERO',
-            'TIPO',
-            'CÓDIGO',
-            'FECHA DE ENVÍO',
-            'MENSAJE',
-        ];
+        if($this->type == 1) {
+            return [
+                'USUARIO',
+                'ESTADO',
+                'SMS/APP',
+                'TIPO',
+                'CÓDIGO',
+                'NUP',
+                'FECHA DE ENVÍO',
+                'MENSAJE',   
+            ];
+        } else {
+            return [
+                'USUARIO',
+                'ESTADO',
+                'SMS/APP',
+                'NÚMERO',
+                'TIPO',
+                'CÓDIGO',
+                'NUP',
+                'FECHA DE ENVÍO',
+                'MENSAJE',
+            ];
+        }
     }
 
     public function styles(Worksheet $sheet)
     {        
         $rows = $this->count + 2;
-        return [            
-            'B2:I2' => [
+        if($this->type == 1) {
+            $cels = 'B2:I2';
+            $line = 'B2:I';
+        } else {
+            $cels = 'B2:J2';
+            $line = 'B2:J';
+        }
+        $return =  [            
+            $cels => [
                 'font' => [
                     'bold' => true, 
                     'italic' => true
@@ -86,7 +108,7 @@ class NotificacitonSendExport implements FromCollection, WithHeadings, ShouldAut
                     'wrapText' => true,
                 ],
             ],
-            'B2:I'.$rows => [
+            $line.$rows => [
                 'borders' => [
                     'outline' => [
                         'borderStyle' => Border::BORDER_THIN
@@ -147,14 +169,31 @@ class NotificacitonSendExport implements FromCollection, WithHeadings, ShouldAut
                     'vertical' => Alignment::VERTICAL_CENTER,
                     'wrapText' => true,
                 ],
-            ]
-        ];        
+            ],
+        ];
+        if($this->type == 2) {
+            $return['I2:I'.$rows] = [
+                'borders' => [
+                    'right' => [
+                        'borderStyle' => Border::BORDER_THIN
+                    ]
+                ]
+            ];
+        }
+        logger($return);
+        return $return;
     }
 
     public function columnWidths(): array
     {
-        return [
-            'I' => 60,            
-        ];
+        if($this->type == 1) {
+            return [
+                'I' => 60,            
+            ];
+        } else {
+            return [
+                'J' => 60,
+            ];
+        }
     }
 }

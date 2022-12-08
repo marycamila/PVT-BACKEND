@@ -273,8 +273,8 @@ class Util
             $sms_provider = env('SMS_PROVIDER', 1);
             $user_id = $user_id; // usuario que envío la notificación
             $transmitter_id = $transmitter_id; // id del número telefónico que envía el sms
-            $issuer_number = NotificationNumber::find($transmitter_id)->number;
-            $flag = false;
+            $issuer_number = NotificationNumber::find($transmitter_id)->number;            
+            $counter = 0;
 
             foreach($shipments as $shipping) {
                 $shipping['sms_num'] = Util::remove_special_char($shipping['sms_num']);
@@ -285,38 +285,38 @@ class Util
                 logger($shipping['message']);
                 logger("==================================");
                 $response = Http::get($sms_server_url . "dosend.php?USERNAME=$root&PASSWORD=$password&smsprovider=$sms_provider&smsnum=$code_num&method=2&Memo=$message");
-
+                
                 if($response->successful()) {
-                    $clipped_chain = substr($response, strrpos($response, "id=") + 3);
+                    $del = false;
+                    $clipped_chain = substr($response, strrpos($response, "id=") + 3);                    
                     $end_of_chain = substr($clipped_chain,  strrpos($clipped_chain, "&U"));
                     $id = substr($clipped_chain, 0, -strlen($end_of_chain));
                     $result = Http::timeout(60)->get($sms_server_url . "resend.php?messageid=$id&USERNAME=$root&PASSWORD=$password");
                     if($result->successful()) {
                         $var = $result->getBody();
-                        if(strpos($var, "ERROR") === false || strpos($var, "logout,") === false) {
-                            $flag = true;
-                            $obj = $morph_type ? new Affiliate() : new Loan();
-                            $alias = $obj->getMorphClass();
-                            $notification_send = new NotificationSend();
-                            $notification_send->create([
-                                'user_id' => $user_id,
-                                'carrier_id' => NotificationCarrier::whereName('SMS')->first()->id,
-                                'number_id' => NotificationNumber::whereNumber($issuer_number)->first()->id,
-                                'sendable_type' => $alias,
-                                'sendable_id' => $shipping['id'],
-                                'send_date' => Carbon::now(),
-                                'delivered' => true,
-                                'message' => json_encode(['data' => $shipping['message']]),
-                                'subject' => null
-                            ]);
-                        }
-                        else $flag = false;
-                    }
-                    else $flag = false;
-                }
-                else $flag = false;
+                        $obj = $morph_type ? new Affiliate() : new Loan();
+                        $alias = $obj->getMorphClass();
+                        $notification_send = new NotificationSend();
+                        if(strpos($var, "ERROR") === false || strpos($var, "logout,") === false) {                                                        
+                            $counter++;
+                            $del = true;
+                        } else $del = false; 
+                        $notification_send->create([
+                            'user_id' => $user_id,
+                            'carrier_id' => NotificationCarrier::whereName('SMS')->first()->id,
+                            'number_id' => NotificationNumber::whereNumber($issuer_number)->first()->id,
+                            'sendable_type' => $alias,
+                            'sendable_id' => $shipping['id'],
+                            'send_date' => Carbon::now(),
+                            'delivered' => $del,
+                            'message' => json_encode(['data' => $shipping['message']]),
+                            'subject' => null
+                        ]);
+                    }                    
+                }                
             }
-            return $flag;
+            return $counter > 0 ?? false;            
+
         }catch(\Exception $e) {
             logger($e->getMessage());
         }
@@ -343,7 +343,7 @@ class Util
             $result = Http::timeout(60)->get($sms_server_url . "resend.php?messageid=$id&USERNAME=$root&PASSWORD=$password");
             if($result->successful()) {
                 $var = $result->getBody();
-                if(strpos($var, "ERROR") === false) {
+                if(strpos($var, "ERROR") === false || strpos($var, "logout,") === false) {                    
                     $flag = true;
                 }
             }

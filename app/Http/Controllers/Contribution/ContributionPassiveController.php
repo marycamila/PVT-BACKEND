@@ -79,57 +79,62 @@ class ContributionPassiveController extends Controller
 
     public function show(Request $request)
     {
-        $request->validate([
-            'affiliate_id' => 'required|integer|exists:contribution_passives,affiliate_id'
-        ]);
-
         $affiliate = Affiliate::find($request->affiliate_id);
-        $year_min = $this->get_minimum_year($request->affiliate_id);
-        $year_max = $this->get_maximum_year($request->affiliate_id);
+        $hasContributionPassives = $affiliate->contribution_passives;
+        if (sizeof($hasContributionPassives) > 0) {
+            $year_min = $affiliate->minimum_year_contribution_passive;
+            $year_max = $affiliate->maximum_year_contribution_passive;
 
-        $all_contributions = collect();
-        $months = DB::table('months')->get();
+            $all_contributions = collect();
+            $months = DB::table('months')->get();
 
-        for ($i = $year_max; $i >= $year_min; $i--) {
-            $contributions = collect();
-            $contribution_passives = ContributionPassive::whereAffiliateId($request->affiliate_id)
-                ->whereYear('month_year', $i)
-                ->orderBy('month_year', 'asc')
-                ->get();
+            for ($i = $year_max; $i >= $year_min; $i--) {
+                $contributions = collect();
+                $contribution_passives = ContributionPassive::whereAffiliateId($request->affiliate_id)
+                    ->whereYear('month_year', $i)
+                    ->orderBy('month_year', 'asc')
+                    ->get();
 
-            foreach ($months as $month) {
-                $mes = (string)$month->id;
-                $detail = collect();
-                foreach ($contribution_passives as $contributions_passive) {
-                    $m = ltrim(Carbon::parse($contributions_passive->month_year)->format('m'), "0");
-                    if ($m == $mes) {
-                        $detail->push(
-                            $contributions_passive
-                        );
+                foreach ($months as $month) {
+                    $mes = (string)$month->id;
+                    $detail = collect();
+                    foreach ($contribution_passives as $contributions_passive) {
+                        $m = ltrim(Carbon::parse($contributions_passive->month_year)->format('m'), "0");
+                        if ($m == $mes) {
+                            $detail->push(
+                                $contributions_passive
+                            );
+                        }
                     }
+                    $contributions->push([
+                        'month' => $month->name,
+                        'detail' => (object)$detail->first()
+                    ]);
                 }
-                $contributions->push([
-                    'month' => $month->name,
-                    'detail' => (object)$detail->first()
+                $all_contributions->push([
+                    'year' => (string)$i,
+                    'contributions' => $contributions
                 ]);
             }
-            $all_contributions->push([
-                'year' => (string)$i,
-                'contributions' => $contributions
+
+            return response()->json([
+                'hasContributionPassives' => true,
+                'payload' => [
+                    'first_name' => $affiliate->first_name,
+                    'second_name' => $affiliate->second_name,
+                    'last_name' => $affiliate->last_name,
+                    'mothers_last_name' => $affiliate->mothers_last_name,
+                    'surname_husband' => $affiliate->surname_husband,
+                    'identity_card' => $affiliate->identity_card,
+                    'all_contributions' => $all_contributions
+                ],
+            ]);
+        } else {
+            return response()->json([
+                'hasContributionPassives' => false,
+                'payload' => []
             ]);
         }
-
-        return response()->json([
-            'payload' => [
-                'first_name' => $affiliate->first_name,
-                'second_name' => $affiliate->second_name,
-                'last_name' => $affiliate->last_name,
-                'mothers_last_name' => $affiliate->mothers_last_name,
-                'surname_husband' => $affiliate->surname_husband,
-                'identity_card' => $affiliate->identity_card,
-                'all_contributions' => $all_contributions
-            ],
-        ]);
     }
 
     /**
@@ -230,7 +235,7 @@ class ContributionPassiveController extends Controller
 
         foreach ($contributions_passives as $contributions_passive) {
             $year = Carbon::parse($contributions_passive->month_year)->format('Y');
-            $month = Carbon::parse($contributions_passive->month_year)->format('m');
+            $month = ltrim(Carbon::parse($contributions_passive->month_year)->format('m'), "0");
             if ($contributions_passive->contributionable_type == "discount_type_economic_complement") {
                 $contributions_passive->contributionable_type_name = "Complemento Economico";
             } else {
@@ -246,22 +251,6 @@ class ContributionPassiveController extends Controller
         return $contributions_passives;
     }
 
-    public function get_minimum_year($id)
-    {
-        $data = DB::table('contribution_passives')->where('affiliate_id', $id)->min('month_year');
-        $min = Carbon::parse($data)->format('Y');
-
-        return $min;
-    }
-
-    public function get_maximum_year($id)
-    {
-        $data = DB::table('contribution_passives')->where('affiliate_id', $id)->max('month_year');
-        $max = Carbon::parse($data)->format('Y');
-
-        return $max;
-    }
-
     public function printCertificationContributionPassive(Request $request, $affiliate_id)
     {
         $request['affiliate_id'] = $affiliate_id;
@@ -273,6 +262,7 @@ class ContributionPassiveController extends Controller
         $affiliate = Affiliate::find($affiliate_id);
         $user = Auth::user();
         $degree = Degree::find($affiliate->degree_id);
+        $text = '';
         $contributions = collect();
 
         $value = false;
@@ -313,6 +303,7 @@ class ContributionPassiveController extends Controller
                 'type' => $contributions_passive->contributionable_type
             ]);
         }
+
         $num = 0;
         $data = [
             'header' => [
@@ -330,6 +321,7 @@ class ContributionPassiveController extends Controller
             'affiliate' => $affiliate,
             'user' => $user,
             'value' => $value,
+            'text' => $text,
             'contributions' => $contributions
         ];
         $pdf = PDF::loadView('contribution.print.certification_contribution_eco_com', $data);

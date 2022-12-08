@@ -33,4 +33,9 @@ Route::group([
     // Ruta para consultar saldo
     Route::get('balance', [App\Http\Controllers\Notification\SMSController::class, 'check_balance']);
 
+    // Ruta para reporte de notificación SMS y APP
+    Route::post('report', [App\Http\Controllers\Notification\NotificationController::class, 'get_report']);
+    // Ruta para obtener los tipos de notificación
+    Route::get('get_type_notification', [App\Http\Controllers\Notification\NotificationController::class, 'get_type_notification']);
+
 });

@@ -25,6 +25,11 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Models\Affiliate\Affiliate;
 use Illuminate\Pagination\LengthAwarePaginator;
+use App\Exports\NotificacitonSendExport;
+use App\Models\Notification\NotificationNumber;
+use App\Models\Notification\NotificationCarrier;
+use App\Models\Loan\Loan;
+
 
 class NotificationController extends Controller
 {    
@@ -259,6 +264,18 @@ class NotificationController extends Controller
                 ]
             ]
         ]);
+    }
+
+    public function get_type_notification() {
+        $type_notification = NotificationCarrier::select('id', 'name')->get();
+        $results = [];
+        foreach($type_notification as $type) {
+            array_push($results, (object)['id' => $type->id, 'name' => $type->name]);
+        }
+        
+        return response()->json([
+            'type_notifications' => $results,
+        ]);        
     }
 
     // Microservicio para consumir la ruta del backend node
@@ -519,7 +536,7 @@ class NotificationController extends Controller
      *          required=true,
      *          @OA\JsonContent(
      *              type="object",
-     *              @OA\Property(property="action", type="string",description="Recepción de requerimientos, complemento económico u observaciones (Receipt_of_requirements, economic_complement_payment, observatinos", example="economic_complement_payment"),
+     *              @OA\Property(property="action", type="integer",description="Recepción de requerimientos, complemento económico u observaciones (Receipt_of_requirements, economic_complement_payment, observatinos", example="economic_complement_payment"),
      *              @OA\Property(property="payment_method", type="integer",description="Método de pago para el complemento económico (Abono en cuenta SIGEP, Ventanilla Banco Unión y a domicilio)",example="24"),
      *              @OA\Property(property="modality", type="integer",description="Modalidad (vejez, viudedad u orfandad)", example="29"),
      *              @OA\Property(property="type_observation", type="integer",description="Tipo de observación", example="2"),
@@ -773,7 +790,7 @@ class NotificationController extends Controller
         }
 
         try {
-            ini_set('max_execution_time', 5); 
+            ini_set('max_execution_time', -1); 
             $title_notification = $request['title'];
             $message            = $request['message'];
             $image              = $request->image ?? "";
@@ -795,17 +812,19 @@ class NotificationController extends Controller
             $params['subject'] = $request['attached'];
             $params['user_id'] = $request['user_id'];
 
-            $interval = ceil(($amount * 1.0)/ 500);
+            // $interval = ceil(($amount * 1.0)/ 500);
             $i = 0;
-            do {
-                $i++;
-                foreach($sends as $send) { //$sends[0]
-                    if($send['send']) {
-                        $firebase_token = AffiliateToken::whereAffiliateId($send['affiliate_id'])->select('firebase_token')->get()[0];
+            $groups = array_chunk($sends, 500, true);
+            foreach($groups as $group) {
+                foreach($group as $person) {
+                    if($person['send']) {
+                        $firebase_token = AffiliateToken::whereAffiliateId($person['affiliate_id'])->select('firebase_token')->get()[0];
                         array_push($params['tokens'], $firebase_token['firebase_token']);
-                        array_push($params['ids'],   $send['affiliate_id']);
+                        array_push($params['ids'],   $person['affiliate_id']);
                     }
                 }
+                logger(count($params['tokens']));
+                             
                 $res = $this->delegate_shipping($params['data'], $params['tokens'], $params['ids']); 
                 if($res['status'] && count($params['tokens']) != 0) {
                     $status = $res['delivered'];
@@ -815,7 +834,10 @@ class NotificationController extends Controller
                 else { $result = false; break; }
                 logger("-----------------    ENVÍO LOTE NRO $i  --------------------------");
                 sleep(1);
-            } while($i < $interval);
+                $i++;
+                $params['tokens'] = [];  
+                $params['ids']  = [];
+            }
 
             return $result ? response()->json([
                 'error'   => false,
@@ -880,5 +902,99 @@ class NotificationController extends Controller
                 'message' => $e->getMessage()
             ], 500);
         }*/
+    }
+
+    public function get_report(Request $request) {                
+        $start_date = $request->start_date;
+        $end_date = $request->end_date;
+        $media_type = $request->type; // todos, SMS, notificaciones App,
+        switch($media_type) {
+            case '1':
+                $sms = false;
+                $app = true;
+                break;
+            case '2':
+                $app = false;
+                $sms = true;
+                break;
+            default:
+                $app = false;
+                $sms = false;
+                break;
+        }
+        
+        $iteration = NotificationSend::join('users', 'notification_sends.user_id', '=', 'users.id')                                
+                                ->when($sms, function ($query) {
+                                    $query->where('carrier_id', 2);
+                                })
+                                ->when($app, function ($query) {
+                                    $query->where('carrier_id', 1);
+                                })          
+                                ->where('send_date', '>=', $start_date)
+                                ->where('send_date', '<=', $end_date)
+                                ->select('users.username', 'notification_sends.delivered', 'notification_sends.carrier_id', 
+                                'notification_sends.number_id', 'notification_sends.sendable_type', 'notification_sends.sendable_id', 
+                                'notification_sends.send_date', 'notification_sends.message')->get(); 
+        $result = collect();    
+
+        foreach($iteration as $it) {
+            $temp = collect();
+            $temp->push($it->username);
+            if(intval($it->delivered) === 1) {
+                $delivered = "Enviado";
+            } else $delivered = "No envidado";
+            $temp->push($delivered);
+            if(!is_null(NotificationCarrier::find(intval($it->carrier_id)))) {
+                $name = NotificationCarrier::find(intval($it->carrier_id))->name;
+                if($name == 'Notifications') $name = 'Notificación APP';                
+            } else $name = null;
+            $temp->push($name);
+            if($media_type == 2) {
+                if(!is_null(NotificationNumber::find(intval($it->number_id)))) {
+                    $number = NotificationNumber::find(intval($it->number_id))->number;
+                } else  $number = null;
+                $temp->push($number);             
+            }
+            $flag = true;
+            switch($it->sendable_type) {
+                
+                case 'economic_complements':                                        
+                    if(!is_null(EconomicComplement::find(intval($it->sendable_id)))) {
+                        $type = 'Complemento Económico';
+                        $eco_com = EconomicComplement::find(intval($it->sendable_id));
+                        $nup = $eco_com->affiliate_id;
+                        $code = $eco_com->code;
+                        $message = json_decode($it->message)->data->text;
+                    } else $flag = false;             
+                    break;
+                case 'loans':                    
+                    if(!is_null(Loan::find(intval($it->sendable_id)))) {
+                        $type = 'Préstamo';
+                        $loan = Loan::find(intval($it->sendable_id));
+                        $nup = $loan->affiliate_id;
+                        $code = $loan->code;
+                        $message = json_decode($it->message)->data;
+                    } else $flag = false;
+                    break;
+                case 'affiliates':                    
+                    if(!is_null(Affiliate::find(intval($it->sendable_id)))) {
+                        $type = 'Afiliado';
+                        $nup = Affiliate::find(intval($it->sendable_id))->identity_card;
+                        $code = null;
+                        $message = json_decode($it->message)->data; 
+                    } else $flag = false;
+                    break;
+            }
+            if($flag){
+                $temp->push($type);
+                $temp->push($code);
+                $temp->push($nup);
+                $temp->push($it->send_date);
+                $temp->push($message);
+                $result->push($temp);
+            }
+            
+        }
+        return Excel::download(new NotificacitonSendExport($result, $media_type), 'notifications.xlsx');
     }
 }

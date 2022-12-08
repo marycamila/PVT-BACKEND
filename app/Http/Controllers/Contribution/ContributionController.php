@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Contribution;
 use App\Helpers\Util;
 use App\Http\Controllers\Controller;
 use App\Models\Affiliate\Affiliate;
-use App\Models\Affiliate\Breakdown;
 use App\Models\Affiliate\Degree;
 use App\Models\Contribution\Contribution;
 use App\Models\Contribution\Reimbursement;
@@ -14,7 +13,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Auth;
-use Illuminate\Support\Facades\App;
 
 class ContributionController extends Controller
 {
@@ -309,12 +307,11 @@ class ContributionController extends Controller
     public function show(Request $request)
     {
         $affiliate = Affiliate::find($request->affiliate_id);
-
-        if (isset($affiliate)) {
-            $year_min = $this->get_minimum_year($request->affiliate_id);
-            $year_max = $this->get_maximum_year($request->affiliate_id);
+        $hasContributions = $affiliate->contributions;
+        if (sizeof($hasContributions) > 0) {
+            $year_min = $affiliate->minimum_year_contribution_active;
+            $year_max = $affiliate->maximum_year_contribution_active;
             $contribution_total = 0;
-
             $all_contributions = collect();
 
             $reimbursements = Reimbursement::whereAffiliateId($request->affiliate_id)
@@ -373,7 +370,7 @@ class ContributionController extends Controller
             }
 
             return response()->json([
-                'affiliateExist' => true,
+                'hasContributions' => true,
                 'payload' => [
                     'first_name' => $affiliate->first_name,
                     'second_name' => $affiliate->second_name,
@@ -387,27 +384,10 @@ class ContributionController extends Controller
             ]);
         } else {
             return response()->json([
-                'affiliateExist' => false,
+                'hasContributions' => false,
                 'payload' => []
             ]);
         }
-    }
-
-    public function get_minimum_year($id)
-    {
-        $data = DB::table('contributions')->where('affiliate_id', $id)->min('month_year');
-        $min = Carbon::parse($data)->format('Y');
-        return $min;
-    }
-
-    public function get_maximum_year($id)
-    {
-        $max2 = 0;
-        $data2 = DB::table('contributions')->where('affiliate_id', $id)->max('month_year');
-        if ($data2 != null) {
-            $max2 = Carbon::parse($data2)->format('Y');
-        }
-        return $max2;
     }
 
     public function printCertificationContributionActive(Request $request, $affiliate_id)

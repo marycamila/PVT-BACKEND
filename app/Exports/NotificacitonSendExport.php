@@ -62,7 +62,7 @@ class NotificacitonSendExport implements FromCollection, WithHeadings, ShouldAut
                 'USUARIO',
                 'ESTADO',
                 'SMS/APP',
-                'NÚMERO',
+                // 'NÚMERO',
                 'TIPO',
                 'CÓDIGO',
                 'NUP',

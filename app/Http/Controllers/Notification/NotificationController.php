@@ -929,12 +929,12 @@ class NotificationController extends Controller
                                 })
                                 ->when($app, function ($query) {
                                     $query->where('carrier_id', 1);
-                                })          
+                                })
                                 ->where('send_date', '>=', $start_date)
                                 ->where('send_date', '<=', $end_date)
                                 ->select('users.username', 'notification_sends.delivered', 'notification_sends.carrier_id', 
                                 'notification_sends.number_id', 'notification_sends.sendable_type', 'notification_sends.sendable_id', 
-                                'notification_sends.send_date', 'notification_sends.message')->get(); 
+                                'notification_sends.send_date', 'notification_sends.message','notification_sends.created_at')->get(); 
         $result = collect();    
 
         foreach($iteration as $it) {
@@ -950,10 +950,10 @@ class NotificationController extends Controller
             } else $name = null;
             $temp->push($name);
             if($media_type == 2) {
-                if(!is_null(NotificationNumber::find(intval($it->number_id)))) {
-                    $number = NotificationNumber::find(intval($it->number_id))->number;
-                } else  $number = null;
-                $temp->push($number);             
+                // if(!is_null(NotificationNumber::find(intval($it->number_id)))) {
+                //     $number = NotificationNumber::find(intval($it->number_id))->number;
+                // } else  $number = null;
+                // $temp->push($number);             
             }
             $flag = true;
             switch($it->sendable_type) {
@@ -979,7 +979,8 @@ class NotificationController extends Controller
                 case 'affiliates':                    
                     if(!is_null(Affiliate::find(intval($it->sendable_id)))) {
                         $type = 'Afiliado';
-                        $nup = Affiliate::find(intval($it->sendable_id))->identity_card;
+                        $nup = Affiliate::find(intval($it->sendable_id))->id;
+                        // $nup = Affiliate::find(intval($it->sendable_id))?Affiliate::find(intval($it->sendable_id))->id:null;
                         $code = null;
                         $message = json_decode($it->message)->data; 
                     } else $flag = false;
@@ -989,7 +990,7 @@ class NotificationController extends Controller
                 $temp->push($type);
                 $temp->push($code);
                 $temp->push($nup);
-                $temp->push($it->send_date);
+                $temp->push($it->created_at);
                 $temp->push($message);
                 $result->push($temp);
             }

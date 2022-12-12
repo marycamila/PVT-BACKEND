@@ -307,8 +307,8 @@ class ContributionController extends Controller
     public function show(Request $request)
     {
         $affiliate = Affiliate::find($request->affiliate_id);
-
-        if (isset($affiliate)) {
+        $hasContributions = $affiliate->contributions;
+        if (sizeof($hasContributions) > 0) {
             $year_min = $affiliate->minimum_year_contribution_active;
             $year_max = $affiliate->maximum_year_contribution_active;
             $contribution_total = 0;
@@ -370,7 +370,7 @@ class ContributionController extends Controller
             }
 
             return response()->json([
-                'affiliateExist' => true,
+                'hasContributions' => true,
                 'payload' => [
                     'first_name' => $affiliate->first_name,
                     'second_name' => $affiliate->second_name,
@@ -384,7 +384,7 @@ class ContributionController extends Controller
             ]);
         } else {
             return response()->json([
-                'affiliateExist' => false,
+                'hasContributions' => false,
                 'payload' => []
             ]);
         }

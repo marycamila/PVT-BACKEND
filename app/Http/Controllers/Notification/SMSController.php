@@ -46,14 +46,14 @@ class SMSController extends Controller
         ]);
 
         $threshold = 10;
-        if(Util::check_balance() <= $threshold) {
-            return response()->json([
-                'error' => true,
-                'message' => 'Línea telefónica sin saldo',
-                'cell_phone_number' => null,
-                'errors' => []
-            ]);
-        }
+        // if(Util::check_balance() <= $threshold) {
+        //     return response()->json([
+        //         'error' => true,
+        //         'message' => 'Línea telefónica sin saldo',
+        //         'cell_phone_number' => null,
+        //         'errors' => []
+        //     ]);
+        // }
         if(Util::delegate_shipping($shipments, $user_id, 1, 'affiliate')) {
             return response()->json([
                 'error' => false,
@@ -101,7 +101,7 @@ class SMSController extends Controller
                 'data' => []
             ]);
         }
-        return Util::delegate_shipping($shippable, $user_id) ? response()->json([
+        return Util::delegate_shipping($shippable, $user_id,1,true) ? response()->json([
             'error' => false,
             'message' => 'Envío de mensajes exitoso!',
             'data' => [

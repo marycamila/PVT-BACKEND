@@ -28,6 +28,9 @@ class AffiliateRequest extends FormRequest
     {
         $rules = [
             'affiliate_state_id' => 'nullable|exists:affiliate_states,id',
+            'gender' => 'in:M,F',
+            'birth_date' => 'date_format:"Y-m-d"',
+            'civil_status' => 'in:C,D,S,V',
             'degree_id' => 'nullable|exists:degrees,id',
             'identity_card' => 'alpha_dash|min:5|max:15',
             'first_name' => 'alpha_spaces|min:3',
@@ -35,10 +38,7 @@ class AffiliateRequest extends FormRequest
             'last_name' => 'sometimes|required_without:mothers_last_name|nullable|alpha_spaces|min:3',
             'mothers_last_name' => 'sometimes|required_without:last_name|nullable|alpha_spaces|min:3',
             'surname_husband' => 'nullable|alpha_spaces|min:3',
-            'gender' => 'nullable|in:M,F',
-            'birth_date' => 'nullable|date_format:"Y-m-d"',
-            'city_birth_id' => 'nullable|exists:cities,id',
-            'civil_status' => 'in:C,D,S,V',
+            'city_birth_id' => 'exists:cities,id',
             'city_identity_card_id' => 'nullable|exists:cities,id',
             'pension_entity_id' => 'nullable|exists:pension_entities,id',
             'cell_phone_number' => 'nullable|array',
@@ -55,7 +55,7 @@ class AffiliateRequest extends FormRequest
         ];
         switch ($this->method()) {
             case 'POST': {
-                    foreach (array_slice($rules, 0, 3) as $key => $rule) {
+                    foreach (array_slice($rules, 0, 6) as $key => $rule) {
                         $rules[$key] = implode('|', ['required', $rule]);
                     }
                     $rules['identity_card'] = implode('|', ['unique:affiliates', $rules['identity_card']]);

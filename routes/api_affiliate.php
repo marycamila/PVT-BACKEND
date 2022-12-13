@@ -27,7 +27,7 @@ Route::group([
         Route::group([
             'middleware' => 'permission:show-affiliate'
         ], function () {
-            Route::apiResource('/affiliate', App\Http\Controllers\Affiliate\AffiliateController::class)->only(['index','show']);
+            Route::apiResource('/affiliate', App\Http\Controllers\Affiliate\AffiliateController::class)->only(['index','show','store']);
             Route::get('affiliate/{affiliate}/spouse', [App\Http\Controllers\Affiliate\AffiliateController::class, 'get_spouse']);
             Route::get('/affiliate/{affiliate}/address', [App\Http\Controllers\Affiliate\AffiliateController::class, 'get_addresses']);
         });

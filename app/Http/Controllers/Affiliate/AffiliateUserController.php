@@ -9,6 +9,8 @@ use App\Models\Affiliate\Affiliate;
 use App\Models\Affiliate\AffiliateToken;
 use App\Models\Affiliate\AffiliateUser;
 use App\Models\Affiliate\Spouse;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -90,6 +92,13 @@ class AffiliateUserController extends Controller
                 'payload'=>[]
             ],403);
         }
+        if ($isDead && !$affiliate->spouse) {
+            return response()->json([
+                'error'=>true,
+                'message' => 'no tiene esposa',
+                'payload'=>[]
+            ],403);
+        }
         $user=Auth::user()->id;
         $isAffiliateToken = DB::table('affiliate_tokens')->where('affiliate_id', $AffiliateId)->exists();
         if (!$isAffiliateToken) {
@@ -98,7 +107,7 @@ class AffiliateUserController extends Controller
             $AffiliateToken->save();
             $AffiliateUser = new AffiliateUser;
             $AffiliateUser->affiliate_token_id = $AffiliateToken->id;
-            if (Affiliate::find($AffiliateId)->spouse && $isDead) {
+            if ($affiliate->spouse && $isDead) {
                 $spouse=Spouse::where('affiliate_id',$AffiliateId)->first();
                 $existUser=DB::table('affiliate_users')->where('username', $spouse->identity_card)->exists();
                 $existUser?$AffiliateUser->username="V".$spouse->identity_card:$AffiliateUser->username=$spouse->identity_card;
@@ -119,7 +128,6 @@ class AffiliateUserController extends Controller
             else {
                 $existUser=DB::table('affiliate_users')->where('username', $affiliate->identity_card)->exists();
                 $existUser?$AffiliateUser->username="T".$affiliate->identity_card:$AffiliateUser->username=$affiliate->identity_card;
-                // $AffiliateUser->username= $affiliate->identity_card;
                 $password=$this->Generate_pin();
                 $AffiliateUser->password = Hash::make($password);
                 $AffiliateUser->save();
@@ -143,7 +151,6 @@ class AffiliateUserController extends Controller
                 if ($AffiliateUser->access_status!='Activo'){
                     if (Affiliate::find($AffiliateId)->spouse && $isDead) {
                         $spouse=Spouse::where('affiliate_id',$AffiliateId)->first();
-                        // $AffiliateUser->username=$spouse->identity_card;
                         $existUser=DB::table('affiliate_users')->where('username', $spouse->identity_card)->exists();
                         $existUser?$AffiliateUser->username="V".$spouse->identity_card:$AffiliateUser->username=$spouse->identity_card;
                         $password=$this->Generate_pin();
@@ -346,7 +353,7 @@ class AffiliateUserController extends Controller
                     if (Hash::check($request->password,$password)) {
                         return response()->json([
                             "error"=> false,
-                            'message' => 'Acceso Correcto cambie la password',
+                            'message' => 'Acceso correcto cambie la contraseña',
                             'data'=> [
                                 'status'=> $state
                             ]
@@ -541,7 +548,6 @@ class AffiliateUserController extends Controller
     * @param Request $request
     * @return void
     */
-
     public function send_code_reset_password(Request $request){
         $request->validate([
             'ci' => 'required',
@@ -731,5 +737,69 @@ class AffiliateUserController extends Controller
         return response()->json([
             'message' => 'cambiada',
         ], 200);
+    }
+    public function credential_document(Request $request, Affiliate $affiliate)
+    {
+        $affiliate=Affiliate::find($request->id);
+        $worker=Auth::user();
+        $persons = collect([]);
+        $spouse=$affiliate->spouse;
+        $hasAcces=false;
+        if ($affiliateUser=$affiliate->affiliate_token) {
+            $affiliateUser=$affiliate->affiliate_token->affiliate_User;
+            if ($affiliateUser) {
+                $hasAcces=true;
+            }
+        }
+        if($hasAcces){
+            if($affiliate->dead && $affiliate->spouse){
+                $spouse=$affiliate->spouse;
+                $persons->push([
+                    'id' => $spouse->id,
+                    'full_name' => $spouse->full_name,
+                    'identity_card' => $affiliate->identity_card_ext,
+                    'position' => 'SOLICITANTE',
+                ]);
+            }
+            else {
+                $persons->push([
+                    'id' => $affiliate->id,
+                    'full_name' => implode(' ', [$affiliate->title && $affiliate->type=="affiliates" ? $affiliate->title : '', $affiliate->full_name]),
+                    'identity_card' => $affiliate->identity_card_ext,
+                    'position' => 'SOLICITANTE',
+                ]);
+            }
+            $persons->push([
+            'id' => $worker->id,
+            'full_name' => $worker->full_name,
+            'position' => $worker->position,
+            ]);
+            $data = [
+                'header' => [
+                    'direction' => 'DIRECCIÓN DE ESTRATEGIAS SOCIALES E INVERSIONES',
+                    'unity' => 'UNIDAD DE INVERSIÓN EN PRÉSTAMOS',
+                    'table' => [
+                        ['Fecha', Carbon::now()->format('d/m/Y')],
+                        ['Hora', Carbon::now()->format('H:i')],
+                    ]
+                ],
+                'title' => 'SOLICITUD DE OFICINA VIRTUAL',
+                'user' => $affiliate,
+                'credential'=>$affiliateUser,
+                'fecha'=> $affiliateUser->created_at->format('d/m/Y'),
+                'signers'=>$persons,
+                'copies'=>2
+            ];
+            $pdf=PDF::loadView('virtualOffice.credential',$data);
+            return $pdf->stream();
+        }
+        else {
+            return response()->json(
+                [
+                    'error'=> true,
+                    'message'=> 'el afiliado no tiene credenciales'
+                ]
+                );
+        }
     }
 }

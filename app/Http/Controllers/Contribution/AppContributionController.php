@@ -219,6 +219,16 @@ class AppContributionController extends Controller
             'contributions' => $contributions
         ];
         $pdf = PDF::loadView('contribution.print.app_certification_contribution_eco_com', $data);
+        $pdf->output();
+        $dom_pdf = $pdf->getDomPDF();
+        $canvas = $dom_pdf->get_canvas();
+
+        $width = $canvas->get_width();
+        $height = $canvas->get_height();
+        $pageNumberWidth = $width / 2;
+        $pageNumberHeight = $height - 35;
+        $canvas->page_text($pageNumberWidth, $pageNumberHeight, "Página {PAGE_NUM} de {PAGE_COUNT}", null, 10, array(0, 0, 0));
+        
         return $pdf->download('aportes_pas_' . $affiliate_id . '.pdf');
     }
 
@@ -259,7 +269,16 @@ class AppContributionController extends Controller
         ];
 
         $pdf = PDF::loadView('contribution.print.app_certification_contribution_active', $data);
-        $pdf->setPaper('letter', 'portrait');
+        $pdf->output();
+        $dom_pdf = $pdf->getDomPDF();
+        $canvas = $dom_pdf->get_canvas();
+
+        $width = $canvas->get_width();
+        $height = $canvas->get_height();
+        $pageNumberWidth = $width / 2;
+        $pageNumberHeight = $height - 35;
+        $canvas->page_text($pageNumberWidth, $pageNumberHeight, "Página {PAGE_NUM} de {PAGE_COUNT}", null, 10, array(0, 0, 0));
+
         return $pdf->download('aportes_act_' . $affiliate_id . '.pdf');
     }
 

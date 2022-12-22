@@ -325,6 +325,16 @@ class ContributionPassiveController extends Controller
             'contributions' => $contributions
         ];
         $pdf = PDF::loadView('contribution.print.certification_contribution_eco_com', $data);
+        $pdf->output();
+        $dom_pdf = $pdf->getDomPDF();
+        $canvas = $dom_pdf->get_canvas();
+
+        $width = $canvas->get_width();
+        $height = $canvas->get_height();
+        $pageNumberWidth = $width / 2;
+        $pageNumberHeight = $height - 35;
+        $canvas->page_text($pageNumberWidth, $pageNumberHeight, "Página {PAGE_NUM} de {PAGE_COUNT}", null, 10, array(0, 0, 0));
+        
         return $pdf->stream('aportes_pas_' . $affiliate_id . '.pdf');
     }
 

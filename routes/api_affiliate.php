@@ -16,6 +16,7 @@ Route::group([
         'middleware' => ['auth:sanctum']
     ], function () {
         Route::get('/credential_status/{id}', [App\Http\Controllers\Affiliate\AffiliateController::class, 'credential_status']);
+        Route::get('credential_document/{id}',[App\Http\Controllers\Affiliate\AffiliateUserController::class, 'credential_document']);
         Route::apiResource('/address', App\Http\Controllers\Affiliate\AddressController::class)->only(['store','update','destroy']);
         Route::apiResource('/degree', App\Http\Controllers\Affiliate\DegreeController::class)->only(['index','show']);
         Route::apiResource('/unit', App\Http\Controllers\Affiliate\UnitController::class)->only(['index','show']);

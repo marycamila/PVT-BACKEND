@@ -6,15 +6,62 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Affiliate\Spouse;
 use App\Http\Requests\Affiliate\SpouseRequest;
+use Illuminate\Support\Facades\DB;
 
 class SpouseController extends Controller
 {
 
+    public function index(Request $request)
+    {
+        $id_affiliate = request('id_affiliate') ?? '';
+        $identity_card_spouse = request('identity_card_spouses') ?? '';
+        $full_name_spouse  = request('full_name_spouses') ?? '';
+        $conditions = [];
+        $values = [];
+        if ($id_affiliate != '') {
+            array_push($conditions, "affiliate_id  =?");
+            array_push($values, "{$id_affiliate}");
+        }
+        if ($identity_card_spouse != '') {
+            array_push($conditions, "identity_card ilike ?");
+            array_push($values, "%{$identity_card_spouse}%");
+        }
+        if ($full_name_spouse != '') {
+            array_push($conditions, "concat(first_name,' ','second_name',' ',last_name,' ',mothers_last_name) ILIKE ?");
+            array_push($values, "%{$full_name_spouse}%");
+        }
+        $query = DB::table('spouses');
+        $order = request('sortDesc') ?? '';
+        if ($order != '') {
+            if ($order) {
+                $order_year = 'asc';
+            }
+            if (!$order) {
+                $order_year = 'desc';
+            }
+        } else {
+            $order_year = 'desc';
+        }
+        $per_page = $request->per_page ?? 10;
+        if (!empty($conditions)) {
+            $query = $query->select('spouses.*', DB::raw("(concat(spouses.first_name,' ',spouses.second_name,' ',spouses.last_name,' ',spouses.mothers_last_name)) as full_name"))
+                ->whereRaw(implode(" AND ", $conditions), $values);
+        } else {
+            $query = $query->select('spouses.*', DB::raw("(concat(spouses.first_name,' ',spouses.second_name,' ',spouses.last_name,' ',spouses.mothers_last_name)) as full_name"));
+        }
+        $results = $query->orderBy('full_name', $order_year)->paginate($per_page);
+        return response()->json([
+            'message' => 'Realizado con éxito',
+            'payload' => [
+                'spouses' => $results
+            ],
+        ]);
+    }
     public function show(Spouse $spouse)
     {
         return $spouse;
     }
-     /**
+    /**
      * @OA\Post(
      *      path="/api/affiliate/spouse",
      *      tags={"AFILIADO"},
@@ -60,7 +107,7 @@ class SpouseController extends Controller
     {
         return Spouse::create($request->all());
     }
- /**
+    /**
      * @OA\Patch(
      *      path="/api/affiliate/spouse/{spouse}",
      *      tags={"AFILIADO"},

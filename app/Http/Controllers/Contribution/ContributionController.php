@@ -458,14 +458,60 @@ class ContributionController extends Controller
         //
     }
 
-    /**
-     * Remove the specified resource from storage.
+     /**
+     * @OA\delete(
+     *     path="/api/contribution/contribution/{contribution}",
+     *     tags={"CONTRIBUCION"},
+     *     summary="Eliminación de aporte Sector activo",
+     *     operationId="deleteContribution",
+     *     @OA\Parameter(
+     *         description="ID del aporte del sector activo",
+     *         in="path",
+     *         name="contribution",
+     *         required=true,
+     *         @OA\Schema(
+     *             format="int64",
+     *             type="integer"
+     *         )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     },
+     *      @OA\Response(
+     *          response=200,
+     *          description="Success",
+     *          @OA\JsonContent(
+     *            type="object"
+     *         )
+     *      )
+     * )
      *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * Delete list of contributions passive.
+     *
+     * @param Request $request
+     * @return void
      */
-    public function destroy($id)
+    public function destroy( Contribution $contribution)
     {
-        //
+        try{
+            $error = true;
+            $message = 'No es permitido la eliminación del registro';
+            if($contribution->total < 1){
+                $contribution->delete();
+                $error = false;
+                $message = 'Eliminado exitosamente';
+            }
+            return response()->json([
+                'error' => $error,
+                'message' => $message,
+                'data' => $contribution
+            ]);
+        }catch(Exception $e){
+            return response()->json([
+                'error' => true,
+                'message' => $e->getMessage(),
+                'data' => (object)[]
+            ]);
+        }
     }
 }

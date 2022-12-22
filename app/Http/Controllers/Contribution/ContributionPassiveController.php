@@ -352,14 +352,60 @@ class ContributionPassiveController extends Controller
         //
     }
 
-    /**
-     * Remove the specified resource from storage.
+     /**
+     * @OA\delete(
+     *     path="/api/contribution/contributions_passive/{contributionPassive}",
+     *     tags={"CONTRIBUCION"},
+     *     summary="Eliminación de aporte Sector pasivo",
+     *     operationId="deleteContributionPassive",
+     *     @OA\Parameter(
+     *         description="ID del aporte del sector pasivo",
+     *         in="path",
+     *         name="contributionPassive",
+     *         required=true,
+     *         @OA\Schema(
+     *             format="int64",
+     *             type="integer"
+     *         )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     },
+     *      @OA\Response(
+     *          response=200,
+     *          description="Success",
+     *          @OA\JsonContent(
+     *            type="object"
+     *         )
+     *      )
+     * )
      *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * Delete list of contributions passive.
+     *
+     * @param Request $request
+     * @return void
      */
-    public function destroy($id)
+    public function destroy( ContributionPassive $contributionPassive)
     {
-        //
+        try{
+            $error = true;
+            $message = 'No es permitido la eliminación del registro';
+            if($contributionPassive->total < 1 || is_null($contributionPassive->contributionable_type) || ($contributionPassive->contribution_state_id == 1 && $contributionPassive->contributionable_type == 'discount_type_economic_complement')){
+                $contributionPassive->delete();
+                $error = false;
+                $message = 'Eliminado exitosamente';
+            }
+            return response()->json([
+                'error' => $error,
+                'message' => $message,
+                'data' => $contributionPassive
+            ]);
+        }catch(Exception $e){
+            return response()->json([
+                'error' => true,
+                'message' => $e->getMessage(),
+                'data' => (object)[]
+            ]);
+        }
     }
 }

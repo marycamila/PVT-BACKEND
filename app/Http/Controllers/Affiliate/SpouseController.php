@@ -27,7 +27,8 @@ class SpouseController extends Controller
             array_push($values, "%{$identity_card_spouse}%");
         }
         if ($full_name_spouse != '') {
-            array_push($conditions, "concat(first_name,' ','second_name',' ',last_name,' ',mothers_last_name) ILIKE ?");
+            array_push($conditions, "concat(first_name,second_name,last_name,mothers_last_name) ILIKE ?");
+            $full_name_spouse= str_replace(' ', '', $full_name_spouse);
             array_push($values, "%{$full_name_spouse}%");
         }
         $query = DB::table('spouses');

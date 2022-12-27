@@ -10,6 +10,68 @@ use Illuminate\Support\Facades\DB;
 
 class SpouseController extends Controller
 {
+    /**
+     * @OA\Get(
+     *     path="/api/affiliate/spouse",
+     *     tags={"AFILIADO"},
+     *     summary="LISTADO DE CONYUGES",
+     *     operationId="getSpouses",
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         description="Página a mostrar",
+     *         example=1,
+     *         required=false,
+     *       ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Por Página",
+     *         example=10,
+     *         required=false,
+     *     ),
+     *     @OA\Parameter(
+     *         name="sortDesc",
+     *         in="query",
+     *         description="Vector de orden descendente(0) o ascendente(1)",
+     *         example=1,
+     *         required=false,
+     *     ),
+     *    @OA\Parameter(
+     *         name="id_affiliate",
+     *         in="query",
+     *         description="Filtro por id del Afiliado",
+     *         required=false,
+     *     ),
+     *     @OA\Parameter(
+     *         name="identity_card_spouses",
+     *         in="query",
+     *         description="Filtro por Cédula de Identidad",
+     *         required=false,
+     *     ),
+     *     @OA\Parameter(
+     *         name="full_name_spouses",
+     *         in="query",
+     *         description="Filtro por Nombre o Apellido",
+     *         required=false,
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *         type="object"
+     *         )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     }
+     * )
+     *
+     * Get list of affiliates.
+     *
+     * @param Request $request
+     * @return void
+     */
 
     public function index(Request $request)
     {

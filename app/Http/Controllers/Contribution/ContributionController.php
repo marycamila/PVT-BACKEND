@@ -90,6 +90,7 @@ class ContributionController extends Controller
     {
         $request->validate([
             'affiliate_id' => 'required|integer|exists:contributions,affiliate_id',
+            'con_re' => 'nullable|in:CON,RE'
         ]);
 
         $year = request('year') ?? '';
@@ -124,7 +125,7 @@ class ContributionController extends Controller
 
         $affiliate = Affiliate::find($request->affiliate_id);
 
-        if (strtoupper($con_re) == 'RE' || strtoupper($con_re) == 'R') {
+        if (strtoupper($con_re) == 'RE') {
             return $reimbursements = $affiliate->reimbursements()->selectRaw(
                 "
                 affiliate_id,
@@ -154,8 +155,7 @@ class ContributionController extends Controller
                 ->where($conditions)
                 ->orderBy('month_year', $order_year)
                 ->paginate($per_page);
-        } else {
-            if (strtoupper($con_re) == 'C' || strtoupper($con_re) == 'CO' || strtoupper($con_re) == 'CON') {
+        } elseif(strtoupper($con_re) == 'CON') {
                 return $contributions = $affiliate->contributions()->selectRaw(
                     "
                 affiliate_id,
@@ -185,7 +185,6 @@ class ContributionController extends Controller
                     ->where($conditions)
                     ->orderBy('month_year', $order_year)
                     ->paginate($per_page);
-            }
         }
         if ($con_re == '') {
             $reimbursements = $affiliate->reimbursements()->selectRaw(

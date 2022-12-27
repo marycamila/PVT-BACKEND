@@ -71,15 +71,21 @@
     </div>
     <br>
     <div class="text-justify border-grey-darker rounded">
-        <p class="px-10 my-5">
-            <b>NOTA.- </b>La presente certificación contiene informacion de aportes registrados en la Base de
-            Datos
-            de la MUSERPOL (considerando la existencia de registros de aportes en el Sistema Institucional a
-            partir de Febrero de 1999 en adelante). Asímismo, este documento no contempla toda la
-            información de la planilla de pago, por lo que no es válido para trámites administrativos,
-            siendo de uso exclusivo de la MUSERPOL.<br>
-            Es cuanto se certifica, para fines consiguientes.
-        </p>
+        <table class="w-100 text-xxs p-10">
+            <tbody>
+                <tr>
+                    <td>
+                        <b>NOTA.- </b>La presente certificación contiene informacion de aportes registrados en la Base de
+                        Datos
+                        de la MUSERPOL (considerando la existencia de registros de aportes en el Sistema Institucional a
+                        partir de Febrero de 1999 en adelante). Asímismo, este documento no contempla toda la
+                        información de la planilla de pago, por lo que no es válido para trámites administrativos,
+                        siendo de uso exclusivo de la MUSERPOL.<br>
+                        Es cuanto se certifica, para fines consiguientes.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     </div>
     <br>
     <div>

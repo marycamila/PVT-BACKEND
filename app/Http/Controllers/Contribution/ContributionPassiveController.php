@@ -325,6 +325,16 @@ class ContributionPassiveController extends Controller
             'contributions' => $contributions
         ];
         $pdf = PDF::loadView('contribution.print.certification_contribution_eco_com', $data);
+        $pdf->output();
+        $dom_pdf = $pdf->getDomPDF();
+        $canvas = $dom_pdf->get_canvas();
+
+        $width = $canvas->get_width();
+        $height = $canvas->get_height();
+        $pageNumberWidth = $width / 2;
+        $pageNumberHeight = $height - 35;
+        $canvas->page_text($pageNumberWidth, $pageNumberHeight, "Página {PAGE_NUM} de {PAGE_COUNT}", null, 10, array(0, 0, 0));
+        
         return $pdf->stream('aportes_pas_' . $affiliate_id . '.pdf');
     }
 
@@ -352,14 +362,60 @@ class ContributionPassiveController extends Controller
         //
     }
 
-    /**
-     * Remove the specified resource from storage.
+     /**
+     * @OA\delete(
+     *     path="/api/contribution/contributions_passive/{contributionPassive}",
+     *     tags={"CONTRIBUCION"},
+     *     summary="Eliminación de aporte Sector pasivo",
+     *     operationId="deleteContributionPassive",
+     *     @OA\Parameter(
+     *         description="ID del aporte del sector pasivo",
+     *         in="path",
+     *         name="contributionPassive",
+     *         required=true,
+     *         @OA\Schema(
+     *             format="int64",
+     *             type="integer"
+     *         )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     },
+     *      @OA\Response(
+     *          response=200,
+     *          description="Success",
+     *          @OA\JsonContent(
+     *            type="object"
+     *         )
+     *      )
+     * )
      *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * Delete list of contributions passive.
+     *
+     * @param Request $request
+     * @return void
      */
-    public function destroy($id)
+    public function destroy( ContributionPassive $contributionPassive)
     {
-        //
+        try{
+            $error = true;
+            $message = 'No es permitido la eliminación del registro';
+            if($contributionPassive->total < 1 || is_null($contributionPassive->contributionable_type) || ($contributionPassive->contribution_state_id == 1 && $contributionPassive->contributionable_type == 'discount_type_economic_complement')){
+                $contributionPassive->delete();
+                $error = false;
+                $message = 'Eliminado exitosamente';
+            }
+            return response()->json([
+                'error' => $error,
+                'message' => $message,
+                'data' => $contributionPassive
+            ]);
+        }catch(Exception $e){
+            return response()->json([
+                'error' => true,
+                'message' => $e->getMessage(),
+                'data' => (object)[]
+            ]);
+        }
     }
 }

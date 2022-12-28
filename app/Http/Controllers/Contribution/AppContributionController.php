@@ -160,11 +160,13 @@ class AppContributionController extends Controller
         if ($affiliate->dead && $affiliate->spouse != null) {
             $contributions_passives = ContributionPassive::whereAffiliateId($affiliate_id)
                 ->where('affiliate_rent_class', 'VIUDEDAD')
+                ->where('contribution_state_id', 2)
                 ->orderBy('month_year', 'asc')
                 ->get();
             $value = true;
         } else {
             $contributions_passives = ContributionPassive::whereAffiliateId($affiliate_id)
+                ->where('contribution_state_id', 2)
                 ->orderBy('month_year', 'asc')
                 ->get();
         }
@@ -228,7 +230,7 @@ class AppContributionController extends Controller
         $pageNumberWidth = $width / 2;
         $pageNumberHeight = $height - 35;
         $canvas->page_text($pageNumberWidth, $pageNumberHeight, "Página {PAGE_NUM} de {PAGE_COUNT}", null, 10, array(0, 0, 0));
-        
+
         return $pdf->download('aportes_pas_' . $affiliate_id . '.pdf');
     }
 

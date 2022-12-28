@@ -270,6 +270,7 @@ class ContributionPassiveController extends Controller
 
         $contributions_passives = ContributionPassive::whereAffiliateId($affiliate_id)
             ->where('affiliate_rent_class', 'ilike', $request->affiliate_rent_class)
+            ->where('contribution_state_id', 2)
             ->orderBy('month_year', 'asc')
             ->get();
 

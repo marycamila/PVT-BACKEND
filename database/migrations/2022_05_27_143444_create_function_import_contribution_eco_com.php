@@ -174,7 +174,7 @@ return new class extends Migration
 DB::statement("CREATE OR REPLACE FUNCTION public.import_contribution_eco_com(id_user bigint, eco_com_procedure bigint, id_eco_com bigint)
 RETURNS character varying
 LANGUAGE plpgsql
-AS $function$
+AS $$
       declare
       amount_semester numeric := 0;
       amount_month numeric := 0;
@@ -334,7 +334,7 @@ AS $function$
                                where contribution_passives.id = contribution_passive.id;
                               is_change = true;
                             end if;
-                             if((contribution_passive.aps_total_death <> record_row.aps_total_death) or (record_row.aps_total_death is null and contribution_passive.aps_total_death > 0))then 
+                             if((contribution_passive.aps_total_death <> record_row.aps_total_death) or (record_row.aps_total_death is null and contribution_passive.aps_total_death > 0))then
                               update public.contribution_passives
                               set user_id = id_user,
                                   aps_total_death = CASE WHEN record_row.aps_total_death is not null THEN record_row.aps_total_death ELSE 0 END,
@@ -369,8 +369,8 @@ AS $function$
       end loop;
       message := tramit_number||','||contribution_created||','||contribution_updated||','||is_validate||','||not_valid_period;
       return message;
-      end;  $$
-;
+      end;
+      $$;
       ");
 
     }

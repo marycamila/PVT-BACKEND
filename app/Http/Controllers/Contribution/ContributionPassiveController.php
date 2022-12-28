@@ -402,7 +402,7 @@ class ContributionPassiveController extends Controller
         try{
             $error = true;
             $message = 'No es permitido la eliminación del registro';
-            if($contributionPassive->total < 1 || is_null($contributionPassive->contributionable_type) || ($contributionPassive->contribution_state_id == 1 && $contributionPassive->contributionable_type == 'discount_type_economic_complement')){
+            if($contributionPassive->can_delete()){
                 $contributionPassive->delete();
                 $error = false;
                 $message = 'Eliminado exitosamente';

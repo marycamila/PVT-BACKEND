@@ -101,5 +101,8 @@ class Contribution extends Model
     {
         return ContributionRate::whereMonth_year($month_year)->get()->first()? true:false;
     }
+    public function can_deleted(){
+        return $this->total < 1 ? true : false;
+    }
 
 }

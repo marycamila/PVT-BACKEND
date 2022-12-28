@@ -247,6 +247,7 @@ class ContributionPassiveController extends Controller
             }
             $contributions_passive->year = $year;
             $contributions_passive->month = $month;
+            $contributions_passive->contribution_state;
         }
         return $contributions_passives;
     }

@@ -128,6 +128,7 @@ class ContributionController extends Controller
         if (strtoupper($con_re) == 'RE') {
             return $reimbursements = $affiliate->reimbursements()->selectRaw(
                 "
+                reimbursements.id as reimbursement_id,
                 affiliate_id,
                 month_year,
                 extract(month from month_year) as month,
@@ -158,6 +159,7 @@ class ContributionController extends Controller
         } elseif(strtoupper($con_re) == 'CON') {
                 return $contributions = $affiliate->contributions()->selectRaw(
                     "
+                    contributions.id as contribution_id,
                 affiliate_id,
                 month_year,
                 extract(month from month_year) as month,
@@ -189,6 +191,7 @@ class ContributionController extends Controller
         if ($con_re == '') {
             $reimbursements = $affiliate->reimbursements()->selectRaw(
                 "
+                reimbursements.id as reimbursement_id,
                 affiliate_id,
                 month_year,
                 extract(month from month_year) as month,
@@ -218,6 +221,7 @@ class ContributionController extends Controller
 
             return $contributions = $affiliate->contributions()->selectRaw(
                 "
+                contributions.id as contribution_id,
                 affiliate_id,
                 month_year,
                 extract(month from month_year) as month,

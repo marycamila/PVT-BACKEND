@@ -193,14 +193,14 @@ class CreateFunctionTmpContributionEcoCom extends Migration
                                    updated_at = current_timestamp
                                 where contribution_passives.id = contribution_passive.id;
                              end if;
-                              if(contribution_passive.aps_total_death <> record_row.aps_total_death or (record_row.aps_total_death is null and contribution_passive.aps_total_death > 0))then
+                              if((contribution_passive.aps_total_death <> record_row.aps_total_death) or (record_row.aps_total_death is null and contribution_passive.aps_total_death > 0))then
                                update public.contribution_passives
                                set user_id = id_user,
                                    aps_total_death = CASE WHEN record_row.aps_total_death is not null THEN record_row.aps_total_death ELSE 0 END,
                                    updated_at = current_timestamp
                                 where contribution_passives.id = contribution_passive.id;
                              end if;
-                              if(contribution_passive.aps_disability <> record_row.aps_disability or (record_row.aps_disability is null and contribution_passive.aps_disability > 0))then
+                              if((contribution_passive.aps_disability <> record_row.aps_disability) or (record_row.aps_disability is null and contribution_passive.aps_disability > 0))then
                                update public.contribution_passives
                                set user_id = id_user,
                                    aps_disability = CASE WHEN record_row.aps_disability is not null THEN record_row.aps_disability ELSE 0 END,

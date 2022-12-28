@@ -350,7 +350,8 @@ class AffiliateController extends Controller
      *              @OA\Property(property="nua", type="integer",description="número de NUA",example=1301101),     
      *              @OA\Property(property="account_number", type="integer",description="número de cuenta del afiliado",example=10000017711404),     
      *              @OA\Property(property="financial_entity_id", type="integer",description="id de la entidad financiera de la cuenta del afiliado",example=1),  
-     *              @OA\Property(property="sigep_status", type="string",description="estado de la cuenta SIGEP",example="ACTIVO")
+     *              @OA\Property(property="sigep_status", type="string",description="estado de la cuenta SIGEP",example="ACTIVO"),
+     *              @OA\Property(property="cell_phone_number", type="array", @OA\Items(type="string"), description="número de celular", example={"(772)-36645","(787)-79597"})
      *          )
      *     ),
      *      @OA\Response(

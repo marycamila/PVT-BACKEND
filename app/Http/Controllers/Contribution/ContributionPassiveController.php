@@ -270,6 +270,7 @@ class ContributionPassiveController extends Controller
             $contributions_passive->year = $year;
             $contributions_passive->month = $month;
             $contributions_passive->contribution_state;
+            $contributions_passive->can_deleted = $contributions_passive->can_deleted();
         }
         return $contributions_passives;
     }

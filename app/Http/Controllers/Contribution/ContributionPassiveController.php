@@ -425,7 +425,7 @@ class ContributionPassiveController extends Controller
         try{
             $error = true;
             $message = 'No es permitido la eliminación del registro';
-            if($contributionPassive->can_delete()){
+            if($contributionPassive->can_deleted()){
                 $contributionPassive->delete();
                 $error = false;
                 $message = 'Eliminado exitosamente';

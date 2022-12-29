@@ -182,6 +182,12 @@ class ContributionPassiveController extends Controller
      *         description="Filtro por Mes",
      *         required=false,
      *     ),
+     *    @OA\Parameter(
+     *         name="contribution_state_id",
+     *         in="query",
+     *         description="id del estado del aporte",
+     *         required=false,
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Success",
@@ -205,10 +211,12 @@ class ContributionPassiveController extends Controller
 
         $request->validate([
             'affiliate_id' => 'required|integer|exists:contribution_passives,affiliate_id',
+            'contribution_state_id' => 'nullable|integer|exists:contribution_states,id',
         ]);
         $year = request('year') ?? '';
         $month = request('month') ?? '';
         $contributionable_type = request('contributionable_type') ?? '';
+        $contribution_state_id = request('contribution_state_id') ?? '';
         $order = request('sortDesc') ?? '';
         if ($order != '') {
             if ($order) {
@@ -229,6 +237,9 @@ class ContributionPassiveController extends Controller
         }
         if ($contributionable_type != '') {
             array_push($conditions, array('contributionable_type', 'like', "%{$contributionable_type}%"));
+        }
+        if ($contribution_state_id != '') {
+            array_push($conditions, array('contribution_state_id', "{$contribution_state_id}"));
         }
         $per_page = $request->per_page ?? 10;
         $contributions_passives = ContributionPassive::whereAffiliateId($request->affiliate_id)->where($conditions)->orderBy('month_year', $order_year)->paginate($per_page);

@@ -56,8 +56,9 @@ class AffiliateUserController extends Controller
      *          required=true,
      *          @OA\JsonContent(
      *              type="object",
-     *              @OA\Property(property="affiliate_id", type="int",description="id del afiliado required")
-     *          )
+     *              @OA\Property(property="affiliate_id", type="int",description="id del afiliado required"),
+     *              @OA\Property(property="role_id", type="int",description="role_id required")
+     *           )
      *     ),
      *     @OA\Response(
      *         response=200,

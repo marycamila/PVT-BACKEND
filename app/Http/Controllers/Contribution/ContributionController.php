@@ -437,8 +437,8 @@ class ContributionController extends Controller
                             POLICIAL, CUOTA MORTUORIA Y AUXILIO MORTUORIO',
                 'table' => [
                     ['Usuario', $user->username],
-                    ['Fecha', Carbon::now('GMT-4')->format('d-m-Y')],
-                    ['Hora', Carbon::now('GMT-4')->format('H:i:s')],
+                    ['Fecha', Carbon::now('GMT-4')->format('d/m/Y')],
+                    ['Hora', Carbon::now('GMT-4')->format('H:i')],
                 ]
             ],
             'num' => $num,

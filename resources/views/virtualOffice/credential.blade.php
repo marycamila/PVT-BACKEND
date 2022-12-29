@@ -6,10 +6,10 @@
     <link rel="stylesheet" href="{{ public_path('/css/report-print.min.css') }}" media="all" />
     <link rel="icon" href="<%= BASE_URL %>favicon.ico">
 </head>
-<body style="border: 0; border-radius: 0; margin: 0; ">
+<body style="margin: 0 0 0 0;">
     @for ($it = 0; $it < $copies; $it++)
         @php($n = 1)
-        <div style="height: 48.5%; margin:0px;">
+        <div style="height: 48%; margin:0px;">
             @include('partials.header', $header)
             <div class="block">
                 <div class="font-semibold leading-tight text-center m-b-10 text-xs">{{ $title }}</div>

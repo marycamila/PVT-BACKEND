@@ -58,7 +58,7 @@ class AffiliateUserController extends Controller
      *              type="object",
      *              @OA\Property(property="affiliate_id", type="int",description="id del afiliado required"),
      *              @OA\Property(property="role_id", type="int",description="role_id required")
-     *           )
+     *          )
      *     ),
      *     @OA\Response(
      *         response=200,
@@ -800,6 +800,7 @@ class AffiliateUserController extends Controller
                     'direction' => $role->module_id==6?'DIRECCIÓN DE ESTRATEGIAS SOCIALES E INVERSIONES':'DIRECCIÓN DE BENEFICIOS ECONÓMICOS',
                     'unity' => $role->module->description,
                     'table' => [
+                        ['Usuario', $worker->username],
                         ['Fecha', Carbon::now()->format('d/m/Y')],
                         ['Hora', Carbon::now()->format('H:i')],
                     ]

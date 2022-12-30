@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Affiliate\Affiliate;
 use App\Models\Contribution\ContributionPassive;
-use App\Models\Contribution\PayrollSenasir;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PayrollSenasir extends Model

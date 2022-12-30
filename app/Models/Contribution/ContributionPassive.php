@@ -24,7 +24,13 @@ class ContributionPassive extends Model
         'affiliate_rent_class',
         'contribution_state_id',
         'contributionable_type',
-        'contributionable_id'
+        'contributionable_id',
+        'aps_total_cc',
+        'aps_total_fsa',
+        'aps_total_fs',
+        'aps_total_death',
+        'aps_disability',
+        'aps_reimbursement'
     ];
     
     public function affiliate()
@@ -61,5 +67,9 @@ class ContributionPassive extends Model
     {
         $contribution =  ContributionPassive::whereMonth_year($month_year)->whereContributionable_type('payroll_senasirs')->sum('total');
         return $contribution;
+    }
+
+    public function can_deleted(){
+        return $this->total < 1 || is_null($this->contributionable_type) || ($this->contribution_state_id == 1 && $this->contributionable_type == 'discount_type_economic_complement')? true:false;
     }
 }

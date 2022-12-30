@@ -23,12 +23,21 @@
 
     <div>
         @include('affiliate.police_info')
+
+        @if ($value)
+            <div>
+                <p class="font-bold">
+                    DATOS DEL(A) VIUDO(A)
+                </p>
+                @include('spouse.spouse_info')
+            </div>
+        @endif
         <p class="font-bold">
             CERTIFICA
         </p>
     </div>
 
-    <div>
+    <div class="block">
         <table class="table-info w-100 text-center">
             <thead class="bg-grey-darker text-xxs text-white">
                 <tr class="text-white text-xxs">
@@ -41,7 +50,7 @@
                     <th class="data-row py-2">APORTE</td>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="text-xxs">
                 @foreach ($contributions as $contribution)
                     <tr>
                         <td class="data-row py-2">{{ $num = $num + 1 }}</td>
@@ -63,7 +72,7 @@
                 <tr class="bg-grey-darker text-xxs text-white">
                     <th class="w-10 text-justify">
                         <p>NOTA: Toda vez que, la presente certificación detalla información referencial
-                            respecto a los aportes para el beneficio del Auxulio Mortuorio, se requiere al solicitante
+                            respecto a los aportes para el beneficio del Auxilio Mortuorio, se requiere al solicitante
                             efectuar la verificación correspondiente de los datos, a fin de no existir reclamos
                             posteriores.</p>
                     </th>
@@ -71,10 +80,21 @@
             </thead>
             <tbody>
                 <tr>
-                    <td class="w-10 text-xxs text-justify">Asímismo, se efectuó la revisión de datos contenidos en el
-                        Sistema Institucional y base de
-                        datos antecedentes respecto a los aportes efectuados para el beneficio.
-                        En cuanto se certifica para fines consiguientes.
+                    <td class="w-10 text-xxs text-justify">
+                        @if ($text == 'Descuento SENASIR')
+                            Asímismo, se efectuó la revisión de datos contenidos en el Sistema Institucional y base de
+                            datos respecto a los aportes efectuados para el beneficio de Auxilio Mortuorio mediante
+                            Descuentos
+                            Mensuales de las boletas de pago de Renta (información proporcionada por el SENASIR a partir
+                            de la gestión 1999 en adelante). Este documento no es válido para trámites administrativos,
+                            siendo de uso exclusivo para la MUSERPOL.
+                        @else
+                            Asimismo, se efectuó la revisión de datos contenidos en el Sistema Institucional y base de
+                            datos respecto a los aportes efectuados para el beneficio de Auxilio Mortuorio soló por la
+                            modalidad de Descuento Anticipado del Complemento Económico Semestral. Este documento no es
+                            válido para trámites administrativos, siendo de uso exclusivo para la MUSERPOL.
+                        @endif
+                        <br>Es cuanto se certifica para fines consiguientes.
                     </td>
                 </tr>
             </tbody>
@@ -82,7 +102,7 @@
     </div>
     <br>
     <div>
-        @include('partials.footer_app', $header)
+        @include('partials.signature_footer')
     </div>
 </body>
 

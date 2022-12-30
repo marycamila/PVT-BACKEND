@@ -159,12 +159,14 @@ class AppContributionController extends Controller
 
         if ($affiliate->dead && $affiliate->spouse != null) {
             $contributions_passives = ContributionPassive::whereAffiliateId($affiliate_id)
-                ->where('affiliate_rent_class', 'VIUDEDAD')
+                ->where('affiliate_rent_class', 'ilike','%VIUDEDAD%')
+                ->where('contribution_state_id', 2)
                 ->orderBy('month_year', 'asc')
                 ->get();
             $value = true;
         } else {
             $contributions_passives = ContributionPassive::whereAffiliateId($affiliate_id)
+                ->where('contribution_state_id', 2)
                 ->orderBy('month_year', 'asc')
                 ->get();
         }
@@ -174,8 +176,10 @@ class AppContributionController extends Controller
             $month = Carbon::parse($contributions_passive->month_year)->format('m');
             if ($contributions_passive->affiliate_rent_class == 'VEJEZ') {
                 $rent_class = 'Titular';
-            } else {
+            } elseif ($contributions_passive->affiliate_rent_class == 'VIUDEDAD') {
                 $rent_class = 'Viuda';
+            } else {
+                $rent_class = 'Titular/Viuda';
             }
             if ($contributions_passive->contributionable_type == 'discount_type_economic_complement') {
                 $modality = $contributions_passive->contributionable->economic_complement->eco_com_procedure;
@@ -206,8 +210,8 @@ class AppContributionController extends Controller
                             POLICIAL, CUOTA MORTUORIA Y AUXILIO MORTUORIO',
                 'table' => [
                     ['Usuario', $user->username],
-                    ['Fecha', Carbon::now()->format('d-m-Y')],
-                    ['Hora', Carbon::now()->format('H:i:s')],
+                    ['Fecha', Carbon::now()->format('d/m/Y')],
+                    ['Hora', Carbon::now()->format('H:i')],
                 ]
             ],
             'num' => $num,
@@ -228,7 +232,7 @@ class AppContributionController extends Controller
         $pageNumberWidth = $width / 2;
         $pageNumberHeight = $height - 35;
         $canvas->page_text($pageNumberWidth, $pageNumberHeight, "Página {PAGE_NUM} de {PAGE_COUNT}", null, 10, array(0, 0, 0));
-        
+
         return $pdf->download('aportes_pas_' . $affiliate_id . '.pdf');
     }
 
@@ -257,8 +261,8 @@ class AppContributionController extends Controller
                             POLICIAL, CUOTA MORTUORIA Y AUXILIO MORTUORIO',
                 'table' => [
                     ['Usuario', $user->username],
-                    ['Fecha', Carbon::now()->format('d-m-Y')],
-                    ['Hora', Carbon::now('GMT-4')->format('H:i:s')],
+                    ['Fecha', Carbon::now()->format('d/m/Y')],
+                    ['Hora', Carbon::now('GMT-4')->format('H:i')],
                 ]
             ],
             'num' => $num,

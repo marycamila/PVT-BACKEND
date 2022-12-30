@@ -64,6 +64,10 @@ class ContributionPermissionSeedeer extends Seeder
                 'action_id'=>Action::where('name','delete')->first()->id,
                 'name' => 'delete-contribution',
                 'display_name' => 'Eliminar aporte sector activo'
+            ],[
+                'action_id' => Action::where('name', 'download')->first()->id,
+                'name' => 'download-certifications',
+                'display_name' => 'Descargar certificaciones de aportes'
             ],
         ];
         foreach ($permissions as $permission) {

@@ -126,14 +126,15 @@ class ContributionController extends Controller
         $affiliate = Affiliate::find($request->affiliate_id);
 
         if (strtoupper($con_re) == 'RE') {
-            return $reimbursements = $affiliate->reimbursements()->selectRaw(
+             $reimbursements = $affiliate->reimbursements()->selectRaw(
                 "
+                reimbursements.id as con_re_id,
                 affiliate_id,
                 month_year,
                 extract(month from month_year) as month,
                 extract(year from month_year) as year,
-                null,
-                null,
+                degree_id,
+                unit_id,
                 base_wage,
                 seniority_bonus,
                 study_bonus,
@@ -146,7 +147,7 @@ class ContributionController extends Controller
                 retirement_fund,
                 mortuary_quota,
                 total,
-                null,
+                breakdown_id,
                 'RE' as con_re,
                 type,
                 breakdowns.id as breakdown_id,
@@ -155,9 +156,13 @@ class ContributionController extends Controller
                 ->where($conditions)
                 ->orderBy('month_year', $order_year)
                 ->paginate($per_page);
+                foreach ($reimbursements as $reimbursement)
+                    $reimbursement->can_deleted = false;
+                return $reimbursements;
         } elseif(strtoupper($con_re) == 'CON') {
-                return $contributions = $affiliate->contributions()->selectRaw(
+                $contributions = $affiliate->contributions()->selectRaw(
                     "
+                    contributions.id as con_re_id,
                 affiliate_id,
                 month_year,
                 extract(month from month_year) as month,
@@ -185,10 +190,17 @@ class ContributionController extends Controller
                     ->where($conditions)
                     ->orderBy('month_year', $order_year)
                     ->paginate($per_page);
+
+                foreach ($contributions as $contribution){
+                    $c = Contribution::find($contribution->con_re_id);
+                    $contribution->can_deleted = $c->can_deleted();
+                }
+                return $contributions;
         }
         if ($con_re == '') {
             $reimbursements = $affiliate->reimbursements()->selectRaw(
                 "
+                reimbursements.id as con_re_id,
                 affiliate_id,
                 month_year,
                 extract(month from month_year) as month,
@@ -216,8 +228,9 @@ class ContributionController extends Controller
                 ->where($conditions)
                 ->orderBy('month_year', $order_year);
 
-            return $contributions = $affiliate->contributions()->selectRaw(
+            $contributions = $affiliate->contributions()->selectRaw(
                 "
+                contributions.id as con_re_id,
                 affiliate_id,
                 month_year,
                 extract(month from month_year) as month,
@@ -246,6 +259,15 @@ class ContributionController extends Controller
                 ->where($conditions)
                 ->orderBy('month_year', $order_year)
                 ->paginate($per_page);
+                foreach ($contributions as $contribution){
+                    if($contribution->con_re == 'CON'){
+                        $c = Contribution::find($contribution->con_re_id);
+                        $contribution->can_deleted = $c->can_deleted();
+                    }else{
+                        $contribution->can_deleted = false;
+                    }
+                }
+                return $contributions;
         }
     }
 
@@ -415,8 +437,8 @@ class ContributionController extends Controller
                             POLICIAL, CUOTA MORTUORIA Y AUXILIO MORTUORIO',
                 'table' => [
                     ['Usuario', $user->username],
-                    ['Fecha', Carbon::now('GMT-4')->format('d-m-Y')],
-                    ['Hora', Carbon::now('GMT-4')->format('H:i:s')],
+                    ['Fecha', Carbon::now('GMT-4')->format('d/m/Y')],
+                    ['Hora', Carbon::now('GMT-4')->format('H:i')],
                 ]
             ],
             'num' => $num,
@@ -504,7 +526,7 @@ class ContributionController extends Controller
         try{
             $error = true;
             $message = 'No es permitido la eliminación del registro';
-            if($contribution->total < 1){
+            if($contribution->can_deleted()){
                 $contribution->delete();
                 $error = false;
                 $message = 'Eliminado exitosamente';

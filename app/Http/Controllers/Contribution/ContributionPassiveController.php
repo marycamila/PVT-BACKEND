@@ -182,6 +182,18 @@ class ContributionPassiveController extends Controller
      *         description="Filtro por Mes",
      *         required=false,
      *     ),
+     *    @OA\Parameter(
+     *         name="contribution_state_id",
+     *         in="query",
+     *         description="id del estado del aporte",
+     *         required=false,
+     *     ),
+     *    @OA\Parameter(
+     *         name="affiliate_rent_class",
+     *         in="query",
+     *         description="tipo de aporte VEJEZ, VIUDEDAD, VEJEZ/VIUDEDAD",
+     *         required=false,
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Success",
@@ -205,10 +217,14 @@ class ContributionPassiveController extends Controller
 
         $request->validate([
             'affiliate_id' => 'required|integer|exists:contribution_passives,affiliate_id',
+            'contribution_state_id' => 'nullable|integer|exists:contribution_states,id',
+            'affiliate_rent_class' => 'nullable|in:VEJEZ,VIUDEDAD,VEJEZ/VIUDEDAD'
         ]);
         $year = request('year') ?? '';
         $month = request('month') ?? '';
         $contributionable_type = request('contributionable_type') ?? '';
+        $contribution_state_id = request('contribution_state_id') ?? '';
+        $affiliate_rent_class = request('affiliate_rent_class') ?? '';
         $order = request('sortDesc') ?? '';
         if ($order != '') {
             if ($order) {
@@ -230,6 +246,12 @@ class ContributionPassiveController extends Controller
         if ($contributionable_type != '') {
             array_push($conditions, array('contributionable_type', 'like', "%{$contributionable_type}%"));
         }
+        if ($contribution_state_id != '') {
+            array_push($conditions, array('contribution_state_id', "{$contribution_state_id}"));
+        }
+        if ($affiliate_rent_class != '') {
+            array_push($conditions, array('affiliate_rent_class', 'ilike', "%{$affiliate_rent_class}%"));
+        }
         $per_page = $request->per_page ?? 10;
         $contributions_passives = ContributionPassive::whereAffiliateId($request->affiliate_id)->where($conditions)->orderBy('month_year', $order_year)->paginate($per_page);
 
@@ -247,6 +269,8 @@ class ContributionPassiveController extends Controller
             }
             $contributions_passive->year = $year;
             $contributions_passive->month = $month;
+            $contributions_passive->contribution_state;
+            $contributions_passive->can_deleted = $contributions_passive->can_deleted();
         }
         return $contributions_passives;
     }
@@ -267,10 +291,19 @@ class ContributionPassiveController extends Controller
 
         $value = false;
 
-        $contributions_passives = ContributionPassive::whereAffiliateId($affiliate_id)
-            ->where('affiliate_rent_class', 'ilike', $request->affiliate_rent_class)
-            ->orderBy('month_year', 'asc')
-            ->get();
+        if ($request->affiliate_rent_class == 'VEJEZ') {
+            $contributions_passives = ContributionPassive::whereAffiliateId($affiliate_id)
+                ->where('affiliate_rent_class', 'ilike', $request->affiliate_rent_class)
+                ->where('contribution_state_id', 2)
+                ->orderBy('month_year', 'asc')
+                ->get();
+        } else {
+            $contributions_passives = ContributionPassive::whereAffiliateId($affiliate_id)
+                ->where('affiliate_rent_class', 'ilike', '%' . $request->affiliate_rent_class . '%')
+                ->where('contribution_state_id', 2)
+                ->orderBy('month_year', 'asc')
+                ->get();
+        }
 
         if ($affiliate->dead && $affiliate->spouse != null) {
             $value = true;
@@ -281,8 +314,10 @@ class ContributionPassiveController extends Controller
             $month = Carbon::parse($contributions_passive->month_year)->format('m');
             if ($contributions_passive->affiliate_rent_class == 'VEJEZ') {
                 $rent_class = 'Titular';
-            } else {
+            } elseif ($contributions_passive->affiliate_rent_class == 'VIUDEDAD') {
                 $rent_class = 'Viuda';
+            } else {
+                $rent_class = 'Titular/Viuda';
             }
             if ($contributions_passive->contributionable_type == 'discount_type_economic_complement') {
                 $modality = $contributions_passive->contributionable->economic_complement->eco_com_procedure;
@@ -312,8 +347,8 @@ class ContributionPassiveController extends Controller
                             POLICIAL, CUOTA MORTUORIA Y AUXILIO MORTUORIO',
                 'table' => [
                     ['Usuario', $user->username],
-                    ['Fecha', Carbon::now('GMT-4')->format('d-m-Y')],
-                    ['Hora', Carbon::now('GMT-4')->format('H:i:s')],
+                    ['Fecha', Carbon::now('GMT-4')->format('d/m/Y')],
+                    ['Hora', Carbon::now('GMT-4')->format('H:i')],
                 ]
             ],
             'num' => $num,
@@ -400,7 +435,7 @@ class ContributionPassiveController extends Controller
         try{
             $error = true;
             $message = 'No es permitido la eliminación del registro';
-            if($contributionPassive->total < 1 || is_null($contributionPassive->contributionable_type) || ($contributionPassive->contribution_state_id == 1 && $contributionPassive->contributionable_type == 'discount_type_economic_complement')){
+            if($contributionPassive->can_deleted()){
                 $contributionPassive->delete();
                 $error = false;
                 $message = 'Eliminado exitosamente';

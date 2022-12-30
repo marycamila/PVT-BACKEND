@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Affiliate;
 
 use App\Helpers\Util;
 use App\Http\Controllers\Controller;
+use App\Models\Admin\Role;
 use App\Models\Admin\User;
 use App\Models\Affiliate\Affiliate;
 use App\Models\Affiliate\AffiliateToken;
@@ -55,7 +56,8 @@ class AffiliateUserController extends Controller
      *          required=true,
      *          @OA\JsonContent(
      *              type="object",
-     *              @OA\Property(property="affiliate_id", type="int",description="id del afiliado required")
+     *              @OA\Property(property="affiliate_id", type="int",description="id del afiliado required"),
+     *              @OA\Property(property="role_id", type="int",description="role_id required")
      *          )
      *     ),
      *     @OA\Response(
@@ -80,42 +82,52 @@ class AffiliateUserController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'affiliate_id' => 'required|integer|exists:affiliates,id'
+            'affiliate_id' => 'required|integer|exists:affiliates,id',
+            'role_id'=> 'required|integer'
         ]);
-        $AffiliateId = $request->affiliate_id;
-        $isDead=Affiliate::find($AffiliateId)->dead;
-        $affiliate =Affiliate::find($AffiliateId);
+        $affiliateId = $request->affiliate_id;
+        $affiliate =Affiliate::find($affiliateId);
+        $isDead=$affiliate->dead;
         if (!$affiliate->cell_phone_number) {
             return response()->json([
                 'error'=>true,
                 'message' => 'El afiliado no tiene registrado su numero',
                 'payload'=>[]
-            ],403);
+            ]);
         }
         if ($isDead && !$affiliate->spouse) {
             return response()->json([
                 'error'=>true,
-                'message' => 'no tiene esposa',
+                'message' => 'El afiliado no tiene conyuge',
                 'payload'=>[]
-            ],403);
+            ]);
+        }
+        if ($isDead && $affiliate->spouse->dead) {
+            return response()->json([
+                'error'=>true,
+                'message' => 'El titular y su conyuge estan fallecidos',
+                'payload'=>[]
+            ]);
         }
         $user=Auth::user()->id;
-        $isAffiliateToken = DB::table('affiliate_tokens')->where('affiliate_id', $AffiliateId)->exists();
+        $isAffiliateToken = DB::table('affiliate_tokens')->where('affiliate_id', $affiliateId)->exists();
         if (!$isAffiliateToken) {
-            $AffiliateToken = new AffiliateToken;
-            $AffiliateToken->affiliate_id = $AffiliateId;
-            $AffiliateToken->save();
+            $affiliateToken = new AffiliateToken;
+            $affiliateToken->affiliate_id = $affiliateId;
+            $affiliateToken->save();
             $AffiliateUser = new AffiliateUser;
-            $AffiliateUser->affiliate_token_id = $AffiliateToken->id;
+            $AffiliateUser->affiliate_token_id = $affiliateToken->id;
             if ($affiliate->spouse && $isDead) {
-                $spouse=Spouse::where('affiliate_id',$AffiliateId)->first();
+                $spouse=Spouse::where('affiliate_id',$affiliateId)->first();
                 $existUser=DB::table('affiliate_users')->where('username', $spouse->identity_card)->exists();
                 $existUser?$AffiliateUser->username="V".$spouse->identity_card:$AffiliateUser->username=$spouse->identity_card;
                 $password=$this->Generate_pin();
                 $AffiliateUser->password = Hash::make($password);
+                $AffiliateUser->user_id=$user;
+                $AffiliateUser->role_id=$request->role_id;
                 $AffiliateUser->save();
                 $message='Credenciales registradas exitosamente para viuda';
-                $response=$this->send_messages($AffiliateUser->username,$password,$AffiliateId,$message,$user);
+                $response=$this->send_messages($AffiliateUser->username,$password,$affiliateId,$message,$user);
                 $existsError=$response->original['error'];
                 if (!$existsError) {
                     $AffiliateUser->save();
@@ -130,9 +142,11 @@ class AffiliateUserController extends Controller
                 $existUser?$AffiliateUser->username="T".$affiliate->identity_card:$AffiliateUser->username=$affiliate->identity_card;
                 $password=$this->Generate_pin();
                 $AffiliateUser->password = Hash::make($password);
+                $AffiliateUser->user_id=$user;
+                $AffiliateUser->role_id=$request->role_id;
                 $AffiliateUser->save();
                 $message='Credenciales registradas exitosamente para titular';
-                $response=$this->send_messages($AffiliateUser->username,$password,$AffiliateId,$message,$user);
+                $response=$this->send_messages($AffiliateUser->username,$password,$affiliateId,$message,$user);
                 $existsError=$response->original['error'];
                 if (!$existsError) {
                     $AffiliateUser->save();
@@ -144,20 +158,20 @@ class AffiliateUserController extends Controller
             }
         }
         else {
-            $AffiliateToken = AffiliateToken::where('affiliate_id',$AffiliateId)->first();
-            $isAffiliateUser = DB::table('affiliate_users')->where('affiliate_token_id', $AffiliateToken->id)->exists();
+            $affiliateToken = AffiliateToken::where('affiliate_id',$affiliateId)->first();
+            $isAffiliateUser = DB::table('affiliate_users')->where('affiliate_token_id', $affiliateToken->id)->exists();
             if ($isAffiliateUser) {
-                $AffiliateUser=AffiliateUser::where('affiliate_token_id',$AffiliateToken->id)->first();
+                $AffiliateUser=AffiliateUser::where('affiliate_token_id',$affiliateToken->id)->first();
                 if ($AffiliateUser->access_status!='Activo'){
-                    if (Affiliate::find($AffiliateId)->spouse && $isDead) {
-                        $spouse=Spouse::where('affiliate_id',$AffiliateId)->first();
+                    if ($affiliate->spouse && $isDead) {
+                        $spouse=Spouse::where('affiliate_id',$affiliateId)->first();
                         $existUser=DB::table('affiliate_users')->where('username', $spouse->identity_card)->exists();
                         $existUser?$AffiliateUser->username="V".$spouse->identity_card:$AffiliateUser->username=$spouse->identity_card;
                         $password=$this->Generate_pin();
                         $AffiliateUser->password = Hash::make($password);
                         $AffiliateUser->access_status = 'Pendiente';
                         $message='Se asigno credenciales para viudedad';
-                        $response=$this->send_messages($AffiliateUser->username,$password,$AffiliateId,$message,$user);
+                        $response=$this->send_messages($AffiliateUser->username,$password,$affiliateId,$message,$user);
                         $existsError=$response->original['error'];
                         if (!$existsError) {
                             $AffiliateUser->save();
@@ -174,9 +188,11 @@ class AffiliateUserController extends Controller
                         $password=$this->Generate_pin();
                         $AffiliateUser->password = Hash::make($password);
                         $AffiliateUser->access_status = 'Pendiente';
+                        $AffiliateUser->user_id=$user;
+                        $AffiliateUser->role_id=$request->role_id;
                         $AffiliateUser->save();
                         $message='Se reasigno credenciales para el titular';
-                        $response=$this->send_messages($AffiliateUser->username,$password,$AffiliateId,$message,$user);
+                        $response=$this->send_messages($AffiliateUser->username,$password,$affiliateId,$message,$user);
                         $existsError=$response->original['error'];
                         if (!$existsError) {
                             $AffiliateUser->save();
@@ -197,17 +213,19 @@ class AffiliateUserController extends Controller
             }
             else {
                 $AffiliateUser = new AffiliateUser;
-                $AffiliateUser->affiliate_token_id = $AffiliateToken->id;
-                if (Affiliate::find($AffiliateId)->spouse && $isDead) {
-                    $spouse=Spouse::where('affiliate_id',$AffiliateId)->first();
+                $AffiliateUser->affiliate_token_id = $affiliateToken->id;
+                if ($affiliate->spouse && $isDead) {
+                    $spouse=Spouse::where('affiliate_id',$affiliateId)->first();
                     $existUser=DB::table('affiliate_users')->where('username', $spouse->identity_card)->exists();
                     $existUser?$AffiliateUser->username="V".$spouse->identity_card:$AffiliateUser->username=$spouse->identity_card;
                     // $AffiliateUser->username=$spouse->identity_card;
                     $password=$this->Generate_pin();
                     $AffiliateUser->password = Hash::make($password);
+                    $AffiliateUser->user_id=$user;
+                    $AffiliateUser->role_id=$request->role_id;
                     $AffiliateUser->save();
                     $message='Credenciales registradas exitosamente para viuda';
-                    $response=$this->send_messages($AffiliateUser->username,$password,$AffiliateId,$message,$user);
+                    $response=$this->send_messages($AffiliateUser->username,$password,$affiliateId,$message,$user);
                     $existsError=$response->original['error'];
                     if (!$existsError) {
                         $AffiliateUser->save();
@@ -223,9 +241,11 @@ class AffiliateUserController extends Controller
                     // $AffiliateUser->username= $affiliate->identity_card;
                     $password=$this->Generate_pin();
                     $AffiliateUser->password = Hash::make($password);
+                    $AffiliateUser->user_id=$user;
+                    $AffiliateUser->role_id=$request->role_id;
                     $AffiliateUser->save();
                     $message='Credenciales registradas exitosamente para titular';
-                    $response=$this->send_messages($AffiliateUser->username,$password,$AffiliateId,$message,$user);
+                    $response=$this->send_messages($AffiliateUser->username,$password,$affiliateId,$message,$user);
                     $existsError=$response->original['error'];
                     if (!$existsError) {
                         $AffiliateUser->save();
@@ -738,10 +758,9 @@ class AffiliateUserController extends Controller
             'message' => 'cambiada',
         ], 200);
     }
-    public function credential_document(Request $request, Affiliate $affiliate)
+    public function credential_document(Request $request)
     {
         $affiliate=Affiliate::find($request->id);
-        $worker=Auth::user();
         $persons = collect([]);
         $spouse=$affiliate->spouse;
         $hasAcces=false;
@@ -751,6 +770,8 @@ class AffiliateUserController extends Controller
                 $hasAcces=true;
             }
         }
+        $worker=User::find($affiliateUser->user_id);
+        $role=Role::find($affiliateUser->role_id);
         if($hasAcces){
             if($affiliate->dead && $affiliate->spouse){
                 $spouse=$affiliate->spouse;
@@ -776,9 +797,10 @@ class AffiliateUserController extends Controller
             ]);
             $data = [
                 'header' => [
-                    'direction' => 'DIRECCIÓN DE ESTRATEGIAS SOCIALES E INVERSIONES',
-                    'unity' => 'UNIDAD DE INVERSIÓN EN PRÉSTAMOS',
+                    'direction' => $role->module_id==6?'DIRECCIÓN DE ESTRATEGIAS SOCIALES E INVERSIONES':'DIRECCIÓN DE BENEFICIOS ECONÓMICOS',
+                    'unity' => $role->module->description,
                     'table' => [
+                        ['Usuario', $worker->username],
                         ['Fecha', Carbon::now()->format('d/m/Y')],
                         ['Hora', Carbon::now()->format('H:i')],
                     ]
@@ -786,7 +808,7 @@ class AffiliateUserController extends Controller
                 'title' => 'SOLICITUD DE OFICINA VIRTUAL',
                 'user' => $affiliate,
                 'credential'=>$affiliateUser,
-                'fecha'=> $affiliateUser->created_at->format('d/m/Y'),
+                'fecha'=> $affiliateUser->updated_at->format('d/m/Y'),
                 'signers'=>$persons,
                 'copies'=>2
             ];

@@ -18,8 +18,7 @@ Route::group([
         Route::post('/passive_affiliate_contribution', [App\Http\Controllers\Contribution\ContributionPassiveController::class, 'show']);
         Route::get('/search_passive_affiliate_contribution', [App\Http\Controllers\Contribution\ContributionPassiveController::class, 'SearchContributionPassive']);
         Route::get('/search_active_affiliate_contribution', [App\Http\Controllers\Contribution\ContributionController::class, 'SearchContributionActive']);
-        Route::get('/print_contributions_passive/{affiliate_id}', [App\Http\Controllers\Contribution\ContributionPassiveController::class, 'printCertificationContributionPassive']);
-        Route::get('/print_contributions_active/{affiliate_id}', [App\Http\Controllers\Contribution\ContributionController::class, 'printCertificationContributionActive']);
+        
         Route::group([
             'middleware' => 'permission:delete-contribution-passive'
         ], function () {
@@ -30,6 +29,13 @@ Route::group([
         ], function () {
             Route::delete('/contribution/{contribution}', [App\Http\Controllers\Contribution\ContributionController::class, 'destroy']);
         });
+        Route::group([
+            'middleware' => 'permission:download-certifications'
+        ], function () {
+            Route::get('/print_contributions_passive/{affiliate_id}', [App\Http\Controllers\Contribution\ContributionPassiveController::class, 'printCertificationContributionPassive']);
+            Route::get('/print_contributions_active/{affiliate_id}', [App\Http\Controllers\Contribution\ContributionController::class, 'printCertificationContributionActive']);
+        });
+
         Route::group([
             'middleware' => 'permission:read-import-payroll|create-import-payroll-senasir|create-import-payroll-command'
         ], function () {

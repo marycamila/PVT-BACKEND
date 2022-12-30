@@ -291,11 +291,19 @@ class ContributionPassiveController extends Controller
 
         $value = false;
 
-        $contributions_passives = ContributionPassive::whereAffiliateId($affiliate_id)
-            ->where('affiliate_rent_class', 'ilike', $request->affiliate_rent_class)
-            ->where('contribution_state_id', 2)
-            ->orderBy('month_year', 'asc')
-            ->get();
+        if ($request->affiliate_rent_class == 'VEJEZ') {
+            $contributions_passives = ContributionPassive::whereAffiliateId($affiliate_id)
+                ->where('affiliate_rent_class', 'ilike', $request->affiliate_rent_class)
+                ->where('contribution_state_id', 2)
+                ->orderBy('month_year', 'asc')
+                ->get();
+        } else {
+            $contributions_passives = ContributionPassive::whereAffiliateId($affiliate_id)
+                ->where('affiliate_rent_class', 'ilike', '%' . $request->affiliate_rent_class . '%')
+                ->where('contribution_state_id', 2)
+                ->orderBy('month_year', 'asc')
+                ->get();
+        }
 
         if ($affiliate->dead && $affiliate->spouse != null) {
             $value = true;
@@ -306,8 +314,10 @@ class ContributionPassiveController extends Controller
             $month = Carbon::parse($contributions_passive->month_year)->format('m');
             if ($contributions_passive->affiliate_rent_class == 'VEJEZ') {
                 $rent_class = 'Titular';
-            } else {
+            } elseif ($contributions_passive->affiliate_rent_class == 'VIUDEDAD') {
                 $rent_class = 'Viuda';
+            } else {
+                $rent_class = 'Titular/Viuda';
             }
             if ($contributions_passive->contributionable_type == 'discount_type_economic_complement') {
                 $modality = $contributions_passive->contributionable->economic_complement->eco_com_procedure;
@@ -337,8 +347,8 @@ class ContributionPassiveController extends Controller
                             POLICIAL, CUOTA MORTUORIA Y AUXILIO MORTUORIO',
                 'table' => [
                     ['Usuario', $user->username],
-                    ['Fecha', Carbon::now('GMT-4')->format('d-m-Y')],
-                    ['Hora', Carbon::now('GMT-4')->format('H:i:s')],
+                    ['Fecha', Carbon::now('GMT-4')->format('d/m/Y')],
+                    ['Hora', Carbon::now('GMT-4')->format('H:i')],
                 ]
             ],
             'num' => $num,

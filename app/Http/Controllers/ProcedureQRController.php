@@ -161,7 +161,7 @@ class ProcedureQRController extends Controller
                 $title = "Titular";
 
                 $person->push([
-                    'full_name' => $data->affiliate->fullName,
+                    'full_name' => $data->affiliate->fullName. "\n" .$data->affiliate->identity_card,
                     'identity_card' => $data->affiliate->identity_card,
                 ]);
 
@@ -223,7 +223,8 @@ class ProcedureQRController extends Controller
         foreach ($observations as $observation) {
             if ($observation->enabled == false)
                 $list_observations->push([
-                    'message' => $observation->message,
+                    'message' => $observation->observation_type->name.": ".$observation->message
+                                 ."\nObservado por: ".$observation->user->username,
                     'enabled' => $observation->enabled,
                 ]);
         }

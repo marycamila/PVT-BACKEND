@@ -20,7 +20,7 @@ class NotificationSend extends Model
     public function carrier(){
         return $this->belongsTo(NotificationCarrier::class);
     }
-    
+
     public function user(){
         return $this->belongsTo(User::class);
     }

@@ -77,7 +77,8 @@
                                 <td class="data-row py-2">Ri</td>
                                 <td class="data-row py-2">{{ date('m', strtotime($reimbursement->month_year)) }}</td>
                                 <td class="data-row py-2">{{ Util::money_format($reimbursement->quotable) }}</td>
-                                <td class="data-row py-2">{{ Util::money_format($reimbursement->retirement_fund) }}</td>
+                                <td class="data-row py-2">{{ Util::money_format($reimbursement->retirement_fund) }}
+                                </td>
                                 <td class="data-row py-2">{{ Util::money_format($reimbursement->mortuary_quota) }}</td>
                                 <td class="data-row py-2">{{ Util::money_format($reimbursement->total) }}</td>
                             </tr>
@@ -88,23 +89,24 @@
         </table>
     </div>
     <br>
-    <div>
-        <div class="text-justify border-grey-darker rounded">
-            <p class="px-10 my-5">
-                <b>NOTA.- </b>La presente certificación contiene informacion de aportes registrados en la Base de
-                Datos
-                de la MUSERPOL (considerando la existencia de registros de aportes en el Sistema Institucional a
-                partir de Febrero de 1999 en adelante). Asímismo, este documento no contempla toda la
-                información de la planilla de pago, por lo que no es válido para trámites administrativos,
-                siendo de uso exclusivo de la MUSERPOL.<br>
-                Es cuanto se certifica, para fines consiguientes.
-            </p>
-        </div>
+    <div class="text-justify border-grey-darker rounded">
+        <table class="w-100 text-xxs p-10">
+            <tbody>
+                <tr>
+                    <td>
+                        <b>NOTA.- </b>La presente certificación contiene informacion de aportes registrados en la Base
+                        de
+                        Datos
+                        de la MUSERPOL (considerando la existencia de registros de aportes en el Sistema Institucional a
+                        partir de Febrero de 1999 en adelante). Asímismo, este documento no contempla toda la
+                        información de la planilla de pago, por lo que no es válido para trámites administrativos,
+                        siendo de uso exclusivo de la MUSERPOL.<br>
+                        Es cuanto se certifica, para fines consiguientes.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     </div>
     <br>
-    {{-- <div>
-        @include('partials.footer_app', $header)
-    </div> --}}
-</body>
 
 </html>

@@ -17,7 +17,7 @@
         </td>
         <td class="no-border text-center text-base w-50">
             <span class="font-bold block">{!! strtoupper($user->fullName) !!}</span>
-            <div class="text-xs text-center" style="width: 350px; margin:0 auto; font-weight:100">
+            <div class="text-xs text-center" style="width: 350px; margin:0 auto;">
                 {!! $user->position !!}</div>
         </td>
     </tr>

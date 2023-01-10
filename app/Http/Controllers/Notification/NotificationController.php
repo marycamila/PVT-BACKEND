@@ -717,7 +717,7 @@ class NotificationController extends Controller
      *          @OA\JsonContent(
      *              type="object",
      *              @OA\Property(property="title", type="string",description="Título de la notificación", example="Comunicado Complemento económico"),
-     *              @OA\Property(property="message", type="string",description="Mensaje de la notificación",example="Señor affiliado {{nombre}} se apertura la recepción de requisitos para el trámite de pago de complemento económico"),
+     *              @OA\Property(property="message", type="string",description="Mensaje de la notificación",example="Señor affiliado {{full_name}} se apertura la recepción de requisitos para el trámite de pago de complemento económico"),
      *              @OA\Property(property="sends", type="array", example={{"affiliate_id": "5964", "send": true}}, @OA\Items(@OA\Property(property="affiliate_id", type="integer",example=""), @OA\Property(property="send", type="boolean", example=""))),
      *              @OA\Property(property="image", type="string",description="Url de la imagen como cuerpo de la notificación", example="http://google.com/image"),
      *              @OA\Property(property="attached", type="string",description="Adjunto del mensaje",example="Comunicado"),
@@ -855,7 +855,7 @@ class NotificationController extends Controller
      *          required=true,
      *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
      *              @OA\Property(property="title", type="string",description="Título de la notificación", example="Comunicado Complemento económico"),
-     *              @OA\Property(property="message", type="string",description="Mensaje de la notificación",example="Señor affiliado {{nombre}} se apertura la recepción de requisitos para el trámite de pago de complemento económico"),
+     *              @OA\Property(property="message", type="string",description="Mensaje de la notificación",example="Señor affiliado {{full_name}} se apertura la recepción de requisitos para el trámite de pago de complemento económico"),
      *              @OA\Property(property="attached", type="string",description="Adjunto del mensaje",example=""),
      *              @OA\Property(property="user_id", type="integer",description="Id del usuario que envía la notificación",example="1"),
      *              @OA\Property(property="file", type="file", format="binary", description="Archivo que solo contiene NUP's de afiliados")

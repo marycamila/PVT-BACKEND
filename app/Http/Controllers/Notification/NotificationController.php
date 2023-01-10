@@ -361,23 +361,26 @@ class NotificationController extends Controller
         foreach($ids as $id) {
             $obj = (object)$message;
             $notification_send = new NotificationSend();
-            if(!is_null(EconomicComplement::where('eco_com_procedure_id', $semester)->where('affiliate_id', $id)->first())) {
-                if($action === 2 || $action === 3) {
-                    $id = EconomicComplement::where('eco_com_procedure_id', $semester)->where('affiliate_id', $id)->first()->id;
+            if(!is_null($semester)) {
+                if(!is_null(EconomicComplement::where('eco_com_procedure_id', $semester)->where('affiliate_id', $id)->first())) {
+                    if($action === 2 || $action === 3) {
+                        $id = EconomicComplement::where('eco_com_procedure_id', $semester)->where('affiliate_id', $id)->first()->id;
+                    }
                 }
-                $notification_send->create([
-                    'user_id' => $user_id,
-                    'carrier_id' => 1,
-                    'number_id' => null,
-                    'sendable_type' => $alias,
-                    'sendable_id' => $id,
-                    'send_date' => Carbon::now(),
-                    'delivered' => $delivered[$i]['status'],
-                    'message' => json_encode(['data' => $obj]),
-                    'subject' => $subject,
-                    'destination_number' => null
-                ]);
             }
+            $notification_send->create([
+                'user_id' => $user_id,
+                'carrier_id' => 1,
+                'number_id' => null,
+                'sendable_type' => $alias,
+                'sendable_id' => $id,
+                'send_date' => Carbon::now(),
+                'delivered' => $delivered[$i]['status'],
+                'message' => json_encode(['data' => $obj]),
+                'subject' => $subject,
+                'destination_number' => null,
+                'notification_type_id' => $action
+            ]);
             $i++;
         }
     }

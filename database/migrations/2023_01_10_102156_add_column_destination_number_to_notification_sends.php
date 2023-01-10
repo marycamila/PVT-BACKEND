@@ -15,6 +15,8 @@ return new class extends Migration
     {
         Schema::table('notification_sends', function (Blueprint $table) {
             $table->string('destination_number')->nullable()->comment('Número telefónico donde se envío el mensaje');
+            $table->bigInteger('notification_type_id')->nullable();
+            $table->foreign('notification_type_id')->references('id')->on('notification_types');
         });
     }
 

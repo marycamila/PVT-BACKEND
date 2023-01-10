@@ -22,6 +22,7 @@ use App\Models\Contribution\PayrollCommand;
 use App\Models\Observation;
 use App\Models\Notification\NotificationSend;
 use Carbon\Carbon;
+use App\Models\EconomicComplement\EconomicComplement;
 
 class Affiliate extends Model
 {
@@ -215,7 +216,12 @@ class Affiliate extends Model
       if ($this->degree) $data = $this->degree->shortened;;
       return $data;
     }
+
     public function sends() {
         return $this->morphMany(NotificationSend::class, 'sendable');
+    }
+
+    public function economic_complements() {
+        return $this->hasMany(EconomicComplement::class);
     }
 }

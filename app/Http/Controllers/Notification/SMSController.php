@@ -107,11 +107,11 @@ class SMSController extends Controller
      *     @OA\RequestBody(
      *          description= "Campos requeridos",
      *          required=true,
-     *          @OA\JsonContent(
-     *              type="object",
+     *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
      *              @OA\Property(property="user_id", type="integer",description="Id del usuario", example="1"),
-     *              @OA\Property(property="file", type="object",description="Array de objetos ",example="24"),
-     *          )
+     *              @OA\Property(property="file", type="file", format="binary", description="Archivo que contiene el nup, número y mensaje"),
+     *              )
+     *          ),
      *     ),
      *     @OA\Response(
      *         response=200,

@@ -853,13 +853,14 @@ class NotificationController extends Controller
      *     @OA\RequestBody(
      *          description= "Parámetros requeridos",
      *          required=true,
-     *          @OA\JsonContent(
-     *              type="object",
+     *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
      *              @OA\Property(property="title", type="string",description="Título de la notificación", example="Comunicado Complemento económico"),
      *              @OA\Property(property="message", type="string",description="Mensaje de la notificación",example="Señor affiliado {{nombre}} se apertura la recepción de requisitos para el trámite de pago de complemento económico"),
      *              @OA\Property(property="attached", type="string",description="Adjunto del mensaje",example=""),
      *              @OA\Property(property="user_id", type="integer",description="Id del usuario que envía la notificación",example="1"),
-     *          )
+     *              @OA\Property(property="file", type="file", format="binary", description="Archivo que solo contiene NUP's de afiliados")
+     *              )
+     *          ),
      *     ),
      *     @OA\Response(
      *         response=200,
@@ -916,19 +917,17 @@ class NotificationController extends Controller
      *     @OA\RequestBody(
      *          description= "Reporte",
      *          required=true,
-     *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
+     *          @OA\JsonContent(
+     *              type="object",
      *              @OA\Property(property="type", type="integer",description="Tipo de notificación: Todos = 0, notificaciones App = 1, SMS = 2", example="2"),
      *              @OA\Property(property="start_date", type="date",description="Fecha inicio del reporte",example="2022-12-12"),
      *              @OA\Property(property="end_date", type="date",description="Fecha final del reporte", example="2022-12-12"),
-     *              )
      *         ),
      *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Success",
-     *         @OA\JsonContent(
-     *         type="object"
-     *         )
+     *         @OA\MediaType(mediaType="multipart/form-data")
      *     ),
      *     security={
      *         {"bearerAuth": {}}

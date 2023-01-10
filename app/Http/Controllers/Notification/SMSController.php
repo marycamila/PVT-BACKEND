@@ -29,7 +29,7 @@ class SMSController extends Controller
      *          @OA\JsonContent(
      *              type="object",
      *              @OA\Property(property="user_id", type="integer",description="Id del usuario", example="1"),
-     *              @OA\Property(property="shipments", type="object",description="Array de objetos ",example="24"),
+     *              @OA\Property(property="shipments", type="array", example={{"id": 1, "sms_num": "(651)-48120", "message": "notificacion"}}, @OA\Items(@OA\Property(property="id", type="integer", example=""), @OA\Property(property="sms_num", type="string", example=""), @OA\Property(property="message", type="string", example=""))),
      *          )
      *     ),
      *     @OA\Response(
@@ -169,11 +169,21 @@ class SMSController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/api/notification/balance",
+     *     path="/api/notification/balance/{telephone_line}",
      *     tags={"NOTIFICACIONES"},
      *     summary="SALDO SMS",
      *     operationId="balance",
      *     description="Obtiene el saldo de una línea telefonica",
+     *     @OA\Parameter(
+     *          name="telephone_line",
+     *          in="path",
+     *          description="",
+     *          required=true,
+     *          @OA\Schema(
+     *              type="integer",
+     *              format="int64"
+     *          )
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Success",
@@ -194,9 +204,6 @@ class SMSController extends Controller
     public function check_balance_sms(Request $request) {
         $telephone_line = $request->telephone_line;
         return response()->json([
-            'linea' => $telephone_line
-        ]);
-        return response()->json([
             'error' => false,
             'message' => 'Saldo disponible',
             'data' => [
@@ -205,6 +212,30 @@ class SMSController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/notification/balance_ussd",
+     *     tags={"NOTIFICACIONES"},
+     *     summary="SALDO USSD",
+     *     operationId="balance_ussd",
+     *     description="Obtiene el saldo mediante ussd",
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *         type="object"
+     *         )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     }
+     * )
+     *
+     * Get balance
+     *
+     * @param Request $request
+     * @return void
+     */
     public function check_balance_ussd(Request $request) {
         $result = Util::check_balance_ussd();
         return response()->json([

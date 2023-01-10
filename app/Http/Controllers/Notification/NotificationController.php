@@ -324,7 +324,6 @@ class NotificationController extends Controller
                 $delivered = array();
                 foreach($responses as $check) {
                     $var = $check['success'] ? true : false;
-                    // $aux = array();
                     $aux = array(
                         'affiliate_id' => $ids[$i],
                         'status' => $var
@@ -357,9 +356,6 @@ class NotificationController extends Controller
     // Guardar en el registro tabla notification_send
     public function to_register($user_id, $delivered, $message, $subject, $ids, $is_file, $action, $semester = null) {
         $object = ($is_file || $action === 1) ? new Affiliate() : new EconomicComplement();
-        // tenemos que tener una variable más para el caso de pago de complemento economico
-        // Para observaciones tenemos que tener el semestre
-        logger($semester);
         $alias = $object->getMorphClass();
         $i = 0;
         foreach($ids as $id) {
@@ -520,7 +516,7 @@ class NotificationController extends Controller
      *          required=true,
      *          @OA\JsonContent(
      *              type="object",
-     *              @OA\Property(property="action", type="integer",description="Recepción de requerimientos, complemento económico u observaciones (Receipt_of_requirements, economic_complement_payment, observatinos", example="economic_complement_payment"),
+     *              @OA\Property(property="action", type="integer",description="Recepción de requerimientos, complemento económico u observaciones (Receipt_of_requirements, economic_complement_payment, observatinos", example="1"),
      *              @OA\Property(property="payment_method", type="integer",description="Método de pago para el complemento económico (Abono en cuenta SIGEP, Ventanilla Banco Unión y a domicilio)",example="24"),
      *              @OA\Property(property="modality", type="integer",description="Modalidad (vejez, viudedad u orfandad)", example="29"),
      *              @OA\Property(property="type_observation", type="integer",description="Tipo de observación", example="2"),
@@ -722,7 +718,7 @@ class NotificationController extends Controller
      *              type="object",
      *              @OA\Property(property="title", type="string",description="Título de la notificación", example="Comunicado Complemento económico"),
      *              @OA\Property(property="message", type="string",description="Mensaje de la notificación",example="Señor affiliado {{nombre}} se apertura la recepción de requisitos para el trámite de pago de complemento económico"),
-     *              @OA\Property(property="sends", type="object",description="Array de personas a notificar (beneficiarios)", example="[{'affiliate_id': 5964, 'send': true}]"),
+     *              @OA\Property(property="sends", type="array", example={{"affiliate_id": "5964", "send": true}}, @OA\Items(@OA\Property(property="affiliate_id", type="integer",example=""), @OA\Property(property="send", type="boolean", example=""))),
      *              @OA\Property(property="image", type="string",description="Url de la imagen como cuerpo de la notificación", example="http://google.com/image"),
      *              @OA\Property(property="attached", type="string",description="Adjunto del mensaje",example="Comunicado"),
      *              @OA\Property(property="user_id", type="integer",description="Id del usuario que envía la notificación",example="1"),
@@ -811,7 +807,6 @@ class NotificationController extends Controller
                 $ids = $unique_ids->values()->all();
                 $tokens = $unique_tokens->values()->all();
 
-                // $res = Util::delegate_shipping_notification($params['data'], $tokens, $ids);
                 $res = $this->delegate_shipping($params['data'], $tokens, $ids);
                 if($res['status'] && count($params['tokens']) != 0) {
                     $status = $res['delivered'];
@@ -828,11 +823,7 @@ class NotificationController extends Controller
                 return response()->json([
                     'error'   => false,
                     'message' => $res['message'],
-                    'data'    => [
-                        // 'delivered'  => $res['delivered'],
-                        // 'success_count' => $res['successCount'],
-                        // 'failure_count' => $res['failureCount']
-                    ]
+                    'data'    => []
                 ]);
             } else {
                 response()->json([
@@ -851,6 +842,42 @@ class NotificationController extends Controller
         }
     }
 
+
+    /**
+     * @OA\Post(
+     *     path="/api/notification/send_notifications",
+     *     tags={"NOTIFICACIONES"},
+     *     summary="ENVÍO DE NOTIFICACIONES MASIVAS MEDIANTE UN ARCHIVO",
+     *     operationId="sendNotifications",
+     *     description="Envío de notificaciones masivas mediante un archivo excel",
+     *     @OA\RequestBody(
+     *          description= "Parámetros requeridos",
+     *          required=true,
+     *          @OA\JsonContent(
+     *              type="object",
+     *              @OA\Property(property="title", type="string",description="Título de la notificación", example="Comunicado Complemento económico"),
+     *              @OA\Property(property="message", type="string",description="Mensaje de la notificación",example="Señor affiliado {{nombre}} se apertura la recepción de requisitos para el trámite de pago de complemento económico"),
+     *              @OA\Property(property="attached", type="string",description="Adjunto del mensaje",example=""),
+     *              @OA\Property(property="user_id", type="integer",description="Id del usuario que envía la notificación",example="1"),
+     *          )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *         type="object"
+     *         )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     }
+     * )
+     *
+     *  mass_notification
+     *
+     * @param Request $request
+     * @return void
+     */
     public function send_notifications(Request $request)
     {
         $rows = Excel::toArray([], $request->file);
@@ -949,10 +976,6 @@ class NotificationController extends Controller
         foreach($iteration as $it) {
             $temp = collect();
             $temp->push($it->username);
-            // if(intval($it->delivered) === 1) {
-            //     $delivered = "Enviado";
-            // } else $delivered = "No enviado";
-            // $temp->push($delivered);
             if(!is_null(NotificationCarrier::find(intval($it->carrier_id)))) {
                 $name = NotificationCarrier::find(intval($it->carrier_id))->name;
                 if($name == 'Notifications') $name = 'Notificación APP';

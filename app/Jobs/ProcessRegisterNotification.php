@@ -52,14 +52,14 @@ class ProcessRegisterNotification implements ShouldQueue
                 $notification_send->create([
                     'user_id' => $this->user_id,
                     'carrier_id' => NotificationCarrier::whereName('SMS')->first()->id,
-                    'number_id' => NotificationNumber::whereNumber($issuer_number)->first()->id,
+                    'sender_number' => NotificationNumber::whereNumber($issuer_number)->first()->id,
                     'sendable_type' => $alias,
                     'sendable_id' => $shipping['id'],
                     'send_date' => Carbon::now(),
                     'delivered' => false,
                     'message' => json_encode(['data' => ['text' => $shipping['message']]]),
                     'subject' => null,
-                    'destination_number' => $shipping['sms_num']
+                    'receiver_number' => $shipping['sms_num']
                 ]);
             });
         }

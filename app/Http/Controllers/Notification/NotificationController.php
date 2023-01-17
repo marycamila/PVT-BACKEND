@@ -371,15 +371,15 @@ class NotificationController extends Controller
             $notification_send->create([
                 'user_id' => $user_id,
                 'carrier_id' => 1,
-                'number_id' => null,
                 'sendable_type' => $alias,
                 'sendable_id' => $id,
                 'send_date' => Carbon::now(),
                 'delivered' => $delivered[$i]['status'],
                 'message' => json_encode(['data' => $obj]),
                 'subject' => $subject,
-                'destination_number' => null,
-                'notification_type_id' => $action
+                'receiver_number' => null,
+                'notification_type_id' => $action,
+                'sender_number' => null
             ]);
             $i++;
         }
@@ -970,9 +970,9 @@ class NotificationController extends Controller
             ->where('send_date', '>=', $start_date)
             ->where('send_date', '<=', $end_date)
             ->select('users.username', 'notification_sends.delivered', 'notification_sends.carrier_id',
-            'notification_sends.number_id', 'notification_sends.sendable_type', 'notification_sends.sendable_id',
+            'notification_sends.sendable_type', 'notification_sends.sendable_id',
             'notification_sends.send_date', 'notification_sends.message','notification_sends.created_at',
-            'notification_sends.destination_number')->get();
+            'notification_sends.receiver_number')->get();
         $result = collect();
 
         foreach($iteration as $it) {
@@ -1015,7 +1015,7 @@ class NotificationController extends Controller
                 $temp->push($nup);
                 $temp->push($it->created_at);
                 $temp->push(json_decode($it->message)->data->text);
-                $temp->push($it->destination_number);
+                $temp->push($it->receiver_number);
                 $result->push($temp);
             }
         }

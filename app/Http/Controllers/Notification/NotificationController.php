@@ -750,7 +750,7 @@ class NotificationController extends Controller
             'title'   => 'required|string',
             'message' => 'required|string',
             'sends'   => 'required|array|min:1',
-            'action'  => 'required|integer',
+            // 'action'  => 'required|integer',
         ]);
 
         if($validator->fails()) {
@@ -899,7 +899,7 @@ class NotificationController extends Controller
         }
         if(count($affiliates) != 0) {
             $request->merge(['sends' => $affiliates]);
-            $request->merge(['action' => 1]);
+            $request->merge(['action' => null]);
             return $this->send_mass_notification($request);
         } else {
             return response()->json([

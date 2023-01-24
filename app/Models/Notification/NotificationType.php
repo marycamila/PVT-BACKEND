@@ -4,13 +4,14 @@ namespace App\Models\Notification;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Notification\NotificationType;
 
-class NotificationNumber extends Model
+class NotificationType extends Model
 {
     use HasFactory;
     protected $guarded = [];
 
-    public function send(){
-        return $this->hasMany(NotificationSend::class, 'sender_number');
+    public function sends() {
+        return $this->hasMany(NotificationSend::class);
     }
 }

@@ -81,6 +81,7 @@ class AppContributionController extends Controller
             $full_total = 0;
             $contributions_actives = Contribution::whereAffiliateId($affiliate_id)
                 ->whereYear('month_year', $i)
+                ->orderBy('month_year', 'asc')
                 ->get();
 
             foreach ($contributions_actives as $contributions_active) {

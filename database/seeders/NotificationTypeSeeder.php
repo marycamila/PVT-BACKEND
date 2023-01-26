@@ -16,8 +16,6 @@ class NotificationTypeSeeder extends Seeder
      */
     public function run()
     {
-        DB::table('notification_types')->truncate();
-        DB::statement('alter sequence notification_types_id_seq restart with 1');
         $notification_types = [
             [
                 'type' => 'Recepción de requisitos',

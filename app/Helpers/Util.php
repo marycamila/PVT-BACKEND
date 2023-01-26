@@ -264,7 +264,7 @@ class Util
     }
 
      // Enviar un array de objetos
-     public static function delegate_shipping($shipments, $user_id, $transmitter_id=1, $morph_type=null) {
+     public static function delegate_shipping($shipments, $user_id, $transmitter_id=1, $morph_type=null, $type=null) {
 
         try {
             $sms_server_url = env('SMS_SERVER_URL', 'localhost');
@@ -298,19 +298,21 @@ class Util
                             $counter++;
                             $delivered = true;
                         } else $delivered = false;
-                        $notification_send->create([
-                            'user_id' => $user_id,
-                            'carrier_id' => NotificationCarrier::whereName('SMS')->first()->id,
-                            'sender_number' => NotificationNumber::whereNumber($issuer_number)->first()->id,
-                            'sendable_type' => $alias,
-                            'sendable_id' => $shipping['id'],
-                            'send_date' => Carbon::now(),
-                            'delivered' => $delivered,
-                            'message' => json_encode(['data' => $shipping['message']]),
-                            'subject' => null,
-                            'receiver_number' => $shipping['sms_num'],
-                            'notification_type_id' => null
-                        ]);
+                        if($type == 6) {
+                            $notification_send->create([
+                                'user_id' => $user_id,
+                                'carrier_id' => NotificationCarrier::whereName('SMS')->first()->id,
+                                'sender_number' => NotificationNumber::whereNumber($issuer_number)->first()->id,
+                                'sendable_type' => $alias,
+                                'sendable_id' => $shipping['id'],
+                                'send_date' => Carbon::now(),
+                                'delivered' => $delivered,
+                                'message' => json_encode(['data' => $shipping['message']]),
+                                'subject' => null,
+                                'receiver_number' => $shipping['sms_num'],
+                                'notification_type_id' => $type
+                            ]);
+                        }
                     }
                 }
                 $i++;

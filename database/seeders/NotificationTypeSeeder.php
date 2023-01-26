@@ -34,6 +34,9 @@ class NotificationTypeSeeder extends Seeder
             [
                 'type' => 'Contrato de préstamo',
             ],
+            [
+                'type' => 'Envío de credenciales de la oficina virtual'
+            ]
         ];
         foreach ($notification_types as $notification_type) {
             NotificationType::firstOrCreate($notification_type);

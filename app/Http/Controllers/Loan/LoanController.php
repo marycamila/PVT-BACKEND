@@ -283,9 +283,9 @@ class LoanController extends Controller
             }
         }
         return response()->json([
-            'hasLoan' => 'false',
+            'hasLoan' => false,
             'message' => 'Lista de Prestamos',
-            'notification'=>'Se muestran los prestamos a partir del 2021',
+            'notification'=>'Se muestran los préstamos a partir del 2021',
             'payload' => [
                 'inProcess'=> $inProcess,
                 'current' => $current,
@@ -295,9 +295,9 @@ class LoanController extends Controller
         }
         else{
             return response()->json([
-                'hasLoan' => 'true',
+                'hasLoan' => true,
                 'message' => 'El afiliado no tiene prestamos',
-                'notification'=>'Se muestran los prestamos a partir del 2021',
+                'notification'=>'Se muestran los préstamos a partir del 2021',
                 'payload' => [
                     'inProcess'=> [],
                     'current' => [],

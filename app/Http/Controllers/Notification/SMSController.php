@@ -80,7 +80,8 @@ class SMSController extends Controller
             'errors' => []
         ]);
 
-        if(Util::delegate_shipping($shipments, $user_id, 1, 'affiliate')) {
+        $notification_type = 6;
+        if(Util::delegate_shipping($shipments, $user_id, 1, 'affiliate', $notification_type)) {
             return response()->json([
                 'error' => false,
                 'message' => 'Envío exitoso!',

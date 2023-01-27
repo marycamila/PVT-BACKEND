@@ -792,6 +792,9 @@ class NotificationController extends Controller
             $params['user_id'] = $request['user_id'];
 
 
+            logger($action);
+
+
             $i = 1; // Para el número de lotes
             $shipping_indicator = 0; // indicador de envío
             $groups = array_chunk($sends, 500, true);
@@ -899,7 +902,6 @@ class NotificationController extends Controller
         }
         if(count($affiliates) != 0) {
             $request->merge(['sends' => $affiliates]);
-            $request->merge(['action' => null]);
             return $this->send_mass_notification($request);
         } else {
             return response()->json([

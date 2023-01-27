@@ -155,9 +155,10 @@ class SMSController extends Controller
         }
         $transmitter = 1;
         $morph = true;
+        $type = 7; // Tipo de notificación
 
         Bus::chain([
-            new ProcessRegisterNotification($shippable, $user_id, $transmitter),
+            new ProcessRegisterNotification($shippable, $user_id, $transmitter, $type),
             new ProcessNotification($shippable, $user_id, $transmitter, $morph),
         ])->dispatch();
 

@@ -7,12 +7,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Admin\User;
 use App\Models\Affiliate\Affiliate;
 use App\Models\Affiliate\Degree;
-use App\Models\City;
 use App\Models\Contribution\Contribution;
 use App\Models\Contribution\ContributionPassive;
-use App\Models\Contribution\ContributionType;
 use App\Models\Contribution\Reimbursement;
-use App\Models\RetirementFund\RetirementFund;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -38,11 +35,23 @@ class AppContributionController extends Controller
         $year_min = $affiliate->minimum_year_contribution_active;
         $year_max = $this->get_maximum_year($affiliate_id);
 
+        if ($year_min > $year_max) {
+            $year_min = $affiliate->minimum_year_contribution_passive;
+        }
+
         $degree = Degree::find($affiliate->degree_id);
-        if ($affiliate->affiliate_state->affiliate_state_type->name == 'Pasivo')
-            $affiliate_passive = true;
+
+        $hasContributions = $affiliate->contributions;
+        if (sizeof($hasContributions) > 0)
+            $has_contributions_active = true;
         else
-            $affiliate_passive = false;
+            $has_contributions_active = false;
+
+        $hasContributionPassives = $affiliate->contribution_passives;
+        if (sizeof($hasContributionPassives) > 0)
+            $has_contributions_passive = true;
+        else
+            $has_contributions_passive = false;
 
         $contributions_total = collect();
 
@@ -118,7 +127,8 @@ class AppContributionController extends Controller
             "error" => "false",
             'message' => 'Contribuciones del Afiliado',
             'payload' => [
-                'affiliate_passive' => $affiliate_passive,
+                'has_contributions_active' => $has_contributions_active,
+                'has_contributions_passive' => $has_contributions_passive,
                 'degree' => $degree->name ?? '',
                 'first_name' => $affiliate->first_name,
                 'second_name' => $affiliate->second_name,
@@ -160,7 +170,7 @@ class AppContributionController extends Controller
 
         if ($affiliate->dead && $affiliate->spouse != null) {
             $contributions_passives = ContributionPassive::whereAffiliateId($affiliate_id)
-                ->where('affiliate_rent_class', 'ilike','%VIUDEDAD%')
+                ->where('affiliate_rent_class', 'ilike', '%VIUDEDAD%')
                 ->where('contribution_state_id', 2)
                 ->orderBy('month_year', 'asc')
                 ->get();

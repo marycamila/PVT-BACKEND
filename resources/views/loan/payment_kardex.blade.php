@@ -162,7 +162,7 @@
     </div>
 
     <div class="block">
-        <table class="table-info w-100 text-center uppercase my-20" style="overflow-y: auto">
+        <table class="table-info w-100 text-center uppercase my-20">
                 @php ($sum_capital_payment = 0)
                 @php ($sum_interest_payment = 0)
                 @php ($sum_penal_payment = 0)

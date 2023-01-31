@@ -264,7 +264,7 @@ class Util
     }
 
      // Enviar un array de objetos
-     public static function delegate_shipping($shipments, $user_id, $transmitter_id=1, $morph_type=null) {
+     public static function delegate_shipping($shipments, $user_id, $transmitter_id=1, $morph_type=null, $type=null) {
 
         try {
             $sms_server_url = env('SMS_SERVER_URL', 'localhost');
@@ -290,30 +290,34 @@ class Util
                     $result = Http::timeout(60)->get($sms_server_url . "resend.php?messageid=$id&USERNAME=$root&PASSWORD=$password");
                     if($result->successful()) {
                         // logger("se envío sms ". $i);
-                        // $var = $result->getBody(); // obteniendo el cuerpo de la página html
-                        // $obj = $morph_type ? new Affiliate() : new Loan();
-                        // $alias = $obj->getMorphClass();
-                        // $notification_send = new NotificationSend();
-                        // if(strpos($var, "ERROR") === false || strpos($var, "logout,") === false) {
-                        //     $counter++;
-                        //     $delivered = true;
-                        // } else $delivered = false;
-                        // $notification_send->create([
-                        //     'user_id' => $user_id,
-                        //     'carrier_id' => NotificationCarrier::whereName('SMS')->first()->id,
-                        //     'number_id' => NotificationNumber::whereNumber($issuer_number)->first()->id,
-                        //     'sendable_type' => $alias,
-                        //     'sendable_id' => $shipping['id'],
-                        //     'send_date' => Carbon::now(),
-                        //     'delivered' => $delivered,
-                        //     'message' => json_encode(['data' => $shipping['message']]),
-                        //     'subject' => null
-                        // ]);
+                        $var = $result->getBody(); // obteniendo el cuerpo de la página html
+                        $obj = $morph_type ? new Affiliate() : new Loan();
+                        $alias = $obj->getMorphClass();
+                        $notification_send = new NotificationSend();
+                        if(strpos($var, "ERROR") === false || strpos($var, "logout,") === false) {
+                            $counter++;
+                            $delivered = true;
+                        } else $delivered = false;
+                        if($type == 6) {
+                            $notification_send->create([
+                                'user_id' => $user_id,
+                                'carrier_id' => NotificationCarrier::whereName('SMS')->first()->id,
+                                'sender_number' => NotificationNumber::whereNumber($issuer_number)->first()->id,
+                                'sendable_type' => $alias,
+                                'sendable_id' => $shipping['id'],
+                                'send_date' => Carbon::now(),
+                                'delivered' => $delivered,
+                                'message' => json_encode(['data' => $shipping['message']]),
+                                'subject' => null,
+                                'receiver_number' => $shipping['sms_num'],
+                                'notification_type_id' => $type
+                            ]);
+                        }
                     }
                 }
                 $i++;
             }
-            // return $counter > 0 ?? false;
+            return $counter > 0 ?? false;
 
         }catch(\Exception $e) {
             logger($e->getMessage());

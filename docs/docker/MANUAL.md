@@ -23,8 +23,8 @@ git clone https://github.com/Laradock/laradock.git
 - copiamos los archivos de configuracion del laradock
 
 ```sh
-cp -f /docs/docker/docker-compose.yml laradock/
-cp -f /docs/docker/env-example laradock/.env
+cp -f docs/docker/docker-compose.yml laradock/
+cp -f docs/docker/env-example laradock/.env
 ```
 - ingresamos a la carpeta laradock
 

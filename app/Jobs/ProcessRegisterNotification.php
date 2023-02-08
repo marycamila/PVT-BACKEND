@@ -27,13 +27,15 @@ class ProcessRegisterNotification implements ShouldQueue
     public $shippments;
     public $user_id;
     public $transmitter_id;
+    public $type;
     public $timeout = 86400;
 
-    public function __construct($shippments, $user_id, $transmitter_id)
+    public function __construct($shippments, $user_id, $transmitter_id, $type)
     {
         $this->shippments = $shippments;
         $this->user_id = $user_id;
         $this->transmitter_id = $transmitter_id;
+        $this->type = $type;
     }
 
     /**
@@ -56,10 +58,11 @@ class ProcessRegisterNotification implements ShouldQueue
                     'sendable_type' => $alias,
                     'sendable_id' => $shipping['id'],
                     'send_date' => Carbon::now(),
-                    'delivered' => false,
+                    'delivered' => true,
                     'message' => json_encode(['data' => ['text' => $shipping['message']]]),
                     'subject' => null,
-                    'receiver_number' => $shipping['sms_num']
+                    'receiver_number' => $shipping['sms_num'],
+                    'notification_type_id' => $this->type
                 ]);
             });
         }

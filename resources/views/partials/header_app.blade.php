@@ -3,6 +3,15 @@
 
 <head>
     <meta charset="utf-8">
+    <style>
+        body {
+            margin: 30px;
+        }
+        html {
+        /* Arriba | Derecha | Abajo | Izquierda */
+        margin: 5pt 15pt 15pt 15pt;
+    }
+    </style>
 </head>
 
 <body class="w-100">
@@ -10,7 +19,7 @@
         <tr>
             <th class="w-20 text-left no-padding no-margins align-middle">
                 <div class="text-left">
-                    <img src="{{ public_path('/img/logo.png') }}" class="w-75">
+                    <img src="{{ public_path('/img/logo.png') }}" class="w-90">
                 </div>
             </th>
             <th class="w-60 align-top">
@@ -20,10 +29,12 @@
                     <div>{{ $unity }}</div>
                 </div>
             </th>
-           
+
             <th class="w-20 no-padding no-margins align-top">
                 <table class="table-code no-padding no-margins text-xxxs uppercase">
-                    <tr><td colspan ="2" class="mb-3 no-border">{!! DNS1D::getBarcodeHTML((String)$affiliate->id, "UPCA",1.5,25) !!}</td></tr>
+                    <tr>
+                        <td colspan="2" class="mb-3 no-border">{!! DNS2D::getBarcodeHTML((string) $affiliate->id, 'PDF417', 1.5, 0.7) !!}</td>
+                    </tr>
                     @if (isset($table))
                         @if (count($table) > 0)
                             <tbody>
@@ -44,9 +55,3 @@
 </body>
 
 </html>
-<style>
-    html {
-        /* Arriba | Derecha | Abajo | Izquierda */
-        margin: 5pt 15pt 16pt 15pt;
-    }
-</style>

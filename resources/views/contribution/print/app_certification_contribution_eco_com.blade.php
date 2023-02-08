@@ -111,16 +111,13 @@
                             modalidad de Descuento Anticipado del Complemento Económico Semestral. Este documento no es
                             válido para trámites administrativos, siendo de uso exclusivo para la MUSERPOL.
                         @endif
-                        <br>En cuanto se certifica para fines consiguientes.
+                        <br>Es cuanto se certifica para fines consiguientes.
                     </td>
                 </tr>
             </tbody>
         </table>
     </div>
     <br>
-    {{-- <div>
-        @include('partials.footer_app', $header)
-    </div> --}}
 </body>
 
 </html>

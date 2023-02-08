@@ -68,4 +68,8 @@ class ContributionPassive extends Model
         $contribution =  ContributionPassive::whereMonth_year($month_year)->whereContributionable_type('payroll_senasirs')->sum('total');
         return $contribution;
     }
+
+    public function can_deleted(){
+        return $this->total < 1 || is_null($this->contributionable_type) || ($this->contribution_state_id == 1 && $this->contributionable_type == 'discount_type_economic_complement')? true:false;
+    }
 }

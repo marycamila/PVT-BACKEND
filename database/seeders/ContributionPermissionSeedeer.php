@@ -68,6 +68,10 @@ class ContributionPermissionSeedeer extends Seeder
                 'action_id' => Action::where('name', 'download')->first()->id,
                 'name' => 'download-certifications',
                 'display_name' => 'Descargar certificaciones de aportes'
+            ],[
+                'action_id' => Action::where('name', 'create')->first()->id,
+                'name' => 'create-credentials',
+                'display_name' => 'Crear credenciales para afiliado'
             ],
         ];
         foreach ($permissions as $permission) {

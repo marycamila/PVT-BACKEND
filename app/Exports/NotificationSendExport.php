@@ -17,15 +17,10 @@ use Maatwebsite\Excel\Concerns\Exportable;
 use App\Models\EconomicComplement\EconomicComplement;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
 
-class NotificacitonSendExport implements FromCollection, WithHeadings, ShouldAutoSize, WithStyles, WithCustomStartCell, WithColumnWidths
+class NotificationSendExport implements FromCollection, WithHeadings, ShouldAutoSize, WithStyles, WithCustomStartCell, WithColumnWidths
 {
     use Exportable;
 
-    // public function __construct($start_date, $end_date)
-    // {
-    //     $this->start_date = $start_date;
-    //     $this->end_date = $end_date;
-    // }
     public function __construct($data, $type) {
         $this->count = count($data);
         $this->data = $data;
@@ -46,48 +41,48 @@ class NotificacitonSendExport implements FromCollection, WithHeadings, ShouldAut
     }
 
     public function headings(): array {
-        if($this->type == 1) {
+        if($this->type == 1) { // Notificaciones
             return [
                 'USUARIO',
-                'ESTADO',
+                // 'ESTADO',
                 'SMS/APP',
-                'TIPO',
-                'CÓDIGO',
-                'NUP',
-                'FECHA DE ENVÍO',
-                'MENSAJE',   
-            ];
-        } else {
-            return [
-                'USUARIO',
-                'ESTADO',
-                'SMS/APP',
-                // 'NÚMERO',
                 'TIPO',
                 'CÓDIGO',
                 'NUP',
                 'FECHA DE ENVÍO',
                 'MENSAJE',
             ];
+        } else {
+            return [
+                'USUARIO',
+                // 'ESTADO',
+                'SMS/APP',
+                'TIPO',
+                'CÓDIGO',
+                'NUP',
+                'FECHA DE ENVÍO',
+                'MENSAJE',
+                'DESTINATARIO',
+            ];
         }
     }
 
     public function styles(Worksheet $sheet)
-    {        
+    {
         $rows = $this->count + 2;
-        if($this->type == 1) {
+        if($this->type == 1) { //  Notificación
+            $cels = 'B2:H2';
+            $line = 'B2:H';
+        } else { // SMS
             $cels = 'B2:I2';
             $line = 'B2:I';
-        } else {
-            $cels = 'B2:J2';
-            $line = 'B2:J';
         }
-        $return =  [            
+        $return =  [
             $cels => [
                 'font' => [
-                    'bold' => true, 
+                    'bold' => true,
                     'italic' => true
-                ], 
+                ],
                 'borders' => [
                     'allBorders' => [
                         'borderStyle' => Border::BORDER_THIN
@@ -112,7 +107,7 @@ class NotificacitonSendExport implements FromCollection, WithHeadings, ShouldAut
                 'borders' => [
                     'outline' => [
                         'borderStyle' => Border::BORDER_THIN
-                    ],                
+                    ],
                 ]
             ],
             'B2:B'.$rows => [
@@ -171,7 +166,7 @@ class NotificacitonSendExport implements FromCollection, WithHeadings, ShouldAut
                 ],
             ],
         ];
-        if($this->type == 2) {
+        if($this->type == 2) { // SMS
             $return['I2:I'.$rows] = [
                 'borders' => [
                     'right' => [
@@ -180,7 +175,6 @@ class NotificacitonSendExport implements FromCollection, WithHeadings, ShouldAut
                 ]
             ];
         }
-        logger($return);
         return $return;
     }
 
@@ -188,11 +182,13 @@ class NotificacitonSendExport implements FromCollection, WithHeadings, ShouldAut
     {
         if($this->type == 1) {
             return [
-                'I' => 60,            
+                'H' => 60,
+                'F' => 5,
             ];
         } else {
             return [
-                'J' => 60,
+                'I' => 20,
+                'F' => 5,
             ];
         }
     }

@@ -34,6 +34,9 @@ class NotificationTypeSeeder extends Seeder
             ],
             [
                 'type' => 'Envío de credenciales de la oficina virtual'
+            ],
+            [
+                'type' => 'Envío mediante archivo'
             ]
         ];
         foreach ($notification_types as $notification_type) {

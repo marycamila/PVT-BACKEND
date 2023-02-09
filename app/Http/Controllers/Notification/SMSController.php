@@ -135,6 +135,7 @@ class SMSController extends Controller
         $user_id = $request->user_id;
         $rows = Excel::toArray([], $request->file);
         $rows = $rows[0];
+        $notification_type = $request->action;
 
         $shippable = collect();
         $fails = collect();
@@ -157,7 +158,7 @@ class SMSController extends Controller
         $morph = true;
 
         Bus::chain([
-            new ProcessRegisterNotification($shippable, $user_id, $transmitter),
+            new ProcessRegisterNotification($shippable, $user_id, $transmitter, $notification_type),
             new ProcessNotification($shippable, $user_id, $transmitter, $morph),
         ])->dispatch();
 

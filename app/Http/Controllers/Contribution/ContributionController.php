@@ -411,6 +411,42 @@ class ContributionController extends Controller
         }
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/contribution/print_contributions_active/{affiliate_id}",
+     *     tags={"CONTRIBUCION"},
+     *     summary="Impresión de certificado de contribuciones - Sector Activo",
+     *     operationId="getCertificateContributionActive",
+     *      @OA\Parameter(
+     *         name="affiliate_id",
+     *         in="path",
+     *         description="Id del afiliado",
+     *         example=210,
+     *
+     *         required=true,
+     *         @OA\Schema(
+     *             type="integer",
+     *             format="int64"
+     *         )
+     *       ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *         type="object"
+     *         )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     }
+     * )
+     *
+     * Print certificate of contributions active
+     *
+     * @param Request $request
+     * @return void
+     */
+
     public function printCertificationContributionActive(Request $request, $affiliate_id)
     {
         $request['affiliate_id'] = $affiliate_id;

@@ -276,6 +276,52 @@ class ContributionPassiveController extends Controller
         return $contributions_passives;
     }
 
+    /**
+     * @OA\Get(   
+     *     path="/api/contribution/print_contributions_passive/{affiliate_id}",
+     *     tags={"CONTRIBUCION"},
+     *     summary="Impresión de certificado de contribuciones - Sector Pasivo",
+     *     operationId="getCertificateContributionPassive",
+     *      @OA\Parameter(
+     *         name="affiliate_id",
+     *         in="path",
+     *         description="Id del afiliado",
+     *         example=210,
+     *
+     *         required=true,
+     *         @OA\Schema(
+     *             type="integer",
+     *             format = "int64"
+     *         )
+     *       ),
+     *      @OA\Parameter(
+     *         name="affiliate_rent_class",
+     *         in="query",
+     *         description="Tipo de renta (VEJEZ/VIUDEDAD)",
+     *         example="VEJEZ",
+     *
+     *         required=true,
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *       ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *         type="object"
+     *         )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     }
+     * )
+     *
+     * Print certificate of contributions passive
+     *
+     * @param Request $request
+     * @return void
+     */
     public function printCertificationContributionPassive(Request $request, $affiliate_id)
     {
         $request['affiliate_id'] = $affiliate_id;
@@ -401,7 +447,7 @@ class ContributionPassiveController extends Controller
      *     operationId="deleteContributionPassive",
      *     @OA\Parameter(
      *         description="ID del aporte del sector pasivo",
-     *         in="path",
+     *         in="query",
      *         name="contributionPassive",
      *         required=true,
      *         @OA\Schema(

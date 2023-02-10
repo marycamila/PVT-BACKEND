@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Contribution;
 
+use App\Helpers\Util;
 use App\Http\Controllers\Controller;
 use App\Models\Affiliate\Affiliate;
 use App\Models\Affiliate\Degree;
@@ -359,18 +360,13 @@ class ContributionPassiveController extends Controller
             'text' => $text,
             'contributions' => $contributions
         ];
-        $pdf = PDF::loadView('contribution.print.certification_contribution_eco_com', $data);
-        $pdf->output();
-        $dom_pdf = $pdf->getDomPDF();
-        $canvas = $dom_pdf->get_canvas();
 
-        $width = $canvas->get_width();
-        $height = $canvas->get_height();
-        $pageNumberWidth = $width / 2;
-        $pageNumberHeight = $height - 35;
-        $canvas->page_text($pageNumberWidth, $pageNumberHeight, "Página {PAGE_NUM} de {PAGE_COUNT}", null, 10, array(0, 0, 0));
-        
-        return $pdf->stream('aportes_pas_' . $affiliate_id . '.pdf');
+        $file_name = 'aportes_pas_' . $affiliate_id . '.pdf';
+        $pdf = PDF::loadView('contribution.print.certification_contribution_eco_com', $data);
+        $pdf->set_paper('letter', 'portrait');
+        $pdf->output();
+
+        return Util::pdf_to_base64($pdf, $file_name);
     }
 
 
@@ -397,7 +393,7 @@ class ContributionPassiveController extends Controller
         //
     }
 
-     /**
+    /**
      * @OA\delete(
      *     path="/api/contribution/contributions_passive/{contributionPassive}",
      *     tags={"CONTRIBUCION"},
@@ -430,12 +426,12 @@ class ContributionPassiveController extends Controller
      * @param Request $request
      * @return void
      */
-    public function destroy( ContributionPassive $contributionPassive)
+    public function destroy(ContributionPassive $contributionPassive)
     {
-        try{
+        try {
             $error = true;
             $message = 'No es permitido la eliminación del registro';
-            if($contributionPassive->can_deleted()){
+            if ($contributionPassive->can_deleted()) {
                 $contributionPassive->delete();
                 $error = false;
                 $message = 'Eliminado exitosamente';
@@ -445,7 +441,7 @@ class ContributionPassiveController extends Controller
                 'message' => $message,
                 'data' => $contributionPassive
             ]);
-        }catch(Exception $e){
+        } catch (Exception $e) {
             return response()->json([
                 'error' => true,
                 'message' => $e->getMessage(),

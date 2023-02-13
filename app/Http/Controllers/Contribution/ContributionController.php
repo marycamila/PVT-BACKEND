@@ -126,7 +126,7 @@ class ContributionController extends Controller
         $affiliate = Affiliate::find($request->affiliate_id);
 
         if (strtoupper($con_re) == 'RE') {
-             $reimbursements = $affiliate->reimbursements()->selectRaw(
+            $reimbursements = $affiliate->reimbursements()->selectRaw(
                 "
                 reimbursements.id as con_re_id,
                 affiliate_id,
@@ -156,12 +156,12 @@ class ContributionController extends Controller
                 ->where($conditions)
                 ->orderBy('month_year', $order_year)
                 ->paginate($per_page);
-                foreach ($reimbursements as $reimbursement)
-                    $reimbursement->can_deleted = false;
-                return $reimbursements;
-        } elseif(strtoupper($con_re) == 'CON') {
-                $contributions = $affiliate->contributions()->selectRaw(
-                    "
+            foreach ($reimbursements as $reimbursement)
+                $reimbursement->can_deleted = false;
+            return $reimbursements;
+        } elseif (strtoupper($con_re) == 'CON') {
+            $contributions = $affiliate->contributions()->selectRaw(
+                "
                     contributions.id as con_re_id,
                 affiliate_id,
                 month_year,
@@ -186,16 +186,16 @@ class ContributionController extends Controller
                 type,
                 breakdowns.id as breakdown_id,
                 breakdowns.name as breakdown_name"
-                )->leftjoin("breakdowns", "breakdowns.id", "=", "contributions.breakdown_id")
-                    ->where($conditions)
-                    ->orderBy('month_year', $order_year)
-                    ->paginate($per_page);
+            )->leftjoin("breakdowns", "breakdowns.id", "=", "contributions.breakdown_id")
+                ->where($conditions)
+                ->orderBy('month_year', $order_year)
+                ->paginate($per_page);
 
-                foreach ($contributions as $contribution){
-                    $c = Contribution::find($contribution->con_re_id);
-                    $contribution->can_deleted = $c->can_deleted();
-                }
-                return $contributions;
+            foreach ($contributions as $contribution) {
+                $c = Contribution::find($contribution->con_re_id);
+                $contribution->can_deleted = $c->can_deleted();
+            }
+            return $contributions;
         }
         if ($con_re == '') {
             $reimbursements = $affiliate->reimbursements()->selectRaw(
@@ -259,15 +259,15 @@ class ContributionController extends Controller
                 ->where($conditions)
                 ->orderBy('month_year', $order_year)
                 ->paginate($per_page);
-                foreach ($contributions as $contribution){
-                    if($contribution->con_re == 'CON'){
-                        $c = Contribution::find($contribution->con_re_id);
-                        $contribution->can_deleted = $c->can_deleted();
-                    }else{
-                        $contribution->can_deleted = false;
-                    }
+            foreach ($contributions as $contribution) {
+                if ($contribution->con_re == 'CON') {
+                    $c = Contribution::find($contribution->con_re_id);
+                    $contribution->can_deleted = $c->can_deleted();
+                } else {
+                    $contribution->can_deleted = false;
                 }
-                return $contributions;
+            }
+            return $contributions;
         }
     }
 
@@ -411,6 +411,42 @@ class ContributionController extends Controller
         }
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/contribution/print_contributions_active/{affiliate_id}",
+     *     tags={"CONTRIBUCION"},
+     *     summary="Impresión de certificado de contribuciones - Sector Activo",
+     *     operationId="getCertificateContributionActive",
+     *      @OA\Parameter(
+     *         name="affiliate_id",
+     *         in="path",
+     *         description="Id del afiliado",
+     *         example=210,
+     *
+     *         required=true,
+     *         @OA\Schema(
+     *             type="integer",
+     *             format="int64"
+     *         )
+     *       ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *         type="object"
+     *         )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     }
+     * )
+     *
+     * Print certificate of contributions active
+     *
+     * @param Request $request
+     * @return void
+     */
+
     public function printCertificationContributionActive(Request $request, $affiliate_id)
     {
         $request['affiliate_id'] = $affiliate_id;
@@ -450,18 +486,13 @@ class ContributionController extends Controller
             'reimbursements' => $reimbursements
         ];
 
-        $pdf = PDF::loadView('contribution.print.certification_contribution_active', $data);
-        $pdf->output();
-        $dom_pdf = $pdf->getDomPDF();
-        $canvas = $dom_pdf->get_canvas();
+        $file_name = 'aportes_act_' . $affiliate_id . '.pdf';
 
-        $width = $canvas->get_width();
-        $height = $canvas->get_height();
-        $pageNumberWidth = $width / 2;
-        $pageNumberHeight = $height - 35;
-        $canvas->page_text($pageNumberWidth, $pageNumberHeight, "Página {PAGE_NUM} de {PAGE_COUNT}", null, 10, array(0, 0, 0));
-        
-        return $pdf->stream('aportes_act_' . $affiliate_id . '.pdf');
+        $pdf = PDF::loadView('contribution.print.certification_contribution_active', $data);
+        $pdf->set_paper('letter', 'portrait');
+        $pdf->output();
+
+        return Util::pdf_to_base64($pdf, $file_name);
     }
 
 
@@ -488,7 +519,7 @@ class ContributionController extends Controller
         //
     }
 
-     /**
+    /**
      * @OA\delete(
      *     path="/api/contribution/contribution/{contribution}",
      *     tags={"CONTRIBUCION"},
@@ -521,12 +552,12 @@ class ContributionController extends Controller
      * @param Request $request
      * @return void
      */
-    public function destroy( Contribution $contribution)
+    public function destroy(Contribution $contribution)
     {
-        try{
+        try {
             $error = true;
             $message = 'No es permitido la eliminación del registro';
-            if($contribution->can_deleted()){
+            if ($contribution->can_deleted()) {
                 $contribution->delete();
                 $error = false;
                 $message = 'Eliminado exitosamente';
@@ -536,7 +567,7 @@ class ContributionController extends Controller
                 'message' => $message,
                 'data' => $contribution
             ]);
-        }catch(Exception $e){
+        } catch (Exception $e) {
             return response()->json([
                 'error' => true,
                 'message' => $e->getMessage(),

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Contribution;
 use App\Helpers\Util;
 use App\Http\Controllers\Controller;
 use App\Models\Affiliate\Affiliate;
+use App\Models\Affiliate\AffiliateRecord;
 use App\Models\Affiliate\Degree;
 use App\Models\Contribution\ContributionPassive;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -494,5 +495,67 @@ class ContributionPassiveController extends Controller
                 'data' => (object)[]
             ]);
         }
+    }
+
+    /**
+     * @OA\Get(   
+     *     path="/api/contribution/get_certificate_passive/{affiliate_id}",
+     *     tags={"CONTRIBUCION"},
+     *     summary="Método para registrar la acción de imprimir certificaciones - Pasivo",
+     *     operationId="getCertificatePassive",
+     *      @OA\Parameter(
+     *         name="affiliate_id",
+     *         in="path",
+     *         description="Id del afiliado",
+     *         example=210,
+     *
+     *         required=true,
+     *         @OA\Schema(
+     *             type="integer",
+     *             format = "int64"
+     *         )
+     *       ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *         type="object"
+     *         )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     }
+     * )
+     *
+     * Register action to certificate - passive
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function getCertificatePassive($affiliate_id)
+    {
+        $action = 'imprimió certificado de aportes - pasivo';
+        $user = Auth::user();
+        $message = 'El usuario ' . $user->username . ' ';
+        $affiliate_record = new AffiliateRecord();
+        $affiliate_record->user_id = $user->id;
+        $affiliate_record->affiliate_id = $affiliate_id;
+        $affiliate_record->message = $message . $action;
+
+        $data = AffiliateRecord::whereDate('created_at', now())
+            ->where('affiliate_id', $affiliate_id)
+            ->where('message', 'not ilike', '%activo%')
+            ->get();
+
+        if (sizeof($data) == 0) {
+            $affiliate_record->save();
+        }
+
+        return response()->json([
+            'message' => 'Datos registrados con éxito',
+            'payload' => [
+                'affiliate' => $affiliate_record
+            ],
+        ]);
     }
 }

@@ -32,8 +32,12 @@ Route::group([
         Route::group([
             'middleware' => 'permission:download-certifications'
         ], function () {
+            Route::get('/get_certificate_passive/{affiliate_id}', [App\Http\Controllers\Contribution\ContributionPassiveController::class, 'getCertificatePassive']);
+            Route::get('/get_certificate_active/{affiliate_id}', [App\Http\Controllers\Contribution\ContributionController::class, 'getCertificateActive']);
             Route::get('/print_contributions_passive/{affiliate_id}', [App\Http\Controllers\Contribution\ContributionPassiveController::class, 'printCertificationContributionPassive']);
             Route::get('/print_contributions_active/{affiliate_id}', [App\Http\Controllers\Contribution\ContributionController::class, 'printCertificationContributionActive']);
+            
+            Route::post('/get_report_certificate', [App\Http\Controllers\Contribution\ContributionController::class, 'get_report_certificate']);
         });
 
         Route::group([

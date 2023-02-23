@@ -458,6 +458,8 @@ class ContributionController extends Controller
             'affiliate_id' => 'required|integer|exists:contributions,affiliate_id',
         ]);
 
+        $this->getCertificateActive($affiliate_id);
+
         $affiliate = Affiliate::find($affiliate_id);
         $user = Auth::user();
         $degree = Degree::find($affiliate->degree_id);
@@ -580,42 +582,7 @@ class ContributionController extends Controller
         }
     }
 
-    /**
-     * @OA\Get(   
-     *     path="/api/contribution/get_certificate_active/{affiliate_id}",
-     *     tags={"CONTRIBUCION"},
-     *     summary="Método para registrar la acción de imprimir certificaciones - Activo",
-     *     operationId="getCertificateActive",
-     *      @OA\Parameter(
-     *         name="affiliate_id",
-     *         in="path",
-     *         description="Id del afiliado",
-     *         example=210,
-     *
-     *         required=true,
-     *         @OA\Schema(
-     *             type="integer",
-     *             format = "int64"
-     *         )
-     *       ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Success",
-     *         @OA\JsonContent(
-     *         type="object"
-     *         )
-     *     ),
-     *     security={
-     *         {"bearerAuth": {}}
-     *     }
-     * )
-     *
-     * Register action to certificate - active
-     *
-     * @param Request $request
-     * @return void
-     */
-    public function getCertificateActive($affiliate_id)
+    public static function getCertificateActive($affiliate_id)
     {
         $action = 'imprimió certificado de aportes - activo';
         $user = Auth::user();
@@ -693,27 +660,27 @@ class ContributionController extends Controller
             ->whereBetween(DB::raw('DATE(affiliate_records_pvt.created_at)'), [$start_date, $end_date])
             ->select(
                 'users.username as username',
-                'affiliate_records_pvt.affiliate_id as nup',
-                'view_affiliates.full_name_affiliate as affiliate',
+                'affiliate_records_pvt.affiliate_id as affiliate_id',
+                'view_affiliates.full_name_affiliate as full_name_affiliate',
                 'affiliate_records_pvt.message as message',
                 'affiliate_records_pvt.created_at as date'
-            )->get();
+            )->orderBy('affiliate_records_pvt.created_at', 'asc')->get();
 
-        $data_cabeceras = array(array(
+        $data_header = array(array(
             "NRO", "USUARIO", "NUP", "AFILIADO", "ACCIÓN", "FECHA GENERACIÓN"
         ));
         $i = 1;
         foreach ($list as $row) {
-            array_push($data_cabeceras, array(
-                $row->nro = $i,
-                $row->username, $row->nup,
-                $row->affiliate, $row->message, $row->date
+            array_push($data_header, array(
+                $row->number = $i,
+                $row->username, $row->affiliate_id,
+                $row->full_name_affiliate, $row->message, $row->date
             ));
             $i++;
         }
 
-        $export = new ArchivoPrimarioExport($data_cabeceras);
-        $file_name = "Reporte_certificaciones";
+        $export = new ArchivoPrimarioExport($data_header);
+        $file_name = "reporte_certificaciones";
         $extension = '.xls';
         return Excel::download($export, $file_name . $extension);
     }

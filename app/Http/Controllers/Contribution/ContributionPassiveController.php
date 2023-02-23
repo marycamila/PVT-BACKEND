@@ -331,6 +331,8 @@ class ContributionPassiveController extends Controller
             'affiliate_rent_class' => 'required'
         ]);
 
+        $this->getCertificatePassive($affiliate_id);
+        
         $affiliate = Affiliate::find($affiliate_id);
         $user = Auth::user();
         $degree = Degree::find($affiliate->degree_id);
@@ -497,42 +499,7 @@ class ContributionPassiveController extends Controller
         }
     }
 
-    /**
-     * @OA\Get(   
-     *     path="/api/contribution/get_certificate_passive/{affiliate_id}",
-     *     tags={"CONTRIBUCION"},
-     *     summary="Método para registrar la acción de imprimir certificaciones - Pasivo",
-     *     operationId="getCertificatePassive",
-     *      @OA\Parameter(
-     *         name="affiliate_id",
-     *         in="path",
-     *         description="Id del afiliado",
-     *         example=210,
-     *
-     *         required=true,
-     *         @OA\Schema(
-     *             type="integer",
-     *             format = "int64"
-     *         )
-     *       ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Success",
-     *         @OA\JsonContent(
-     *         type="object"
-     *         )
-     *     ),
-     *     security={
-     *         {"bearerAuth": {}}
-     *     }
-     * )
-     *
-     * Register action to certificate - passive
-     *
-     * @param Request $request
-     * @return void
-     */
-    public function getCertificatePassive($affiliate_id)
+    public static function getCertificatePassive($affiliate_id)
     {
         $action = 'imprimió certificado de aportes - pasivo';
         $user = Auth::user();

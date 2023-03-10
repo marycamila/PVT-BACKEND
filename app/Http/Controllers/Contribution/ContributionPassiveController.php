@@ -481,6 +481,7 @@ class ContributionPassiveController extends Controller
             $error = true;
             $message = 'No es permitido la eliminación del registro';
             if ($contributionPassive->can_deleted()) {
+                Util::save_record_affiliate($contributionPassive->affiliate,' eliminó el aporte como pasivo del periodo '.$contributionPassive->month_year.'.');
                 $contributionPassive->delete();
                 $error = false;
                 $message = 'Eliminado exitosamente';

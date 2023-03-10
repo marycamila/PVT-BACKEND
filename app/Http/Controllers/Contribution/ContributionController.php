@@ -564,6 +564,7 @@ class ContributionController extends Controller
             $error = true;
             $message = 'No es permitido la eliminación del registro';
             if ($contribution->can_deleted()) {
+                Util::save_record_affiliate($contribution->affiliate,' eliminó el aporte como activo del periodo '.$contribution->month_year.'.');
                 $contribution->delete();
                 $error = false;
                 $message = 'Eliminado exitosamente';

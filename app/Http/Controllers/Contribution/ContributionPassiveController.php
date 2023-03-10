@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Contribution;
 use App\Helpers\Util;
 use App\Http\Controllers\Controller;
 use App\Models\Affiliate\Affiliate;
+use App\Models\Affiliate\AffiliateRecord;
 use App\Models\Affiliate\Degree;
 use App\Models\Contribution\ContributionPassive;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -330,6 +331,8 @@ class ContributionPassiveController extends Controller
             'affiliate_rent_class' => 'required'
         ]);
 
+        $this->getCertificatePassive($affiliate_id);
+        
         $affiliate = Affiliate::find($affiliate_id);
         $user = Auth::user();
         $degree = Degree::find($affiliate->degree_id);
@@ -478,6 +481,7 @@ class ContributionPassiveController extends Controller
             $error = true;
             $message = 'No es permitido la eliminación del registro';
             if ($contributionPassive->can_deleted()) {
+                Util::save_record_affiliate($contributionPassive->affiliate,' eliminó el aporte como pasivo del periodo '.$contributionPassive->month_year.'.');
                 $contributionPassive->delete();
                 $error = false;
                 $message = 'Eliminado exitosamente';
@@ -494,5 +498,32 @@ class ContributionPassiveController extends Controller
                 'data' => (object)[]
             ]);
         }
+    }
+
+    public static function getCertificatePassive($affiliate_id)
+    {
+        $action = 'imprimió certificado de aportes - pasivo';
+        $user = Auth::user();
+        $message = 'El usuario ' . $user->username . ' ';
+        $affiliate_record = new AffiliateRecord();
+        $affiliate_record->user_id = $user->id;
+        $affiliate_record->affiliate_id = $affiliate_id;
+        $affiliate_record->message = $message . $action;
+
+        $data = AffiliateRecord::whereDate('created_at', now())
+            ->where('affiliate_id', $affiliate_id)
+            ->where('message', 'not ilike', '%activo%')
+            ->get();
+
+        if (sizeof($data) == 0) {
+            $affiliate_record->save();
+        }
+
+        return response()->json([
+            'message' => 'Datos registrados con éxito',
+            'payload' => [
+                'affiliate' => $affiliate_record
+            ],
+        ]);
     }
 }

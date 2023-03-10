@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Contribution;
 
+use App\Exports\ArchivoPrimarioExport;
 use App\Helpers\Util;
 use App\Http\Controllers\Controller;
 use App\Models\Affiliate\Affiliate;
+use App\Models\Affiliate\AffiliateRecord;
 use App\Models\Affiliate\Degree;
 use App\Models\Contribution\Contribution;
 use App\Models\Contribution\Reimbursement;
@@ -13,6 +15,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Auth;
+use Maatwebsite\Excel\Events\AfterSheet;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ContributionController extends Controller
 {
@@ -454,6 +458,8 @@ class ContributionController extends Controller
             'affiliate_id' => 'required|integer|exists:contributions,affiliate_id',
         ]);
 
+        $this->getCertificateActive($affiliate_id);
+
         $affiliate = Affiliate::find($affiliate_id);
         $user = Auth::user();
         $degree = Degree::find($affiliate->degree_id);
@@ -558,6 +564,7 @@ class ContributionController extends Controller
             $error = true;
             $message = 'No es permitido la eliminación del registro';
             if ($contribution->can_deleted()) {
+                Util::save_record_affiliate($contribution->affiliate,' eliminó el aporte como activo del periodo '.$contribution->month_year.'.');
                 $contribution->delete();
                 $error = false;
                 $message = 'Eliminado exitosamente';
@@ -574,5 +581,108 @@ class ContributionController extends Controller
                 'data' => (object)[]
             ]);
         }
+    }
+
+    public static function getCertificateActive($affiliate_id)
+    {
+        $action = 'imprimió certificado de aportes - activo';
+        $user = Auth::user();
+        $message = 'El usuario ' . $user->username . ' ';
+        $affiliate_record = new AffiliateRecord();
+        $affiliate_record->user_id = $user->id;
+        $affiliate_record->affiliate_id = $affiliate_id;
+        $affiliate_record->message = $message . $action;
+
+        $data = AffiliateRecord::whereDate('created_at', now())
+            ->where('affiliate_id', $affiliate_id)
+            ->where('message', 'not ilike', '%pasivo%')
+            ->get();
+
+        if (sizeof($data) == 0) {
+            $affiliate_record->save();
+        }
+
+        return response()->json([
+            'message' => 'Datos registrados con éxito',
+            'payload' => [
+                'affiliate' => $affiliate_record
+            ],
+        ]);
+    }
+
+    /**
+     * @OA\Post(
+     *      path="/api/contribution/get_report_certificate",
+     *      tags={"CONTRIBUCION"},
+     *      summary="GENERA REPORTE DE CERTIFICACIONES EMITIDAS",
+     *      operationId="report_certificate",
+     *      description="Genera reporte de las certificaciones de aportes emitidas",
+     *      @OA\RequestBody(
+     *          description= "Reporte de certificaciones",
+     *          required=true,
+     *          @OA\JsonContent(
+     *              type="object",
+     *              @OA\Property(property="start_date", type="date",description="Fecha inicio del reporte", example="2023-02-05"),
+     *              @OA\Property(property="end_date", type="date",description="Fecha final del reporte", example="2023-02-14")
+     *         ),
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     },
+     *      @OA\Response(
+     *          response=200,
+     *          description="Success",
+     *          @OA\JsonContent(
+     *            type="object"
+     *         )
+     *      )
+     * )
+     *
+     * Logs user into the system.
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function get_report_certificate(Request $request)
+    {
+        $date = date('Y-m-d');
+
+        if ($request->start_date == NULL || $request->end_date == NULL) {
+            $start_date = $date;
+            $end_date = $date;
+        } else {
+            $start_date = $request->start_date;
+            $end_date = $request->end_date;
+        }
+
+        $list = AffiliateRecord::leftjoin('users', 'affiliate_records_pvt.user_id', '=', 'users.id')
+            ->leftjoin('view_affiliates', 'affiliate_records_pvt.affiliate_id', '=', 'view_affiliates.id_affiliate')
+            ->where('affiliate_records_pvt.message', 'ilike', '%certificado de aportes%')
+            ->whereBetween(DB::raw('DATE(affiliate_records_pvt.created_at)'), [$start_date, $end_date])
+            ->select(
+                'users.username as username',
+                'affiliate_records_pvt.affiliate_id as affiliate_id',
+                'view_affiliates.full_name_affiliate as full_name_affiliate',
+                'affiliate_records_pvt.message as message',
+                'affiliate_records_pvt.created_at as date'
+            )->orderBy('affiliate_records_pvt.created_at', 'asc')->get();
+
+        $data_header = array(array(
+            "NRO", "USUARIO", "NUP", "AFILIADO", "ACCIÓN", "FECHA GENERACIÓN"
+        ));
+        $i = 1;
+        foreach ($list as $row) {
+            array_push($data_header, array(
+                $row->number = $i,
+                $row->username, $row->affiliate_id,
+                $row->full_name_affiliate, $row->message, $row->date
+            ));
+            $i++;
+        }
+
+        $export = new ArchivoPrimarioExport($data_header);
+        $file_name = "reporte_certificaciones";
+        $extension = '.xls';
+        return Excel::download($export, $file_name . $extension);
     }
 }

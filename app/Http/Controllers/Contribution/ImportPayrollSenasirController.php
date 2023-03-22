@@ -510,13 +510,15 @@ class ImportPayrollSenasirController extends Controller
      *      summary="LISTA LOS MESES QUE SE REALIZARON IMPORTACIONES PLANILLA DE TIPO SENASIR EN BASE A UN AÑO DADO EJ:2021",
      *      operationId="list_months_validate_senasir",
      *      description="Lista los meses importados en la tabla payroll_copy_senasirs enviando como parametro un año en especifico",
-     *      @OA\RequestBody(
+     *     @OA\RequestBody(
      *          description= "Provide auth credentials",
      *          required=true,
-     *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
-     *             @OA\Property(property="period_year", type="integer",description="Año de contribucion a listar",example= "2022")
+     *          @OA\JsonContent(
+     *              type="object",
+     *             @OA\Property(property="period_year", type="integer",description="Año de contribución a listar",example= "2022"),
+     *             @OA\Property(property="with_data_count", type="boolean",description="valor para pedir envio de conteo de datos",example= false)
      *            )
-     *          ),
+     *
      *     ),
      *     security={
      *         {"bearerAuth": {}}
@@ -539,7 +541,9 @@ class ImportPayrollSenasirController extends Controller
     {
        $request->validate([
            'period_year' => 'required|date_format:"Y"',
+           'with_data_count'=>'boolean'
        ]);
+       $with_data_count = !isset($request->with_data_count) || is_null($request->with_data_count)? true:$request->with_data_count;
         $period_year = $request->get('period_year');
         $query = "SELECT  distinct month_p,year_p,  to_char( (to_date(year_p|| '-' ||month_p, 'YYYY/MM/DD')), 'TMMonth') as period_month_name from payroll_senasirs where deleted_at  is null and year_p =$period_year group by month_p, year_p";
         $query = DB::select($query);
@@ -555,6 +559,7 @@ class ImportPayrollSenasirController extends Controller
                }
            }
            $date_payroll_format = Carbon::parse($period_year.'-'.$month->period_month.'-'.'01')->toDateString();
+           if($with_data_count)
            $month->data_count = $this->data_count_payroll_senasir($month->period_month,$period_year,$date_payroll_format);
         }
 

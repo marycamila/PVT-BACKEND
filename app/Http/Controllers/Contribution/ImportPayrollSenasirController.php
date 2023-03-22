@@ -92,7 +92,7 @@ class ImportPayrollSenasirController extends Controller
                              'message' => 'Realizado con éxito',
                              'payload' => [
                                  'successfully' => true,
-                                'data_count' =>  $this->data_count_payroll_senasir($month,$year,$date_payroll_format)
+                                'data_count' =>  $this->data_count_payroll_senasir($month,$year)
                              ],
                          ]);
                      } else {
@@ -190,7 +190,7 @@ class ImportPayrollSenasirController extends Controller
                                 }
                             }
                         DB::commit();
-                        $data_count= $this->data_count_payroll_senasir($month,$year,$date_payroll_format);
+                        $data_count = $this->data_count_payroll_senasir($month,$year);
                         return response()->json([
                             'message' => $message,
                             'payload' => [
@@ -499,7 +499,7 @@ class ImportPayrollSenasirController extends Controller
             'message' => $message,
             'payload' => [
                 'import_progress_bar' =>  $result,
-                'data_count' =>  $this->data_count_payroll_senasir($month,$year,$date_payroll_format)
+                'data_count' =>  $this->data_count_payroll_senasir($month,$year)
             ],
         ]);
     }
@@ -571,7 +571,7 @@ class ImportPayrollSenasirController extends Controller
            ],
        ]);
     }
-    public function data_count_payroll_senasir($mes,$a_o,$date_payroll_format){
+    public function data_count_payroll_senasir($mes,$a_o){
         $month = $mes;
         $year = $a_o;
         $data_count['num_total_data_copy'] = 0;
@@ -581,19 +581,19 @@ class ImportPayrollSenasirController extends Controller
         $data_count['num_data_not_validated'] = 0;
 
         //---TOTAL DE DATOS DEL ARCHIVO
-        $query_total_data = "SELECT * FROM payroll_copy_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER;";
+        $query_total_data = "SELECT count(a_o) FROM payroll_copy_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER;";
         $query_total_data = DB::connection('db_aux')->select($query_total_data);
-        $data_count['num_total_data_copy'] = count($query_total_data);
+        $data_count['num_total_data_copy'] = $query_total_data[0]->count;
 
         //---NUMERO DE DATOS NO CONSIDERADOS
-        $query_data_not_considered = "SELECT * FROM payroll_copy_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER and clase_renta like 'ORFANDAD%';";
+        $query_data_not_considered = "SELECT count(a_o) FROM payroll_copy_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER and clase_renta like 'ORFANDAD%';";
         $query_data_not_considered = DB::connection('db_aux')->select($query_data_not_considered);
-        $data_count['num_data_not_considered'] = count($query_data_not_considered);
+        $data_count['num_data_not_considered'] = $query_data_not_considered[0]->count;
 
         //---NUMERO DE DATOS CONSIDERADOS
-        $query_data_considered = "SELECT * FROM payroll_copy_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER and clase_renta not like 'ORFANDAD%';";
+        $query_data_considered = "SELECT count(a_o) FROM payroll_copy_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER and clase_renta not like 'ORFANDAD%';";
         $query_data_considered = DB::connection('db_aux')->select($query_data_considered);
-        $data_count['num_data_considered'] = count($query_data_considered);
+        $data_count['num_data_considered'] = $query_data_considered[0]->count;
 
         //---NUMERO DE DATOS VALIDADOS
         $data_count['num_data_validated'] = PayrollSenasir::data_period($month,$year)['count_data'];

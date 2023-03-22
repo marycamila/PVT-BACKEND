@@ -90,45 +90,6 @@ class ImportContributionSenasirController extends Controller
         ]);
      }
 
-     public function data_count($month,$year,$date_payroll_format){
-        $data_count['num_total_data_copy'] = 0;
-        $data_count['num_data_not_considered'] = 0;
-        $data_count['num_data_considered'] = 0;
-        $data_count['num_data_validated'] = 0;
-        $data_count['num_data_not_validated'] = 0;
-        $data_count['num_total_data_contribution_passives'] = 0;
-        $data_count['sum_amount_total_contribution_passives'] = 0;
-
-        //---TOTAL DE DATOS DEL ARCHIVO
-        $query_total_data = "SELECT * FROM payroll_copy_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER;";
-        $query_total_data = DB::connection('db_aux')->select($query_total_data);
-        $data_count['num_total_data_copy'] = count($query_total_data);
-
-        //---NUMERO DE DATOS NO CONSIDERADOs
-        $query_data_not_considered = "SELECT * FROM payroll_copy_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER and clase_renta like 'ORFANDAD%';";
-        $query_data_not_considered = DB::connection('db_aux')->select($query_data_not_considered);
-        $data_count['num_data_not_considered'] = count($query_data_not_considered);
-
-        //---NUMERO DE DATOS CONSIDERADOS
-        $query_data_considered = "SELECT * FROM payroll_copy_senasirs where mes = $month::INTEGER and a_o = $year::INTEGER and clase_renta not like 'ORFANDAD%';";
-        $query_data_considered = DB::connection('db_aux')->select($query_data_considered);
-        $data_count['num_data_considered'] = count($query_data_considered);
-
-        //---NUMERO DE DATOS VALIDADOS
-        $data_count['num_data_validated'] = PayrollSenasir::data_period($month,$year)['count_data'];
-
-         //---NUMERO DE DATOS NO VALIDADOS
-        $data_count['num_data_not_validated'] = $data_count['num_data_considered'] - $data_count['num_data_validated'];
-
-        //---TOTAL DE REGISTROS CONTRIBUTION PASSIVES
-        $data_count['num_total_data_contribution_passives'] = ContributionPassive::data_period_senasir($date_payroll_format)['count_data'];
-
-        //---suma monto total contribucion
-        $data_count['sum_amount_total_contribution_passives'] = floatval(ContributionPassive::sum_total_senasir($date_payroll_format));
-
-        return  $data_count;
-    }
-
     public function data_count_contribution($month,$year,$date_payroll_format){
         $data_count['num_data_validated'] = 0;
         $data_count['num_total_data_contribution_passives'] = 0;

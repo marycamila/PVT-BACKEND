@@ -349,7 +349,7 @@ class ImportPayrollCommandController extends Controller
             'message' => $message,
             'payload' => [
                 'import_progress_bar' =>  $result,
-                'data_count' =>  $this->data_count_payroll_command($month,$year,$date_payroll_format)
+                'data_count' =>  $this->data_count_payroll_command($month,$year)
             ],
         ]);
     }
@@ -513,9 +513,8 @@ class ImportPayrollCommandController extends Controller
                    break;
                }
            }
-           $date_payroll_format = Carbon::parse($period_year.'-'.$month->period_month.'-'.'01')->toDateString();
            if($with_data_count)
-           $month->data_count = $this->data_count_payroll_command($month->period_month,$period_year,$date_payroll_format);
+           $month->data_count = $this->data_count_payroll_command($month->period_month,$period_year);
         }
 
         return response()->json([
@@ -595,7 +594,7 @@ class ImportPayrollCommandController extends Controller
                             $message = 'Excel';
                         }
                         DB::commit();
-                        $data_count= $this->data_count_payroll_command($month,$year,$date_payroll_format);
+                        $data_count= $this->data_count_payroll_command($month,$year);
 
                         return response()->json([
                             'message' => $message,

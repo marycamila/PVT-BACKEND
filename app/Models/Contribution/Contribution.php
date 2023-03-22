@@ -83,7 +83,7 @@ class Contribution extends Model
     {
         $data = collect([]);
         $exists_data = true;
-        $contribution =  Contribution::whereMonth_year($month_year)->whereContributionable_type('payroll_commands')->count();
+        $contribution =  Contribution::whereMonth_year($month_year)->whereContributionable_type('payroll_commands')->count('id');
         if($contribution == 0) $exists_data = false;
 
         $data['exist_data'] = $exists_data;

@@ -75,7 +75,7 @@ class PayrollSenasir extends Model
     {
         $data = collect([]);
         $exists_data = true;
-        $payroll =  PayrollSenasir::whereMonth_p($month)->whereYear_p($year)->count();
+        $payroll =  PayrollSenasir::whereMonth_p($month)->whereYear_p($year)->count('id');
         if($payroll == 0) $exists_data = false;
 
         $data['exist_data'] = $exists_data;

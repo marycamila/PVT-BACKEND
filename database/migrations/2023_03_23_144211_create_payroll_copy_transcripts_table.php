@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::connection('db_aux')->create('payroll_copy_transcripts', function (Blueprint $table) {
             $table->id();
             $table->string('obs')->nullable()->comment('observacion');
-            $table->string('uni')->default(null)->comment('Unidad');
+            $table->string('uni')->nullable()->comment('Unidad');
             $table->integer('mes')->comment('Mes');
             $table->integer('a_o')->comment('Año');
             $table->string('car')->comment('Carnet');
@@ -26,8 +26,8 @@ return new class extends Migration
             $table->string('nom2')->nullable()->comment('Segundo nombre');
             $table->decimal('gan', 13, 2)->default(0)->comment('Total ganado');
             $table->decimal('mus', 13, 2)->default(0)->comment('Aporte Muserpol');
-            $table->string('niv')->default(null)->comment('Nivel jerarquico');
-            $table->string('gra')->default(null)->comment('Grado');
+            $table->string('niv')->nullable()->comment('Nivel jerarquico');
+            $table->string('gra')->nullable()->comment('Grado');
             $table->decimal('sue', 13, 2)->default(0)->comment('Sueldo');
             $table->decimal('cat', 13, 2)->default(0)->comment('Bono antiguedad');
             $table->decimal('est', 13, 2)->default(0)->comment('Bono estudio');

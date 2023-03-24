@@ -26,7 +26,7 @@ return new class extends Migration
             $table->string('mothers_last_name')->nullable()->comment('Apellido materno');
             $table->string('first_name')->comment('Primer nombre');
             $table->string('second_name')->nullable()->comment('Segundo nombre');
-            $table->unsignedBigInteger('hierarchy_id')->comment('Nivel jerarquico');
+            $table->unsignedBigInteger('hierarchy_id')->nullable()->comment('Nivel jerarquico');
             $table->foreign('hierarchy_id')->references('id')->on('hierarchies');
             $table->unsignedBigInteger('degree_id')->nullable()->comment('Grado');
             $table->foreign('degree_id')->references('id')->on('degrees');

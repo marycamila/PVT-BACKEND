@@ -38,7 +38,7 @@ return new class extends Migration
             $table->date('ing')->nullable()->comment('Fecha de ingreso');
             $table->unsignedBigInteger('affiliate_id')->nullable()->comment('Id del afiliado titular');
             $table->enum('state', ['accomplished','unrealized'])->default('unrealized')->comment('Estado si fue encontrado o no encontrado');
-            $table->string('criteria')->nullable()->comment('creitetio de identificacion del afiliado');
+            $table->string('criteria')->nullable()->comment('critetio de identificacion del afiliado');
             $table->timestamps();
             $table->softDeletes();
         });

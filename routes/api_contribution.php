@@ -19,6 +19,8 @@ Route::group([
         Route::get('/search_passive_affiliate_contribution', [App\Http\Controllers\Contribution\ContributionPassiveController::class, 'SearchContributionPassive']);
         Route::get('/search_active_affiliate_contribution', [App\Http\Controllers\Contribution\ContributionController::class, 'SearchContributionActive']);
         Route::apiResource('/contribution_state', App\Http\Controllers\Contribution\ContributionStateController::class)->only(['index']);
+        //importacion transcripciones
+        Route::post('/upload_copy_payroll_transcript', [App\Http\Controllers\Contribution\ImportPayrollTranscriptController::class, 'upload_copy_payroll_transcript']);//es este
         Route::group([
             'middleware' => 'permission:delete-contribution-passive'
         ], function () {

@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Contribution;
 
+use App\Helpers\Util;
 use App\Http\Controllers\Controller;
 use App\Models\Affiliate\Affiliate;
+use App\Models\Affiliate\AffiliateRecord;
 use App\Models\Affiliate\Degree;
 use App\Models\Contribution\ContributionPassive;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -275,6 +277,52 @@ class ContributionPassiveController extends Controller
         return $contributions_passives;
     }
 
+    /**
+     * @OA\Get(   
+     *     path="/api/contribution/print_contributions_passive/{affiliate_id}",
+     *     tags={"CONTRIBUCION"},
+     *     summary="Impresión de certificado de contribuciones - Sector Pasivo",
+     *     operationId="getCertificateContributionPassive",
+     *      @OA\Parameter(
+     *         name="affiliate_id",
+     *         in="path",
+     *         description="Id del afiliado",
+     *         example=210,
+     *
+     *         required=true,
+     *         @OA\Schema(
+     *             type="integer",
+     *             format = "int64"
+     *         )
+     *       ),
+     *      @OA\Parameter(
+     *         name="affiliate_rent_class",
+     *         in="query",
+     *         description="Tipo de renta (VEJEZ/VIUDEDAD)",
+     *         example="VEJEZ",
+     *
+     *         required=true,
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *       ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *         type="object"
+     *         )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     }
+     * )
+     *
+     * Print certificate of contributions passive
+     *
+     * @param Request $request
+     * @return void
+     */
     public function printCertificationContributionPassive(Request $request, $affiliate_id)
     {
         $request['affiliate_id'] = $affiliate_id;
@@ -283,6 +331,8 @@ class ContributionPassiveController extends Controller
             'affiliate_rent_class' => 'required'
         ]);
 
+        $this->getCertificatePassive($affiliate_id);
+        
         $affiliate = Affiliate::find($affiliate_id);
         $user = Auth::user();
         $degree = Degree::find($affiliate->degree_id);
@@ -359,18 +409,13 @@ class ContributionPassiveController extends Controller
             'text' => $text,
             'contributions' => $contributions
         ];
-        $pdf = PDF::loadView('contribution.print.certification_contribution_eco_com', $data);
-        $pdf->output();
-        $dom_pdf = $pdf->getDomPDF();
-        $canvas = $dom_pdf->get_canvas();
 
-        $width = $canvas->get_width();
-        $height = $canvas->get_height();
-        $pageNumberWidth = $width / 2;
-        $pageNumberHeight = $height - 35;
-        $canvas->page_text($pageNumberWidth, $pageNumberHeight, "Página {PAGE_NUM} de {PAGE_COUNT}", null, 10, array(0, 0, 0));
-        
-        return $pdf->stream('aportes_pas_' . $affiliate_id . '.pdf');
+        $file_name = 'aportes_pas_' . $affiliate_id . '.pdf';
+        $pdf = PDF::loadView('contribution.print.certification_contribution_eco_com', $data);
+        $pdf->set_paper('letter', 'portrait');
+        $pdf->output();
+
+        return Util::pdf_to_base64($pdf, $file_name);
     }
 
 
@@ -397,7 +442,7 @@ class ContributionPassiveController extends Controller
         //
     }
 
-     /**
+    /**
      * @OA\delete(
      *     path="/api/contribution/contributions_passive/{contributionPassive}",
      *     tags={"CONTRIBUCION"},
@@ -405,7 +450,7 @@ class ContributionPassiveController extends Controller
      *     operationId="deleteContributionPassive",
      *     @OA\Parameter(
      *         description="ID del aporte del sector pasivo",
-     *         in="path",
+     *         in="query",
      *         name="contributionPassive",
      *         required=true,
      *         @OA\Schema(
@@ -430,12 +475,13 @@ class ContributionPassiveController extends Controller
      * @param Request $request
      * @return void
      */
-    public function destroy( ContributionPassive $contributionPassive)
+    public function destroy(ContributionPassive $contributionPassive)
     {
-        try{
+        try {
             $error = true;
             $message = 'No es permitido la eliminación del registro';
-            if($contributionPassive->can_deleted()){
+            if ($contributionPassive->can_deleted()) {
+                Util::save_record_affiliate($contributionPassive->affiliate,' eliminó el aporte como pasivo del periodo '.$contributionPassive->month_year.'.');
                 $contributionPassive->delete();
                 $error = false;
                 $message = 'Eliminado exitosamente';
@@ -445,12 +491,39 @@ class ContributionPassiveController extends Controller
                 'message' => $message,
                 'data' => $contributionPassive
             ]);
-        }catch(Exception $e){
+        } catch (Exception $e) {
             return response()->json([
                 'error' => true,
                 'message' => $e->getMessage(),
                 'data' => (object)[]
             ]);
         }
+    }
+
+    public static function getCertificatePassive($affiliate_id)
+    {
+        $action = 'imprimió certificado de aportes - pasivo';
+        $user = Auth::user();
+        $message = 'El usuario ' . $user->username . ' ';
+        $affiliate_record = new AffiliateRecord();
+        $affiliate_record->user_id = $user->id;
+        $affiliate_record->affiliate_id = $affiliate_id;
+        $affiliate_record->message = $message . $action;
+
+        $data = AffiliateRecord::whereDate('created_at', now())
+            ->where('affiliate_id', $affiliate_id)
+            ->where('message', 'not ilike', '%activo%')
+            ->get();
+
+        if (sizeof($data) == 0) {
+            $affiliate_record->save();
+        }
+
+        return response()->json([
+            'message' => 'Datos registrados con éxito',
+            'payload' => [
+                'affiliate' => $affiliate_record
+            ],
+        ]);
     }
 }

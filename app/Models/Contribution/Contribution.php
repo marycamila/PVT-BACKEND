@@ -83,7 +83,7 @@ class Contribution extends Model
     {
         $data = collect([]);
         $exists_data = true;
-        $contribution =  Contribution::whereMonth_year($month_year)->whereContributionable_type('payroll_commands')->count();
+        $contribution =  Contribution::whereMonth_year($month_year)->whereContributionable_type('payroll_commands')->count('id');
         if($contribution == 0) $exists_data = false;
 
         $data['exist_data'] = $exists_data;
@@ -102,7 +102,7 @@ class Contribution extends Model
         return ContributionRate::whereMonth_year($month_year)->get()->first()? true:false;
     }
     public function can_deleted(){
-        return $this->total < 1 ? true : false;
+        return is_null($this->contributionable_type)? true : false;
     }
 
 }

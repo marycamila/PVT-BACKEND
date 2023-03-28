@@ -50,7 +50,7 @@
                         <td colspan="2">Estado de credenciales</td>
                     </tr>
                     <tr>
-                        <td class="data-row py-5">Unidad de Prestamos</td>
+                        <td class="data-row py-5">{{ $header['unity'] }}</td>
                         <td colspan="2" class="data-row py-5">{{ $credential->access_status }}</td>
                     </tr>
                 </table>

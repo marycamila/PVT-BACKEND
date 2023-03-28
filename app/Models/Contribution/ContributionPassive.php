@@ -54,7 +54,7 @@ class ContributionPassive extends Model
     {
         $data = collect([]);
         $exists_data = true;
-        $contribution =  ContributionPassive::whereMonth_year($month_year)->whereContributionable_type('payroll_senasirs')->count();
+        $contribution =  ContributionPassive::whereMonth_year($month_year)->whereContributionable_type('payroll_senasirs')->count('id');
         if($contribution == 0) $exists_data = false;
 
         $data['exist_data'] = $exists_data;

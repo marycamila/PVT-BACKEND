@@ -798,7 +798,7 @@ class AffiliateUserController extends Controller
             $data = [
                 'header' => [
                     'direction' => $role->module_id==6?'DIRECCIÓN DE ESTRATEGIAS SOCIALES E INVERSIONES':'DIRECCIÓN DE BENEFICIOS ECONÓMICOS',
-                    'unity' => $role->module->description,
+                    'unity' => $role->module->description=='Contribuciones'?'Unidad de Fondo de Retiro':$role->module->description,
                     'table' => [
                         ['Usuario', $worker->username],
                         ['Fecha', Carbon::now()->format('d/m/Y')],

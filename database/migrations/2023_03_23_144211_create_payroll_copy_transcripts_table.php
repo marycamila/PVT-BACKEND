@@ -24,12 +24,12 @@ return new class extends Migration
             $table->string('mat')->nullable()->comment('Apellido materno');
             $table->string('nom')->nullable()->comment('Primer nombre');
             $table->string('nom2')->nullable()->comment('Segundo nombre');
-            $table->decimal('gan', 13, 2)->default(0)->comment('Total ganado');
-            $table->decimal('mus', 13, 2)->default(0)->comment('Aporte Muserpol');
             $table->string('niv')->nullable()->comment('Nivel jerarquico');
             $table->string('gra')->nullable()->comment('Grado');
             $table->decimal('sue', 13, 2)->default(0)->comment('Sueldo');
             $table->decimal('cat', 13, 2)->default(0)->comment('Bono antiguedad');
+            $table->decimal('gan', 13, 2)->default(0)->comment('Total ganado');
+            $table->decimal('mus', 13, 2)->default(0)->comment('Aporte Muserpol');
             $table->decimal('est', 13, 2)->default(0)->comment('Bono estudio');
             $table->decimal('carg', 13, 2)->default(0)->comment('Bono cargo');
             $table->decimal('fro', 13, 2)->default(0)->comment('Bono frontera');

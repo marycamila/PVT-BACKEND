@@ -36,6 +36,7 @@ return new class extends Migration
             $table->decimal('ori', 13, 2)->default(0)->comment('Bono oriente');
             $table->date('nac')->nullable()->comment('Fecha de nacimiento');
             $table->date('ing')->nullable()->comment('Fecha de ingreso');
+            $table->string('error_messaje')->nullable()->comment('Mensaje del error');
             $table->unsignedBigInteger('affiliate_id')->nullable()->comment('Id del afiliado titular');
             $table->enum('state', ['accomplished','unrealized'])->default('unrealized')->comment('Estado si fue encontrado o no encontrado');
             $table->string('criteria')->nullable()->comment('critetio de identificacion del afiliado');

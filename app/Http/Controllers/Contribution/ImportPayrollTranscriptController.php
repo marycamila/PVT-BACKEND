@@ -24,7 +24,8 @@ class ImportPayrollTranscriptController extends Controller
      *          required=true,
      *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
      *             @OA\Property(property="file", type="file", description="file required", example="file"),
-     *             @OA\Property(property="date_payroll", type="string",description="fecha de planilla required",example= "2022-03-01")
+     *             @OA\Property(property="date_payroll", type="string",description="fecha de planilla required",example= "1998-02-01"),
+     *             @OA\Property(property="total_amount", type="number",description="Monto total de la planilla required",example= "401585.31")
      *            )
      *          ),
      *     ),
@@ -51,6 +52,7 @@ class ImportPayrollTranscriptController extends Controller
         $request->validate([
             'file' => 'required',
             'date_payroll' => 'required|date_format:"Y-m-d"',
+            'total_amount' => 'required|numeric',
         ]);
         $extencion = strtolower($request->file->getClientOriginalExtension());
         $file_name_entry = $request->file->getClientOriginalName();
@@ -74,18 +76,50 @@ class ImportPayrollTranscriptController extends Controller
                         $file_path = Storage::disk('ftp')->putFileAs($base_path,$request->file,$file_name);
                         $base_path ='ftp://'.env('FTP_HOST').env('FTP_ROOT').$file_path;
 
+                        $drop = "drop table if exists payroll_copy_transcripts_tmp";
+                        $drop = DB::connection('db_aux')->select($drop);
+
                         $temporary_payroll = "create temporary table payroll_copy_transcripts_tmp(nro integer,obs varchar,uni varchar, mes integer, a_o integer,
                         car varchar,pat varchar,mat varchar,nom varchar,nom2 varchar,
-                        gan decimal(13,2),mus decimal(13,2), niv varchar,gra varchar,sue decimal(13,2),cat decimal(13,2),est decimal(13,2),
+                        niv varchar,gra varchar,sue decimal(13,2),cat decimal(13,2),gan decimal(13,2),mus decimal(13,2),est decimal(13,2),
                         carg decimal(13,2),fro decimal(13,2),ori decimal(13,2),nac date,ing date)";
                         $temporary_payroll = DB::connection('db_aux')->select($temporary_payroll);
 
-                        $copy = "copy payroll_copy_transcripts_tmp(nro,obs,uni, mes,a_o,car,pat,mat,nom,nom2,gan,mus,niv,gra,sue,cat,est,carg,fro,ori,nac,ing)
+                        $copy = "copy payroll_copy_transcripts_tmp(nro,obs,uni, mes,a_o,car,pat,mat,nom,nom2,niv,gra,sue,cat,gan,mus,est,carg,fro,ori,nac,ing)
                                 FROM PROGRAM 'wget -q -O - $@  --user=$username --password=$password $base_path'
                                 WITH DELIMITER ':' CSV header;";
                         $copy = DB::connection('db_aux')->select($copy);
-                        $insert = "INSERT INTO payroll_copy_transcripts(obs,uni,mes,a_o,car,pat,mat,nom,nom2,gan,mus,niv,gra,sue,cat,est,carg,fro,ori,nac,ing,created_at,updated_at)
-                                   SELECT obs,uni,mes::INTEGER,a_o::INTEGER,car,pat,mat,nom,nom2,gan,mus,niv,gra,sue,cat,est,carg,fro,ori,nac,ing,current_timestamp,current_timestamp FROM payroll_copy_transcripts_tmp; ";
+
+                        //******validación de datos****************/
+
+                        $verify_data = "select count(*) from payroll_copy_transcripts_tmp where mes <> $month_format or a_o <> $year;";
+                        $verify_data = DB::connection('db_aux')->select($verify_data);
+
+                        if($verify_data[0]->count > 0){
+                            return response()->json([
+                                'message' => 'Error en el copiado de datos',
+                                'payload' => [
+                                    'successfully' => false,
+                                    'error' => 'exixten datos incorrectos en la(s) columnas de mes o año',
+                                ],
+                            ]);
+                        }
+
+                        $verify_amount = "select sum(mus) from payroll_copy_transcripts_tmp";
+                        $verify_amount = DB::connection('db_aux')->select($verify_amount);
+
+                        if($verify_amount[0]->sum !=  $request->total_amount) {
+                            return response()->json([
+                                'message' => 'Error en el copiado de datos',
+                                'payload' => [
+                                    'successfully' => false,
+                                    'error' => 'El monto total ingresado no coincide con el monto total de la planilla, favor de verificar',
+                                ],
+                            ]);
+                        }
+                        //****************************************/
+                        $insert = "INSERT INTO payroll_copy_transcripts(obs,uni,mes,a_o,car,pat,mat,nom,nom2,niv,gra,sue,cat,gan,mus,est,carg,fro,ori,nac,ing,created_at,updated_at)
+                                   SELECT obs,uni,mes::INTEGER,a_o::INTEGER,car,pat,mat,nom,nom2,niv,gra,sue,cat,gan,mus,est,carg,fro,ori,nac,ing,current_timestamp,current_timestamp FROM payroll_copy_transcripts_tmp; ";
                         $insert = DB::connection('db_aux')->select($insert);
 
                         $drop = "drop table if exists payroll_copy_transcripts_tmp";

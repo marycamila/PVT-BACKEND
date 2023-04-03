@@ -21,6 +21,7 @@ Route::group([
         Route::apiResource('/contribution_state', App\Http\Controllers\Contribution\ContributionStateController::class)->only(['index']);
         //importacion transcripciones
         Route::post('/upload_copy_payroll_transcript', [App\Http\Controllers\Contribution\ImportPayrollTranscriptController::class, 'upload_copy_payroll_transcript']);//es este
+        Route::post('/donload_error_data_archive', [App\Http\Controllers\Contribution\ImportPayrollTranscriptController::class, 'donload_error_data_archive']);
         Route::group([
             'middleware' => 'permission:delete-contribution-passive'
         ], function () {

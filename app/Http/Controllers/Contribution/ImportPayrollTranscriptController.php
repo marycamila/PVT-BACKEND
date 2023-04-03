@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\ArchivoPrimarioExport;
 
 class ImportPayrollTranscriptController extends Controller
 {
@@ -178,5 +180,57 @@ class ImportPayrollTranscriptController extends Controller
         $data_count['num_total_data_copy'] = $query_total_data[0]->count;
 
         return  $data_count;
+    }
+    /**
+      * @OA\Post(
+      *      path="/api/contribution/donload_error_data_archive",
+      *      tags={"IMPORTACION-PLANILLA-TRANSCRIPCIÓN"},
+      *      summary="Descarga el archivo, con el listado de afiliados que tengan observaciones en el archivo ",
+      *      operationId="donload_error_data_archive",
+      *      description="Descarga el archivo con el listado de afiliados con CI duplicado, primer nombre nulo, apellido paterno y materno en nulo ",
+      *      @OA\RequestBody(
+      *          description= "Provide auth credentials",
+      *          required=true,
+      *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
+      *             @OA\Property(property="date_payroll", type="string", description="fecha de planilla required", example= "2021-10-01")
+      *            )
+      *          ),
+      *     ),
+      *     security={
+      *         {"bearerAuth": {}}
+      *     },
+      *      @OA\Response(
+      *          response=200,
+      *          description="Success",
+      *          @OA\JsonContent(
+      *            type="object"
+      *         )
+      *      )
+      * )
+      *
+      * Logs user into the system.
+      *
+      * @param Request $request
+      * @return void
+    */
+    public function donload_error_data_archive(Request $request){
+        $request->validate([
+            'date_payroll' => 'required|date_format:"Y-m-d"',
+        ]);
+    $message = "No hay datos";
+    $data_header=array(array("AÑO","MES","CARNET","APELLIDO PATERNO","APELLIDO MATERNO","PRIMER NOMBRE","SEGUNDO NOMBRE","OBSERVACIÓN"));
+    $date_payroll = Carbon::parse($request->date_payroll);
+    $year = (int)$date_payroll->format("Y");
+    $month = (int)$date_payroll->format("m");
+    $data_payroll_copy_transcripts = "select a_o,mes,car,pat,mat,nom,nom2,error_messaje from payroll_copy_transcripts pct where mes ='$month' and a_o ='$year' and error_messaje is not null or error_messaje =''";
+    $data_payroll_copy_transcripts = DB::connection('db_aux')->select($data_payroll_copy_transcripts);
+        foreach ($data_payroll_copy_transcripts as $row){
+            array_push($data_header, array($row->a_o,$row->mes,$row->car,$row->pat,
+            $row->mat,$row->nom,$row->nom2,$row->error_messaje));
+        }
+        $export = new ArchivoPrimarioExport($data_header);
+        $file_name = "no-encontrados-planilla-senasir";
+        $extension = '.xls';
+        return Excel::download($export, $file_name."_".$month."_".$year.$extension);
     }
 }

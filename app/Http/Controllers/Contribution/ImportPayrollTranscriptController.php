@@ -92,7 +92,7 @@ class ImportPayrollTranscriptController extends Controller
 
                         //******validación de datos****************/
 
-                        $verify_data = "select count(*) from payroll_copy_transcripts_tmp where mes <> $month_format or a_o <> $year;";
+                        $verify_data = "select count(*) from payroll_copy_transcripts_tmp where mes <> $month_format or a_o <> $year or mes is null or a_o is null;";
                         $verify_data = DB::connection('db_aux')->select($verify_data);
 
                         if($verify_data[0]->count > 0){
@@ -100,7 +100,7 @@ class ImportPayrollTranscriptController extends Controller
                                 'message' => 'Error en el copiado de datos',
                                 'payload' => [
                                     'successfully' => false,
-                                    'error' => 'exixten datos incorrectos en la(s) columnas de mes o año',
+                                    'error' => 'Existen datos incorrectos en la(s) columnas de mes o año.',
                                 ],
                             ]);
                         }
@@ -113,7 +113,7 @@ class ImportPayrollTranscriptController extends Controller
                                 'message' => 'Error en el copiado de datos',
                                 'payload' => [
                                     'successfully' => false,
-                                    'error' => 'El monto total ingresado no coincide con el monto total de la planilla, favor de verificar',
+                                    'error' => 'El monto total ingresado no coincide con el monto total de la planilla, favor de verificar.',
                                 ],
                             ]);
                         }
@@ -127,6 +127,32 @@ class ImportPayrollTranscriptController extends Controller
 
                         $data_count = $this->data_count_payroll_transcript($month_format,$year);
 
+                        //******validación de datos****************/
+                        $verify_data = "update payroll_copy_transcripts pt set error_messaje = concat(error_messaje,' - ','Los valores de los apellidos son NULOS ') from (select id from payroll_copy_transcripts where mes =$month_format and a_o= $year and pat is null and mat is null) as subquery where pt.id = subquery.id;";
+                        $verify_data = DB::connection('db_aux')->select($verify_data);
+
+                        $verify_data = "update payroll_copy_transcripts pt set error_messaje = concat(error_messaje,' - ','El valor del primer nombre es NULO ') from (select id from payroll_copy_transcripts where mes =$month_format and a_o= $year and nom is null) as subquery where pt.id = subquery.id;";
+                        $verify_data = DB::connection('db_aux')->select($verify_data);
+
+                        $verify_data = "update payroll_copy_transcripts pt set error_messaje = concat(error_messaje,' - ','El monto del aporte es 0 o inferior ') from (select id from payroll_copy_transcripts where mes =$month_format and a_o= $year and mus <= 0) as subquery where pt.id = subquery.id;";
+                        $verify_data = DB::connection('db_aux')->select($verify_data);
+
+                        $verify_data = "update payroll_copy_transcripts pt set error_messaje = concat(error_messaje,' - ','El numero de carnet es duplicado ') from (select car,count(car) from payroll_copy_transcripts where mes =$month_format and a_o= $year group by car having count(car) > 1) as subquery where pt.car = subquery.car;";
+                        $verify_data = DB::connection('db_aux')->select($verify_data);
+
+                        $verify_data = "select count(id) from payroll_copy_transcripts pct where mes =$month_format and a_o= $year and error_messaje is not null;";
+                        $verify_data = DB::connection('db_aux')->select($verify_data);
+
+                        if($verify_data[0]->count > 0) {
+                            return response()->json([
+                                'message' => 'Excel',
+                                'payload' => [
+                                    'successfully' => false,
+                                    'error' => 'Existen datos en el archivo que son incorrectos, favor revisar.',
+                                ],
+                            ]);
+                        }
+                        //****************************************/
                         DB::commit();
 
                         if($data_count['num_total_data_copy'] > 0){
@@ -181,7 +207,7 @@ class ImportPayrollTranscriptController extends Controller
 
         return  $data_count;
     }
-    /**
+     /**
       * @OA\Post(
       *      path="/api/contribution/donload_error_data_archive",
       *      tags={"IMPORTACION-PLANILLA-TRANSCRIPCIÓN"},

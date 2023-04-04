@@ -209,10 +209,10 @@ class ImportPayrollTranscriptController extends Controller
     }
      /**
       * @OA\Post(
-      *      path="/api/contribution/donload_error_data_archive",
+      *      path="/api/contribution/download_error_data_archive",
       *      tags={"IMPORTACION-PLANILLA-TRANSCRIPCIÓN"},
       *      summary="Descarga el archivo, con el listado de afiliados que tengan observaciones en el archivo ",
-      *      operationId="donload_error_data_archive",
+      *      operationId="download_error_data_archive",
       *      description="Descarga el archivo con el listado de afiliados con CI duplicado, primer nombre nulo, apellido paterno y materno en nulo ",
       *      @OA\RequestBody(
       *          description= "Provide auth credentials",
@@ -239,23 +239,23 @@ class ImportPayrollTranscriptController extends Controller
       * @param Request $request
       * @return void
     */
-    public function donload_error_data_archive(Request $request){
+    public function download_error_data_archive(Request $request){
         $request->validate([
             'date_payroll' => 'required|date_format:"Y-m-d"',
         ]);
     $message = "No hay datos";
-    $data_header=array(array("AÑO","MES","CARNET","APELLIDO PATERNO","APELLIDO MATERNO","PRIMER NOMBRE","SEGUNDO NOMBRE","OBSERVACIÓN"));
+    $data_header=array(array("AÑO","MES","CARNET","APELLIDO PATERNO","APELLIDO MATERNO","PRIMER NOMBRE","SEGUNDO NOMBRE","APORTE","OBSERVACIÓN"));
     $date_payroll = Carbon::parse($request->date_payroll);
     $year = (int)$date_payroll->format("Y");
     $month = (int)$date_payroll->format("m");
-    $data_payroll_copy_transcripts = "select a_o,mes,car,pat,mat,nom,nom2,error_messaje from payroll_copy_transcripts pct where mes ='$month' and a_o ='$year' and error_messaje is not null or error_messaje =''";
+    $data_payroll_copy_transcripts = "select a_o,mes,car,pat,mat,nom,nom2,mus,error_messaje from payroll_copy_transcripts pct where mes ='$month' and a_o ='$year' and error_messaje is not null or error_messaje ='' order by car";
     $data_payroll_copy_transcripts = DB::connection('db_aux')->select($data_payroll_copy_transcripts);
         foreach ($data_payroll_copy_transcripts as $row){
             array_push($data_header, array($row->a_o,$row->mes,$row->car,$row->pat,
-            $row->mat,$row->nom,$row->nom2,$row->error_messaje));
+            $row->mat,$row->nom,$row->nom2,$row->mus,$row->error_messaje));
         }
         $export = new ArchivoPrimarioExport($data_header);
-        $file_name = "no-encontrados-planilla-senasir";
+        $file_name = "observacion-planilla-transcrita";
         $extension = '.xls';
         return Excel::download($export, $file_name."_".$month."_".$year.$extension);
     }

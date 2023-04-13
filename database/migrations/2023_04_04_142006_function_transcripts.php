@@ -23,23 +23,23 @@ return new class extends Migration
                                      WHEN (order_entry = 1 ) THEN --Busqueda de afiliado por CI, nombre, paterno y materno iguales--
                                          select id into affiliate_id from affiliates where
                                          identity_card ILIKE identity_card_entry
-                                         END first_name ILIKE first_name_entry
-                                         END (COALESCE(last_name, '') ILIKE COALESCE(last_name_entry, ''))
-                                         END (COALESCE(mothers_last_name, '') ILIKE COALESCE(mothers_last_name_entry, ''));
+                                         AND first_name ILIKE first_name_entry
+                                         AND (COALESCE(last_name, '') ILIKE COALESCE(last_name_entry, ''))
+                                         AND (COALESCE(mothers_last_name, '') ILIKE COALESCE(mothers_last_name_entry, ''));
 
-                                     WHEN (order_entry = 2  ) THEN --Busqueda de afiliado por CI igual y nombre, paterno y materno similares
+                                     WHEN (order_entry = 2  ) THEN --Busqueda de afiliado por CI igual y nombre, paterno y materno similares--
                                          select id into affiliate_id from affiliates where
                                          identity_card ILIKE  identity_card_entry
-                                         END word_similarity(first_name , first_name_entry) >= 0.5
-                                         END word_similarity(last_name, last_name_entry) >= 0.5
-                                         END word_similarity(mothers_last_name, mothers_last_name_entry) >= 0.5;
+                                         AND word_similarity(first_name , first_name_entry) >= 0.5
+                                         AND word_similarity(last_name, last_name_entry) >= 0.5
+                                         AND word_similarity(mothers_last_name, mothers_last_name_entry) >= 0.5;
 
-                                     WHEN (order_entry = 3  ) THEN --Busqueda de afiliado por CI sin complemento,nombre, paterno y materno iguales
+                                     WHEN (order_entry = 3  ) THEN --Busqueda de afiliado por CI sin complemento,nombre, paterno y materno iguales--
                                          select id into affiliate_id from affiliates where
                                          split_part(identity_card,'-',1) ILIKE identity_card_entry
-                                         END first_name ILIKE first_name_entry
-                                         END (COALESCE(last_name, '') ILIKE COALESCE(last_name_entry, ''))
-                                         END (COALESCE(mothers_last_name, '') ILIKE COALESCE(mothers_last_name_entry, ''));
+                                         AND first_name ILIKE first_name_entry
+                                         AND (COALESCE(last_name, '') ILIKE COALESCE(last_name_entry, ''))
+                                         AND (COALESCE(mothers_last_name, '') ILIKE COALESCE(mothers_last_name_entry, ''));
 
                                      WHEN (order_entry = 4  ) THEN
                                          select id into affiliate_id from affiliates where

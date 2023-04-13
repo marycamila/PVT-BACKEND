@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
+use App\Helpers\Util;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ArchivoPrimarioExport;
@@ -24,8 +25,8 @@ class ImportPayrollTranscriptController extends Controller
      *          required=true,
      *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
      *             @OA\Property(property="file", type="file", description="file required", example="file"),
-     *             @OA\Property(property="date_payroll", type="string",description="fecha de planilla required",example= "1998-02-01"),
-     *             @OA\Property(property="total_amount", type="number",description="Monto total de la planilla required",example= "401585.31")
+     *             @OA\Property(property="date_payroll", type="string",description="fecha de planilla required",example= "1999-01-01"),
+     *             @OA\Property(property="total_amount", type="number",description="Monto total de la planilla required",example= "428865.81")
      *            )
      *          ),
      *     ),
@@ -113,7 +114,7 @@ class ImportPayrollTranscriptController extends Controller
                                 'message' => 'Error en el copiado de datos',
                                 'payload' => [
                                     'successfully' => false,
-                                    'error' => 'El monto total ingresado no coincide con el monto total de la planilla, favor de verificar.',
+                                    'error' => 'El monto total ingresado no coincide con el monto total de la planilla, favor de verificar.'.$verify_amount[0]->sum . ' distinto a '.$request->total_amount,
                                 ],
                             ]);
                         }
@@ -259,4 +260,111 @@ class ImportPayrollTranscriptController extends Controller
         $extension = '.xls';
         return Excel::download($export, $file_name."_".$month."_".$year.$extension);
     }
+
+     /**
+     * @OA\Post(
+     *      path="/api/contribution/validation_affiliate_transcript",
+     *      tags={"IMPORTACION-PLANILLA-TRANSCRIPCIÓN"},
+     *      summary="PASO 2 VALIDACION AFILIADOS TRANSCRITOS",
+     *      operationId="validation_affiliate_transcript",
+     *      description="validacion de Afiliados de la planilla transcrita",
+     *      @OA\RequestBody(
+     *          description= "Provide auth credentials",
+     *          required=true,
+     *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
+     *             @OA\Property(property="date_payroll", type="string",description="fecha de planilla required",example= "1999-01-01")
+     *            )
+     *          ),
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     },
+     *      @OA\Response(
+     *          response=200,
+     *          description="Success",
+     *          @OA\JsonContent(
+     *            type="object"
+     *         )
+     *      )
+     * )
+     *
+     * Logs user into the system.
+     *
+     * @param Request $request
+     * @return void
+    */
+
+    public function validation_affiliate_transcript(Request $request){
+        $request->validate([
+        'date_payroll' => 'required|date_format:"Y-m-d"',
+        ]);
+            try{
+                DB::beginTransaction();
+                $message = "No hay datos por validar";
+                $successfully =false;
+                $data_count['total_data_count'] = 0;
+                $data_count['count_data_automatic_link'] = 0;
+                $data_count['count_data_revision'] = 0;
+                $data_count['count_data_creation'] = 0;
+                $date_payroll_format = $request->date_payroll;
+                $date_payroll = Carbon::parse($request->date_payroll);
+                $year = (int)$date_payroll->format("Y");
+                $month = (int)$date_payroll->format("m");
+
+                $connection_db_aux = Util::connection_db_aux();
+
+                $query = "select search_affiliate_transcript('$connection_db_aux',$month,$year);";
+                $data_validated = DB::select($query);
+
+                $total_data_count = $this->data_count_payroll_transcript($month,$year);
+
+                $count_data_automatic_link = "select count(id) from payroll_copy_transcripts pct where mes ='$month' and a_o ='$year' and criteria in ('1-CI-PN-PA-SA','2-CI-sPN-sPA-sSA','3-partCI-PN-PA-SA')";
+                $count_data_automatic_link = DB::connection('db_aux')->select($count_data_automatic_link);
+
+                $count_data_revision = "select count(id) from payroll_copy_transcripts pct where mes ='$month' and a_o ='$year' and criteria in ('4-CI')";
+                $count_data_revision = DB::connection('db_aux')->select($count_data_revision);
+
+                $count_data_creation = "select count(id) from payroll_copy_transcripts pct where mes ='$month' and a_o ='$year' and criteria in ('5-CREAR')";
+                $count_data_creation = DB::connection('db_aux')->select($count_data_creation);
+
+                $data_count['total_data_count'] = $total_data_count['num_total_data_copy'];
+                $data_count['count_data_automatic_link'] = $count_data_automatic_link[0]->count;
+                $data_count['count_data_revision'] = $count_data_revision[0]->count;
+                $data_count['count_data_creation'] = $count_data_creation[0]->count;
+
+                if($total_data_count['num_total_data_copy'] <= 0){
+                    $successfully =false;
+                    $message = 'no existen datos';
+                }elseif($count_data_revision[0]->count > 0){
+                    $successfully =false;
+                    $message = 'Excel';
+                }elseif($count_data_revision[0]->count == 0 && $count_data_creation[0]->count > 0){
+                    $successfully =true;
+                    $message = 'Excel';
+                }elseif($count_data_revision[0]->count == 0 && $count_data_creation[0]->count == 0){
+                    $successfully =true;
+                    $message = 'Realizado con Exito.';
+                }else{
+                    $successfully =false;
+                    $message = 'Ops Ocurrio algo inesperado.';
+                }
+
+                return response()->json([
+                    'message' => $message,
+                    'payload' => [
+                        'successfully' => $successfully,
+                        'data_count' => $data_count
+                    ],
+                ]);
+            }catch(Exception $e){
+                DB::rollBack();
+                return response()->json([
+                'message' => 'Error en la busqueda de datos de afiliados.',
+                'payload' => [
+                    'successfully' => false,
+                    'error' => $e->getMessage(),
+                ],
+                ]);
+            }
+        }
 }

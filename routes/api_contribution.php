@@ -22,7 +22,8 @@ Route::group([
         //importacion transcripciones
         Route::post('/upload_copy_payroll_transcript', [App\Http\Controllers\Contribution\ImportPayrollTranscriptController::class, 'upload_copy_payroll_transcript']);//es este
         Route::post('/validation_affiliate_transcript', [App\Http\Controllers\Contribution\ImportPayrollTranscriptController::class, 'validation_affiliate_transcript']);//paso 2
-        Route::post('/download_error_data_archive', [App\Http\Controllers\Contribution\ImportPayrollTranscriptController::class, 'download_error_data_archive']);
+        Route::post('/download_error_data_archive', [App\Http\Controllers\Contribution\ImportPayrollTranscriptController::class, 'download_error_data_archive']);//archivo paso1
+        Route::post('/download_data_revision', [App\Http\Controllers\Contribution\ImportPayrollTranscriptController::class, 'download_data_revision']);//archivo paso2
         Route::group([
             'middleware' => 'permission:delete-contribution-passive'
         ], function () {

@@ -398,4 +398,61 @@ class ImportPayrollTranscriptController extends Controller
                 ]);
             }
         }
+    /**
+      * @OA\Post(
+      *      path="/api/contribution/download_data_revision",
+      *      tags={"IMPORTACION-PLANILLA-TRANSCRIPCIÓN"},
+      *      summary="Descarga el archivo, para la revisión de datos de los afiliados",
+      *      operationId="download_data_revision",
+      *      description="Descarga el archivo, para la revisión de datos de los afiliados identificados con CI iguales y CI Distintos",
+      *      @OA\RequestBody(
+      *          description= "Provide auth credentials",
+      *          required=true,
+      *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
+      *             @OA\Property(property="date_payroll", type="string", description="fecha de planilla required", example= "1999-01-01")
+      *            )
+      *          ),
+      *     ),
+      *     security={
+      *         {"bearerAuth": {}}
+      *     },
+      *      @OA\Response(
+      *          response=200,
+      *          description="Success",
+      *          @OA\JsonContent(
+      *            type="object"
+      *         )
+      *      )
+      * )
+      *
+      * Logs user into the system.
+      *
+      * @param Request $request
+      * @return void
+    */
+    public function download_data_revision(Request $request){
+        $request->validate([
+            'date_payroll' => 'required|date_format:"Y-m-d"',
+        ]);
+    $message = "No hay datos";
+    $data_header=array(array("AÑO","MES","CARNET","APELLIDO PATERNO","APELLIDO MATERNO","PRIMER NOMBRE","SEGUNDO NOMBRE","APORTE","DETALLE PARA REVISIÓN","***","NUP-AFILIADO CON SIMILITUD"));
+    $date_payroll = Carbon::parse($request->date_payroll);
+    $year = (int)$date_payroll->format("Y");
+    $month = (int)$date_payroll->format("m");
+    $data_payroll_copy_transcripts = "select a_o,mes,car,pat,mat,nom,nom2,mus,'***',
+    (CASE WHEN (criteria = '4-CI') then
+         'IDENTIFICADO PARA SUBSANAR'
+     ELSE
+         'IDENTIFICADO PARA CREAR'
+    END) as criteria, affiliate_id from payroll_copy_transcripts pct where mes ='$month' and a_o ='$year' and criteria in('4-CI','5-CREAR') order by criteria DESC";
+    $data_payroll_copy_transcripts = DB::connection('db_aux')->select($data_payroll_copy_transcripts);
+        foreach ($data_payroll_copy_transcripts as $row){
+            array_push($data_header, array($row->a_o,$row->mes,$row->car,$row->pat,
+            $row->mat,$row->nom,$row->nom2,$row->mus,$row->criteria,'***',$row->affiliate_id));
+        }
+        $export = new ArchivoPrimarioExport($data_header);
+        $file_name = "observacion-data-revision";
+        $extension = '.xls';
+        return Excel::download($export, $file_name."_".$month."_".$year.$extension);
+    }
 }

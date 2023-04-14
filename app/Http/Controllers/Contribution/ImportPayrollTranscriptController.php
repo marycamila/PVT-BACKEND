@@ -10,6 +10,7 @@ use App\Helpers\Util;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ArchivoPrimarioExport;
+use App\Models\Contribution\PayrollTranscriptPeriod;
 
 class ImportPayrollTranscriptController extends Controller
 {
@@ -25,7 +26,9 @@ class ImportPayrollTranscriptController extends Controller
      *          required=true,
      *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
      *             @OA\Property(property="file", type="file", description="file required", example="file"),
+     *             @OA\Property(property="image", type="file", description="file required", example="image"),
      *             @OA\Property(property="date_payroll", type="string",description="fecha de planilla required",example= "1999-01-01"),
+     *             @OA\Property(property="number_records", type="integer",description="cantidad total de regisros required",example= "19323"),
      *             @OA\Property(property="total_amount", type="number",description="Monto total de la planilla required",example= "428865.81")
      *            )
      *          ),
@@ -52,11 +55,15 @@ class ImportPayrollTranscriptController extends Controller
     {
         $request->validate([
             'file' => 'required',
+            'image' => 'required|image|max:2048',
             'date_payroll' => 'required|date_format:"Y-m-d"',
+            'number_records' => 'required|integer',
             'total_amount' => 'required|numeric',
         ]);
         $extencion = strtolower($request->file->getClientOriginalExtension());
         $file_name_entry = $request->file->getClientOriginalName();
+        $image_name_entry = $request->image->getClientOriginalName();
+        $extension_imge = strtolower($request->image->getClientOriginalExtension());
         DB::beginTransaction();
         try{
             $username = env('FTP_USERNAME');
@@ -73,9 +80,14 @@ class ImportPayrollTranscriptController extends Controller
                 $rollback_period  = DB::connection('db_aux')->select($rollback_period);
                 $file_name = "transcripcion-".$month."-".$year.'.'.$extencion;
                     if($file_name_entry == $file_name){
-                        $base_path = 'planillas/planilla_transcripcion';
+                        $base_path = 'planillas/planilla_transcripcion/'.$month.'-'.$year;
                         $file_path = Storage::disk('ftp')->putFileAs($base_path,$request->file,$file_name);
                         $base_path ='ftp://'.env('FTP_HOST').env('FTP_ROOT').$file_path;
+
+                        $image_name = "foto-planilla-fisica-".$month."-".$year.'.'.$extension_imge;
+                        $base_path_image = 'planillas/planilla_transcripcion/'.$month.'-'.$year;
+                        $image_path = Storage::disk('ftp')->putFileAs($base_path_image,$request->image,$image_name);
+                        $base_path_image ='ftp://'.env('FTP_HOST').env('FTP_ROOT').$image_path;
 
                         $drop = "drop table if exists payroll_copy_transcripts_tmp";
                         $drop = DB::connection('db_aux')->select($drop);
@@ -92,6 +104,19 @@ class ImportPayrollTranscriptController extends Controller
                         $copy = DB::connection('db_aux')->select($copy);
 
                         //******validación de datos****************/
+
+                        $verify_number_records = "select count(*) from payroll_copy_transcripts_tmp";
+                        $verify_number_records = DB::connection('db_aux')->select($verify_number_records);
+
+                        if($verify_number_records[0]->count !=  $request->number_records) {
+                            return response()->json([
+                                'message' => 'Error en el copiado de datos',
+                                'payload' => [
+                                    'successfully' => false,
+                                    'error' => 'El total de registros ingresado no coincide con la cantidad de registros del archivo.'
+                                ],
+                            ]);
+                        }
 
                         $verify_data = "select count(*) from payroll_copy_transcripts_tmp where mes <> $month_format or a_o <> $year or mes is null or a_o is null;";
                         $verify_data = DB::connection('db_aux')->select($verify_data);
@@ -155,6 +180,12 @@ class ImportPayrollTranscriptController extends Controller
                         }
                         //****************************************/
                         DB::commit();
+
+                        $payroll_period = new PayrollTranscriptPeriod;
+                        $payroll_period->updateOrInsert(
+                            ['month_p' => $month_format, 'year_p' => $year],
+                            ['total_amount' => $request->total_amount,'number_records' => $request->number_records]
+                        );
 
                         if($data_count['num_total_data_copy'] > 0){
                             $message = "Realizado con éxito";

@@ -455,4 +455,71 @@ class ImportPayrollTranscriptController extends Controller
         $extension = '.xls';
         return Excel::download($export, $file_name."_".$month."_".$year.$extension);
     }
+    /**
+     * @OA\Post(
+     *      path="/api/contribution/list_months_import_contribution_transcript",
+     *      tags={"IMPORTACION-PLANILLA-TRANSCRIPCIÓN"},
+     *      summary="LISTA LOS MESES QUE SE REALIZARON IMPORTACIONES A LA TABLA CONTRIBUTIONS TRANSCRITOS DE COMANDO EN BASE A UN AÑO DADO EJ:1999",
+     *      operationId="list_months_import_contribution_transcript",
+     *      description="Lista los meses importados de las contribuciones de comando, en la tabla contributions enviando como parámetro un año en específico",
+     *     @OA\RequestBody(
+     *          description= "Provide auth credentials",
+     *          required=true,
+     *          @OA\JsonContent(
+     *              type="object",
+     *             @OA\Property(property="period_year", type="integer",description="Año de contribución a listar",example= "1999"),
+     *             @OA\Property(property="with_data_count", type="boolean",description="valor para pedir envio de conteo de datos",example= false)
+     *            )
+     *
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     },
+     *      @OA\Response(
+     *          response=200,
+     *          description="Success",
+     *          @OA\JsonContent(
+     *            type="object"
+     *         )
+     *      )
+     * )
+     *
+     * Logs user into the system.
+     *
+     * @param Request $request
+     * @return void
+    */
+
+    public function list_months_import_contribution_transcript(Request $request)
+    {
+        $request->validate([
+            'period_year' => 'required|date_format:"Y"',
+            'with_data_count'=>'boolean'
+        ]);
+        $with_data_count = !isset($request->with_data_count) || is_null($request->with_data_count)? true:$request->with_data_count;
+        $period_year = $request->get('period_year');
+        $contributionable_type = 'payroll_transcripts';
+        $query = "SELECT distinct month_year, to_char( month_year, 'TMMonth') as period_month_name, extract(year from month_year) as period_year,extract(month from month_year) as period_month  from contributions where deleted_at is null and (extract(year from month_year::timestamp)) = $period_year and contributionable_type = 'payroll_transcripts' group by month_year;";
+        $query = DB::select($query);
+        $query_months = "select id as period_month ,name as period_month_name from months order by id asc";
+        $query_months = DB::select($query_months);
+        foreach ($query_months as $month) {
+           $month->state_importation = false;
+            foreach ($query as $month_contribution) {
+                if($month->period_month == $month_contribution->period_month){
+                    $month->state_importation = true;
+                    break;
+                }
+            }
+           if($with_data_count)
+           $month->data_count =  $this->data_count_payroll_transcript($month->period_month,$period_year);
+        }
+        return response()->json([
+            'message' => "Exito",
+            'payload' => [
+                'list_months' =>  $query_months,
+                'count_months' =>  count($query)
+            ],
+        ]);
+    }
 }

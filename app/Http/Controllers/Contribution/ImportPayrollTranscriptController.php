@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ArchivoPrimarioExport;
 use App\Models\Contribution\PayrollTranscriptPeriod;
+use App\Models\Contribution\PayrollTranscript;
 
 class ImportPayrollTranscriptController extends Controller
 {
@@ -521,5 +522,106 @@ class ImportPayrollTranscriptController extends Controller
                 'count_months' =>  count($query)
             ],
         ]);
+    }
+    /**
+     * @OA\Post(
+     *      path="/api/contribution/rollback_payroll_copy_transcripts",
+     *      tags={"IMPORTACION-PLANILLA-TRANSCRIPCIÓN"},
+     *      summary="REHACER IMPORTACIÓN PLANILLA TRANSCRIPCIÓN",
+     *      operationId="rollback_payroll_copy_transcript",
+     *      description="Para rehacer la importación de planilla transcripción",
+     *      @OA\RequestBody(
+     *          description= "Provide auth credentials",
+     *          required=true,
+     *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
+     *             @OA\Property(property="date_payroll", type="string",description="fecha de planilla required",example= "1999-01-01")
+     *            )
+     *          ),
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     },
+     *      @OA\Response(
+     *          response=200,
+     *          description="Success",
+     *          @OA\JsonContent(
+     *            type="object"
+     *         )
+     *      )
+     * )
+     *
+     * Logs user into the system.
+     *
+     * @param Request $request
+     * @return void
+    */
+
+    public function rollback_payroll_copy_transcripts(Request $request)
+    {
+       $request->validate([
+           'date_payroll' => 'required|date_format:"Y-m-d"',
+         ]);
+       DB::beginTransaction();
+       try{
+           $result['delete_step_1'] = false;
+           $valid_rollback = false;
+           $date_payroll = Carbon::parse($request->date_payroll);
+
+           $year = (int)$date_payroll->format("Y");
+           $month = (int)$date_payroll->format("m");
+    
+           if($this->exists_data_payroll_copy_commands($month,$year) && !PayrollTranscript::data_period($month,$year)['exist_data']){
+               $result['delete_step_1'] = $this->delete_payroll_copy_commands($month,$year);
+
+               if($result['delete_step_1'] == true){
+                   $valid_rollback = true;
+                   $message = "Realizado con éxito!";
+               }
+           }else{
+               if(PayrollTranscript::data_period($month,$year)['exist_data'])
+                   $message = "No se puede rehacer, por que ya realizó la validación del la planilla de Comando General";
+               else
+                   $message = "No existen datos para rehacer";
+           }
+
+           DB::commit();
+
+           return response()->json([
+               'message' => $message,
+               'payload' => [
+                   'valid_rollbackk' =>  $valid_rollback,
+                   'delete_step' =>  $result
+               ],
+           ]);
+       }catch (Exception $e)
+       {
+           DB::rollback();
+           return $e;
+       }
+    }
+     //borrado de datos de la tabla payroll_copy_commands paso 1
+     public function delete_payroll_copy_commands($month, $year)
+     {
+              if($this->exists_data_payroll_copy_commands($month,$year))
+              {
+                 $query = "delete from payroll_copy_transcripts where a_o = $year::INTEGER and mes = $month::INTEGER ";
+                 $query = DB::connection('db_aux')->select($query);
+                 DB::commit();
+                 return true;
+              }
+              else
+                  return false;
+     }
+
+      //método para verificar si existe datos en el paso 1 
+
+    public function exists_data_payroll_copy_commands($month,$year){
+        $exists_data = true;
+        $query = "select * from payroll_copy_transcripts where mes = $month::INTEGER and a_o = $year::INTEGER;";
+        $verify_data = DB::connection('db_aux')->select($query);
+
+        if($verify_data == []) $exists_data = false;
+
+        return $exists_data;
     }
 }

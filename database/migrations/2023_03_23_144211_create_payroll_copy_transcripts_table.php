@@ -43,6 +43,15 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
         });
+
+        Schema::connection('db_aux')->create('payroll_transcript_periods', function (Blueprint $table) {
+            $table->id();
+            $table->integer('month_p')->comment('Mes');
+            $table->integer('year_p')->comment('Año');
+            $table->integer('number_records')->comment('numero de registros ingresado por el usuario');
+            $table->decimal('total_amount', 13, 2)->comment('monto total ingresado por el usuario');
+            $table->timestamps();
+        });
     }
 
     /**
@@ -52,6 +61,7 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('payroll_copy_transcripts');
+        Schema::connection('db_aux')->dropIfExists('payroll_copy_transcripts');
+        Schema::connection('db_aux')->dropIfExists('payroll_transcript_periods');
     }
 };

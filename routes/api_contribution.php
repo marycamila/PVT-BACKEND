@@ -26,6 +26,7 @@ Route::group([
         Route::post('/download_data_revision', [App\Http\Controllers\Contribution\ImportPayrollTranscriptController::class, 'download_data_revision']);//archivo paso2
         Route::post('/list_months_import_contribution_transcript', [App\Http\Controllers\Contribution\ImportPayrollTranscriptController::class, 'list_months_import_contribution_transcript']);
         Route::post('/rollback_payroll_copy_transcripts', [App\Http\Controllers\Contribution\ImportPayrollTranscriptController::class, 'rollback_payroll_copy_transcripts']);
+        Route::post('/import_payroll_transcript_progress_bar', [App\Http\Controllers\Contribution\ImportPayrollTranscriptController::class, 'import_payroll_transcript_progress_bar']);
         Route::group([
             'middleware' => 'permission:delete-contribution-passive'
         ], function () {

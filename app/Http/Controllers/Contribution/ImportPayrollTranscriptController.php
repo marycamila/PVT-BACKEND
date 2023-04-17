@@ -570,8 +570,8 @@ class ImportPayrollTranscriptController extends Controller
            $year = (int)$date_payroll->format("Y");
            $month = (int)$date_payroll->format("m");
     
-           if($this->exists_data_payroll_copy_commands($month,$year) && !PayrollTranscript::data_period($month,$year)['exist_data']){
-               $result['delete_step_1'] = $this->delete_payroll_copy_commands($month,$year);
+           if($this->exists_data_payroll_copy_transcrips($month,$year) && !PayrollTranscript::data_period($month,$year)['exist_data']){
+               $result['delete_step_1'] = $this->delete_payroll_copy_transcrips($month,$year);
 
                if($result['delete_step_1'] == true){
                    $valid_rollback = true;
@@ -589,7 +589,7 @@ class ImportPayrollTranscriptController extends Controller
            return response()->json([
                'message' => $message,
                'payload' => [
-                   'valid_rollbackk' =>  $valid_rollback,
+                   'valid_rollback' =>  $valid_rollback,
                    'delete_step' =>  $result
                ],
            ]);
@@ -600,9 +600,9 @@ class ImportPayrollTranscriptController extends Controller
        }
     }
      //borrado de datos de la tabla payroll_copy_commands paso 1
-     public function delete_payroll_copy_commands($month, $year)
+     public function delete_payroll_copy_transcrips($month, $year)
      {
-              if($this->exists_data_payroll_copy_commands($month,$year))
+              if($this->exists_data_payroll_copy_transcrips($month,$year))
               {
                  $query = "delete from payroll_copy_transcripts where a_o = $year::INTEGER and mes = $month::INTEGER ";
                  $query = DB::connection('db_aux')->select($query);
@@ -615,7 +615,7 @@ class ImportPayrollTranscriptController extends Controller
 
       //método para verificar si existe datos en el paso 1 
 
-    public function exists_data_payroll_copy_commands($month,$year){
+    public function exists_data_payroll_copy_transcrips($month,$year){
         $exists_data = true;
         $query = "select * from payroll_copy_transcripts where mes = $month::INTEGER and a_o = $year::INTEGER;";
         $verify_data = DB::connection('db_aux')->select($query);
@@ -624,8 +624,8 @@ class ImportPayrollTranscriptController extends Controller
 
         return $exists_data;
     }
-    //método para verificar si existe montos con diferentes contribuciones
-    public function validation_contribution_transcript(Request $request){
+     //método para verificar si existe montos con diferentes contribuciones
+     public function validation_contribution_transcript(Request $request){
         $request->validate([
             'date_payroll' => 'required|date_format:"Y-m-d"',
         ]);
@@ -649,5 +649,102 @@ class ImportPayrollTranscriptController extends Controller
         }else{
             return true;
         }
+    }
+     /**
+     * @OA\Post(
+     *      path="/api/contribution/import_payroll_transcript_progress_bar",
+     *      tags={"IMPORTACION-PLANILLA-TRANSCRIPCIÓN"},
+     *      summary="INFORMACIÓN DE PROGRESO DE IMPORTACIÓN PLANILLA TRANSCRIPCIÓN",
+     *      operationId="import_payroll_transcript_progress_bar",
+     *      description="Muestra la información de la importación de transcripciones  (-1)Si existió algún error en algún paso, (100) Si todo fue exitoso, (25 50 75)paso 1,2,3 respectivamente (0)si esta iniciando la importación",
+     *      @OA\RequestBody(
+     *          description= "Provide auth credentials",
+     *          required=true,
+     *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
+     *             @OA\Property(property="date_payroll", type="string",description="fecha de planilla required",example= "1999-01-01")
+     *            )
+     *          ),
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     },
+     *      @OA\Response(
+     *          response=200,
+     *          description="Success",
+     *          @OA\JsonContent(
+     *            type="object"
+     *         )
+     *      )
+     * )
+     *
+     * Logs user into the system.
+     *
+     * @param Request $request
+     * @return void
+    */
+
+    public function import_payroll_transcript_progress_bar(Request $request){
+        $request->validate([
+            'date_payroll' => 'required|date_format:"Y-m-d"',
+          ]);
+
+        $date_payroll = Carbon::parse($request->date_payroll);
+        $year = (int)$date_payroll->format("Y");
+        $month = (int)$date_payroll->format("m");
+        $message = "Exito";
+
+        $result['file_exists'] = false;
+        $result['file_name'] = "";
+        $result['percentage'] = 0;
+        $result['query_step_1'] = false;
+        $result['query_step_2'] = false;
+        $result['query_step_3'] = false;
+        $result['query_step_4'] = false;
+
+        $result['query_step_1'] = $this->exists_data_payroll_copy_transcrips($month,$year);
+        //****** paso 2 *****/
+        $step_2 = "select count(id) from payroll_copy_transcripts where mes = $month::INTEGER and a_o = $year::INTEGER and (error_messaje is not null or criteria like '4-CI')";
+        $step_2 = DB::connection('db_aux')->select($step_2);
+        $result['query_step_2'] = $this->exists_data_payroll_copy_transcrips($month,$year) && $step_2[0]->count == 0? true : false;
+        //****** paso 3 *****/
+        $step_3 = "select count(id) from payroll_transcripts where month_p = $month::INTEGER and year_p = $year::INTEGER";
+        $step_3 = DB::select($step_3);
+        $result['query_step_3'] = $step_3[0]->count > 0? true : false;
+        //****** paso 3 *****/
+        $step_4 = "select count(id) from contributions where month_year = '$request->date_payroll' and contributionable_type like 'payroll_transcripts';";
+        $step_4 = DB::select($step_4);
+        $result['query_step_4'] = $step_4[0]->count > 0? true : false;
+
+        //verificamos si existe el archivo de importación
+        $date_month= strlen($month)==1?'0'.$month:$month;
+        $new_file_name = "transcripcion-".$date_month."-".$year.'.csv';
+        $base_path = 'planillas/planilla_transcripcion/'.$date_month.'-'.$year.'/'.$new_file_name;
+        if (Storage::disk('ftp')->has($base_path)) {
+            $result['file_name'] = $new_file_name;
+            $result['file_exists'] = true;
+        }
+
+        if($result['file_exists'] == true && $result['query_step_1'] == true && $result['query_step_2'] == true && $result['query_step_3'] == true && $result['query_step_4'] == true){
+            $result['percentage'] = 100;
+        }elseif($result['file_exists'] == true && $result['query_step_1'] == true && $result['query_step_2'] == false && $result['query_step_3'] == false && $result['query_step_4'] == false){
+            $result['percentage'] = 25;
+        }elseif($result['file_exists'] == true && $result['query_step_1'] == true && $result['query_step_2'] == true && $result['query_step_3'] == false && $result['query_step_4'] == false){
+            $result['percentage'] = 50;
+        }elseif($result['file_exists'] == true && $result['query_step_1'] == true && $result['query_step_2'] == true && $result['query_step_3'] == true && $result['query_step_4'] == false){
+            $result['percentage'] = 75;
+        }elseif($result['query_step_1'] == false && $result['query_step_2'] == false && $result['query_step_3'] == false && $result['query_step_4'] == false){
+            $result['percentage'] = 0;
+        }else{
+            $result['percentage'] = -1;
+            $message = "Error! Algo salió mal en algún paso.";
+        }
+
+        return response()->json([
+            'message' => $message,
+            'payload' => [
+                'import_progress_bar' =>  $result,
+               // 'data_count' =>  $this->data_count_payroll_command($month,$year)
+            ],
+        ]);
     }
 }

@@ -702,7 +702,11 @@ class ImportPayrollTranscriptController extends Controller
         //****** paso 2 *****/
         $step_2 = "select count(id) from payroll_copy_transcripts where mes = $month::INTEGER and a_o = $year::INTEGER and (error_messaje is not null or criteria like '4-CI')";
         $step_2 = DB::connection('db_aux')->select($step_2);
-        $result['query_step_2'] = $this->exists_data_payroll_copy_transcrips($month,$year) && $step_2[0]->count == 0? true : false;
+
+        $step = "select count(id) from payroll_copy_transcripts where mes = $month::INTEGER and a_o = $year::INTEGER and state like 'accomplished'";
+        $step = DB::connection('db_aux')->select($step);
+
+        $result['query_step_2'] = $this->exists_data_payroll_copy_transcrips($month,$year) && $step_2[0]->count == 0 && $step[0]->count > 0? true : false;
         //****** paso 3 *****/
         $step_3 = "select count(id) from payroll_transcripts where month_p = $month::INTEGER and year_p = $year::INTEGER";
         $step_3 = DB::select($step_3);

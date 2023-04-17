@@ -338,6 +338,7 @@ class ImportPayrollTranscriptController extends Controller
                 $data_count['count_data_automatic_link'] = 0;
                 $data_count['count_data_revision'] = 0;
                 $data_count['count_data_creation'] = 0;
+                $route = '';
                 $date_payroll_format = $request->date_payroll;
                 $date_payroll = Carbon::parse($request->date_payroll);
                 $year = (int)$date_payroll->format("Y");
@@ -364,15 +365,25 @@ class ImportPayrollTranscriptController extends Controller
                 $data_count['count_data_revision'] = $count_data_revision[0]->count;
                 $data_count['count_data_creation'] = $count_data_creation[0]->count;
 
+                $validated_contriburion = $this->validation_contribution_transcript($date_payroll_format);
+
                 if($total_data_count['num_total_data_copy'] <= 0){
                     $successfully =false;
                     $message = 'no existen datos';
                 }elseif($count_data_revision[0]->count > 0){
                     $successfully =false;
                     $message = 'Excel';
+                    $route = '/contribution/download_data_revision';
                 }elseif($count_data_revision[0]->count == 0 && $count_data_creation[0]->count > 0){
-                    $successfully =true;
-                    $message = 'Excel';
+                    if($validated_contriburion){
+                        $successfully =true;
+                        $message = 'Excel';
+                        $route = '/contribution/download_data_revision';
+                    }else{
+                        $successfully =false;
+                        $message = 'Excel';
+                        $route = '/contribution/download_error_data_archive';
+                    }
                 }elseif($count_data_revision[0]->count == 0 && $count_data_creation[0]->count == 0){
                     $successfully =true;
                     $message = 'Realizado con Exito.';
@@ -385,7 +396,8 @@ class ImportPayrollTranscriptController extends Controller
                     'message' => $message,
                     'payload' => [
                         'successfully' => $successfully,
-                        'data_count' => $data_count
+                        'data_count' => $data_count,
+                        'route' => $route
                     ],
                 ]);
             }catch(Exception $e){

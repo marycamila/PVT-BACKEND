@@ -625,22 +625,19 @@ class ImportPayrollTranscriptController extends Controller
         return $exists_data;
     }
      //método para verificar si existe montos con diferentes contribuciones
-     public function validation_contribution_transcript(Request $request){
-        $request->validate([
-            'date_payroll' => 'required|date_format:"Y-m-d"',
-        ]);
+     public function validation_contribution_transcript($date_payroll){
         $different_contribution = false;
-        $date_payroll = Carbon::parse($request->date_payroll);
+        $date_payroll = Carbon::parse($date_payroll);
         $year = (int)$date_payroll->format("Y");
         $month = (int)$date_payroll->format("m");
         $connection_db_aux = Util::connection_db_aux();
-        $update_affiliate =  DB::select("SELECT pct.id, c.affiliate_id, pct.mus, c.total
+        $payroll_transcripts =  DB::select("SELECT pct.id, c.affiliate_id, pct.mus, c.total
         FROM contributions c
         JOIN dblink('$connection_db_aux', 'SELECT id, affiliate_id, a_o, mes, mus FROM payroll_copy_transcripts')
         AS pct(id INT, affiliate_id INT, a_o INT, mes INT, mus NUMERIC(13,2)) ON c.affiliate_id = pct.affiliate_id
-        where c.month_year = '$request->date_payroll' AND c.total > 0 AND pct.a_o = $year AND pct.mes = $month AND c.total <> pct.mus");
-        foreach($update_affiliate as  $update_affiliate){
-            $verify_data = "update payroll_copy_transcripts pt set error_messaje = 'La contribución registrada anteriormente es: $update_affiliate->total difiere al de la planilla $update_affiliate->mus' where pt.id = $update_affiliate->id;";
+        where c.month_year = '$date_payroll' AND c.total > 0 AND pct.a_o = $year AND pct.mes = $month AND c.total <> pct.mus");
+        foreach($payroll_transcripts as  $update_payroll){
+            $verify_data = "update payroll_copy_transcripts pt set error_messaje = 'La contribución registrada anteriormente es: $update_payroll->total difiere al de la planilla $update_payroll->mus' where pt.id = $update_payroll->id;";
             $verify_data = DB::connection('db_aux')->select($verify_data);
             $different_contribution = true;
         }

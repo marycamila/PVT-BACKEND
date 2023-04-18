@@ -765,8 +765,50 @@ class ImportPayrollTranscriptController extends Controller
             'message' => $message,
             'payload' => [
                 'import_progress_bar' =>  $result,
-               // 'data_count' =>  $this->data_count_payroll_command($month,$year)
+                 'data_count' =>  $this->data_count($month,$year)
             ],
         ]);
+    }
+
+    public function data_count($month,$year){
+        $data_count['num_total_data_copy'] = 0;
+        $data_count['count_data_automatic_link'] = 0;
+        $data_count['count_data_revision'] = 0;
+        $data_count['count_data_creation'] = 0;
+        $data_count['num_total_data_payroll'] = 0;
+        $data_count['num_total_data_contribution'] = 0;
+
+        $date_payroll = Carbon::create($year, $month, 1)->format('Y-m-d');
+
+        //---TOTAL DE DATOS DEL ARCHIVO
+        $query_total_data = "SELECT count(id) FROM payroll_copy_transcripts where mes = $month::INTEGER and a_o = $year::INTEGER;";
+        $query_total_data = DB::connection('db_aux')->select($query_total_data);
+        $data_count['num_total_data_copy'] = $query_total_data[0]->count;
+
+        $count_data_automatic_link = "select count(id) from payroll_copy_transcripts pct where mes ='$month' and a_o ='$year' and criteria in ('1-CI-PN-PA-SA','2-CI-sPN-sPA-sSA','3-partCI-PN-PA-SA')";
+        $count_data_automatic_link = DB::connection('db_aux')->select($count_data_automatic_link);
+
+        $count_data_revision = "select count(id) from payroll_copy_transcripts pct where mes ='$month' and a_o ='$year' and criteria in ('4-CI')";
+        $count_data_revision = DB::connection('db_aux')->select($count_data_revision);
+
+        $count_data_creation = "select count(id) from payroll_copy_transcripts pct where mes ='$month' and a_o ='$year' and criteria in ('5-CREAR')";
+        $count_data_creation = DB::connection('db_aux')->select($count_data_creation);
+
+        $data_count['count_data_automatic_link'] = $count_data_automatic_link[0]->count;
+        $data_count['count_data_revision'] = $count_data_revision[0]->count;
+        $data_count['count_data_creation'] = $count_data_creation[0]->count;
+
+        //conteo planilla
+        $num_total_data_payroll = "select count(id) from payroll_transcripts pt where month_p ='$month' and year_p ='$year'";
+        $num_total_data_payroll = DB::select($num_total_data_payroll);
+
+        //conteo aportes
+        $num_total_data_contribution = "select count(id) from contributions c where month_year = '$date_payroll' and c.contributionable_type like 'payroll_transcripts'";
+        $num_total_data_contribution = DB::select($num_total_data_contribution);
+
+        $data_count['num_total_data_payroll'] = $num_total_data_payroll[0]->count;
+        $data_count['num_total_data_contribution'] = $num_total_data_contribution[0]->count;
+
+        return  $data_count;
     }
 }

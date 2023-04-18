@@ -401,7 +401,8 @@ class ImportPayrollTranscriptController extends Controller
                     'payload' => [
                         'successfully' => $successfully,
                         'data_count' => $data_count,
-                        'route' => $route
+                        'route' => $route,
+                        'route_file_name' => $route_file_name
                     ],
                 ]);
             }catch(Exception $e){

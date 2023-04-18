@@ -334,7 +334,7 @@ class ImportPayrollTranscriptController extends Controller
                 DB::beginTransaction();
                 $message = "No hay datos por validar";
                 $successfully =false;
-                $data_count['total_data_count'] = 0;
+                $data_count['num_total_data_copy'] = 0;
                 $data_count['count_data_automatic_link'] = 0;
                 $data_count['count_data_revision'] = 0;
                 $data_count['count_data_creation'] = 0;
@@ -350,7 +350,7 @@ class ImportPayrollTranscriptController extends Controller
                 $query = "select search_affiliate_transcript('$connection_db_aux',$month,$year);";
                 $data_validated = DB::select($query);
 
-                $total_data_count = $this->data_count_payroll_transcript($month,$year);
+                $num_total_data_copy = $this->data_count_payroll_transcript($month,$year);
 
                 $count_data_automatic_link = "select count(id) from payroll_copy_transcripts pct where mes ='$month' and a_o ='$year' and criteria in ('1-CI-PN-PA-SA','2-CI-sPN-sPA-sSA','3-partCI-PN-PA-SA')";
                 $count_data_automatic_link = DB::connection('db_aux')->select($count_data_automatic_link);
@@ -361,14 +361,14 @@ class ImportPayrollTranscriptController extends Controller
                 $count_data_creation = "select count(id) from payroll_copy_transcripts pct where mes ='$month' and a_o ='$year' and criteria in ('5-CREAR')";
                 $count_data_creation = DB::connection('db_aux')->select($count_data_creation);
 
-                $data_count['total_data_count'] = $total_data_count['num_total_data_copy'];
+                $data_count['num_total_data_copy'] = $num_total_data_copy['num_total_data_copy'];
                 $data_count['count_data_automatic_link'] = $count_data_automatic_link[0]->count;
                 $data_count['count_data_revision'] = $count_data_revision[0]->count;
                 $data_count['count_data_creation'] = $count_data_creation[0]->count;
 
                 $validated_contriburion = $this->validation_contribution_transcript($date_payroll_format);
 
-                if($total_data_count['num_total_data_copy'] <= 0){
+                if($num_total_data_copy['num_total_data_copy'] <= 0){
                     $successfully =false;
                     $message = 'no existen datos';
                 }elseif($count_data_revision[0]->count > 0){

@@ -377,11 +377,15 @@ class ImportPayrollTranscriptController extends Controller
                     $route = '/contribution/download_data_revision';
                     $route_file_name = 'observados_para_revision.xls';
                 }elseif($count_data_revision[0]->count == 0 && $count_data_creation[0]->count > 0){
-                    if($validated_contriburion){
+
+                    $valid_contribution =  "select count(id) from payroll_copy_transcripts pct  where state like 'accomplished' and error_messaje is not null and mes ='$month' and a_o ='$year'";
+                    $valid_contribution = DB::connection('db_aux')->select($valid_contribution);
+
+                    if($valid_contribution[0]->count == 0){
                         $successfully =true;
                         $message = 'Excel';
                         $route = '/contribution/download_data_revision';
-                        $route_file_name = 'observados_para_revision.xls';
+                        $route_file_name = 'afiliados_para creacion.xls';
                     }else{
                         $successfully =false;
                         $message = 'Excel';

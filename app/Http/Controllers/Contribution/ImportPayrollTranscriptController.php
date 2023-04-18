@@ -339,6 +339,7 @@ class ImportPayrollTranscriptController extends Controller
                 $data_count['count_data_revision'] = 0;
                 $data_count['count_data_creation'] = 0;
                 $route = '';
+                $route_file_name = '';
                 $date_payroll_format = $request->date_payroll;
                 $date_payroll = Carbon::parse($request->date_payroll);
                 $year = (int)$date_payroll->format("Y");
@@ -374,15 +375,18 @@ class ImportPayrollTranscriptController extends Controller
                     $successfully =false;
                     $message = 'Excel';
                     $route = '/contribution/download_data_revision';
+                    $route_file_name = 'observados_para_revision.xls';
                 }elseif($count_data_revision[0]->count == 0 && $count_data_creation[0]->count > 0){
                     if($validated_contriburion){
                         $successfully =true;
                         $message = 'Excel';
                         $route = '/contribution/download_data_revision';
+                        $route_file_name = 'observados_para_revision.xls';
                     }else{
                         $successfully =false;
                         $message = 'Excel';
                         $route = '/contribution/download_error_data_archive';
+                        $route_file_name = 'datos_aportes_observados.xls';
                     }
                 }elseif($count_data_revision[0]->count == 0 && $count_data_creation[0]->count == 0){
                     $successfully =true;

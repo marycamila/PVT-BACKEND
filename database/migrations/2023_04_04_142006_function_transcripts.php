@@ -108,7 +108,7 @@ return new class extends Migration
        return true;
        end;$$;");
 
-       DB::statement("CREATE OR REPLACE FUNCTION public.create_affiliate_transcript(db_name_intext text ,user_id_reg integer, month_copy integer, year_copy integer)
+       DB::statement("CREATE OR REPLACE FUNCTION public.create_affiliate_import_transcript(db_name_intext text ,user_id_reg integer, month_copy integer, year_copy integer)
        RETURNS character varying
        LANGUAGE plpgsql
       AS $$
@@ -118,7 +118,8 @@ return new class extends Migration
                      message_into varchar:= '';
                      type_reg integer := 10;
                      update_affiliate varchar;
-                    
+                     record_row_payroll record;
+
                     ------------------------------
                     --- Declaración EXPLICITA del cursor
                       cur_payroll_create_affiliate CURSOR for (select * from dblink(db_name_intext,'SELECT id,car,pat,mat,nom,nom2,
@@ -131,48 +132,32 @@ return new class extends Migration
                       --*Funcion para la creacion de affiliados
                       --************************************************************
                       -- Procesa el cursor
-                    FOR record_row IN cur_payroll_create_affiliate loop
+                      FOR record_row IN cur_payroll_create_affiliate loop
                         ---hierarchy_id_into := (select get_hierarchy_id(record_row.niv,record_row.gra));
                          INSERT INTO affiliates (user_id,affiliate_state_id,first_name, second_name, last_name, mothers_last_name,identity_card,gender,created_at,updated_at)
                          VALUES (user_id_reg, affiliate_state_id_reg_jub,record_row.nom,record_row.nom2,record_row.pat,record_row.mat,record_row.car,'M',current_timestamp,current_timestamp);
                         id_affiliate:= (select id  from affiliates a  where a.identity_card = record_row.car) ;
                         ---Realizar Actualización del affiliate _id en la tabla payroll_copy_transcripts
                         update_affiliate:=  (select dblink_exec(db_name_intext, 'UPDATE payroll_copy_transcripts SET affiliate_id='||id_affiliate||' WHERE payroll_copy_transcripts.id= '||record_row.id||''));  
-                        ---Registro historial de creación del afiliado 
+                        ---Registro historial de creación del afiliado
                          message_into := 'Creacion de Afiliado';
                          INSERT INTO affiliate_records(user_id, affiliate_id,type_id, message,created_at, updated_at)
                          VALUES (user_id_reg,id_affiliate,type_reg,message_into, current_timestamp, current_timestamp);
-                    END LOOP;
-                     
-           
+                     END LOOP;
+                      --************************************************************
+                      --* Importación de planillas
+                      --************************************************************
+                     FOR record_row_payroll IN (select * from dblink(db_name_intext,'SELECT id,uni,mes,a_o,car,pat,mat,nom,nom2,niv,gra,sue,cat,gan,mus,est,carg,fro,ori,affiliate_id FROM payroll_copy_transcripts
+                      where  mes = '||month_copy||' and a_o = '||year_copy||'') 
+                     as  payroll_copy_transcripts(id integer, uni character varying(250), mes integer, a_o integer, car character varying(250), pat character varying(250), mat character varying(250), nom character varying(250), nom2 character varying(250),
+                         niv character varying(250), gra character varying(250), sue NUMERIC(13,2), cat NUMERIC(13,2), gan NUMERIC(13,2), mus NUMERIC(13,2), est NUMERIC(13,2), carg NUMERIC(13,2), fro NUMERIC(13,2), ori NUMERIC(13,2), affiliate_id character varying(250) )) loop
+                         INSERT INTO payroll_transcripts(affiliate_id, unit_id, month_p, year_p, identity_card, last_name, mothers_last_name, first_name, second_name, hierarchy_id, degree_id, base_wage, seniority_bonus, gain, total, study_bonus, position_bonus, border_bonus, east_bonus, affiliate_type, created_at, updated_at) 
+                         VALUES(record_row_payroll.affiliate_id::bigint, 1,record_row_payroll.mes, record_row_payroll.a_o,record_row_payroll.car,record_row_payroll.pat,record_row_payroll.mat,record_row_payroll.nom,record_row_payroll.nom2, 1, 1, record_row_payroll.sue,record_row_payroll.cat, record_row_payroll.gan,record_row_payroll.mus,record_row_payroll.est, record_row_payroll.carg, record_row_payroll.fro, record_row_payroll.ori,'REGULAR'::character varying,current_timestamp,current_timestamp);
+                     END LOOP;
                       return true;
                    end;
-        $$;");
-
-        DB::statement(" CREATE OR REPLACE FUNCTION public.import_payroll_transcript(db_name_intext text ,user_id_reg integer, month_copy integer, year_copy integer)
-        RETURNS character varying
-        LANGUAGE plpgsql
-        AS $$
-                    declare
-                     ------------------------------
-                     --- Declaración EXPLICITA del cursor
-                       cur_import_payroll_ CURSOR for (select * from dblink(db_name_intext,'SELECT id,uni,mes,a_o,car,pat,mat,nom,nom2,niv,gra,sue,cat,gan,mus,est,carg,fro,ori,affiliate_id FROM payroll_copy_transcripts
-                       where  mes = '||month_copy||' and a_o = '||year_copy||'') 
-                       as  payroll_copy_transcripts(id integer,uni character varying(250), mes integer, a_o integer, car character varying(250),pat character varying(250),mat character varying(250),nom character varying(250),nom2 character varying(250),
-                        niv character varying(250),gra character varying(250),sue NUMERIC(13,2),cat NUMERIC(13,2),gan NUMERIC(13,2),mus NUMERIC(13,2),est NUMERIC(13,2), carg NUMERIC(13,2),fro NUMERIC(13,2), ori NUMERIC(13,2), affiliate_id character varying(250) ));
-                    begin
-                       --************************************************************
-                       --*Funcion para importar planillas
-                       --************************************************************
-                       -- Procesa el cursor
-                        FOR record_row IN cur_import_payroll_ loop
-                          INSERT INTO payroll_transcripts(affiliate_id, unit_id, month_p, year_p, identity_card, last_name, mothers_last_name, first_name, second_name, hierarchy_id, degree_id, base_wage, seniority_bonus, gain, total, study_bonus, position_bonus, border_bonus, east_bonus, affiliate_type, created_at, updated_at) 
-                          VALUES(record_row.affiliate_id::bigint, 1,record_row.mes, record_row.a_o,record_row.car,record_row.pat,record_row.mat,record_row.nom,record_row.nom2, 1, 1, record_row.sue,record_row.cat, record_row.gan,record_row.mus,record_row.est, record_row.carg, record_row.fro, record_row.ori,'REGULAR'::character varying,current_timestamp,current_timestamp);
-                        END LOOP;
-                       return true;
-                    end;
-        $$;");
-
+        $$;
+       ");
     }
 
     /**

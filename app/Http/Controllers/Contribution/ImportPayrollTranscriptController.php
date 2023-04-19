@@ -65,6 +65,8 @@ class ImportPayrollTranscriptController extends Controller
         $file_name_entry = $request->file->getClientOriginalName();
         $image_name_entry = $request->image->getClientOriginalName();
         $extension_imge = strtolower($request->image->getClientOriginalExtension());
+        $route = '';
+        $route_file_name = '';
         DB::beginTransaction();
         try{
             $username = env('FTP_USERNAME');
@@ -171,11 +173,15 @@ class ImportPayrollTranscriptController extends Controller
                         $verify_data = DB::connection('db_aux')->select($verify_data);
 
                         if($verify_data[0]->count > 0) {
+                            $route = '/contribution/download_error_data_archive';
+                            $route_file_name = 'datos_observados_archivo.xls';
                             return response()->json([
                                 'message' => 'Excel',
                                 'payload' => [
                                     'successfully' => false,
                                     'error' => 'Existen datos en el archivo que son incorrectos, favor revisar.',
+                                    'route' => $route,
+                                    'route_file_name' => $route_file_name
                                 ],
                             ]);
                         }
@@ -197,7 +203,9 @@ class ImportPayrollTranscriptController extends Controller
                             'message' => $message,
                             'payload' => [
                                 'successfully' => $successfully,
-                                'data_count' => $data_count
+                                'data_count' => $data_count,
+                                'route' => $route,
+                                'route_file_name' => $route_file_name
                             ],
                         ]);
                     } else {
@@ -205,7 +213,9 @@ class ImportPayrollTranscriptController extends Controller
                             'message' => 'Error en el copiado del archivo',
                             'payload' => [
                                 'successfully' => $successfully,
-                                'error' => 'El nombre del archivo no coincide con en nombre requerido'
+                                'error' => 'El nombre del archivo no coincide con en nombre requerido',
+                                'route' => $route,
+                                'route_file_name' => $route_file_name
                             ],
                         ]);
                     }
@@ -214,7 +224,9 @@ class ImportPayrollTranscriptController extends Controller
                         'message' => 'Error en el copiado del archivo',
                         'payload' => [
                             'successfully' => $successfully,
-                            'error' => 'El archivo no es un archivo CSV'
+                            'error' => 'El archivo no es un archivo CSV',
+                            'route' => $route,
+                            'route_file_name' => $route_file_name
                         ],
                     ]);
             }
@@ -225,6 +237,8 @@ class ImportPayrollTranscriptController extends Controller
                'payload' => [
                    'successfully' => false,
                    'error' => $e->getMessage(),
+                   'route' => $route,
+                   'route_file_name' => $route_file_name
                ],
            ]);
         }

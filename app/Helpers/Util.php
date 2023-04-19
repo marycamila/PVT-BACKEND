@@ -61,9 +61,8 @@ class Util
         return $close_conection_aux;
     }
 
-    public static function list_years($start_year)
+    public static function list_years($start_year,$end_year)
     {
-        $end_year =Carbon::now()->format('Y');
            $list_years =[];
            while ($start_year <= $end_year  ) {
                array_push($list_years, (int)$end_year);

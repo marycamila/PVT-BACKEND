@@ -21,6 +21,7 @@ return new class extends Migration
             $table->foreign('unit_id')->references('id')->on('units');
             $table->integer('month_p')->comment('Mes');
             $table->integer('year_p')->comment('Año');
+            $table->unique(['affiliate_id','month_p','year_p']);
             $table->string('identity_card')->comment('Carnet');
             $table->string('last_name')->nullable()->comment('Apellido paterno');
             $table->string('mothers_last_name')->nullable()->comment('Apellido materno');
@@ -38,8 +39,8 @@ return new class extends Migration
             $table->decimal('position_bonus', 13, 2)->comment('Bono cargo');
             $table->decimal('border_bonus', 13, 2)->comment('Bono frontera');
             $table->decimal('east_bonus', 13, 2)->comment('Bono oriente');
-            $table->date('birth_date')->comment('Fecha de nacimiento');
-            $table->date('date_entry')->comment('Fecha de ingreso');
+            $table->date('birth_date')->nullable()->comment('Fecha de nacimiento');
+            $table->date('date_entry')->nullable()->comment('Fecha de ingreso');
             $table->enum('affiliate_type', ['REGULAR', 'NUEVO'])->default('REGULAR')->comment('Afiliado regular o nuevo');
             $table->timestamps();
             $table->softDeletes();

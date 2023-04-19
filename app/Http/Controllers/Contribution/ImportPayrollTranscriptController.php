@@ -12,6 +12,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ArchivoPrimarioExport;
 use App\Models\Contribution\PayrollTranscriptPeriod;
 use App\Models\Contribution\PayrollTranscript;
+use Auth;
 
 class ImportPayrollTranscriptController extends Controller
 {
@@ -824,5 +825,65 @@ class ImportPayrollTranscriptController extends Controller
         $data_count['num_total_data_contribution'] = $num_total_data_contribution[0]->count;
 
         return  $data_count;
+    }
+    /**
+     * @OA\Post(
+     *      path="/api/contribution/import_payroll_transcript",
+     *      tags={"IMPORTACION-PLANILLA-TRANSCRIPCIÓN"},
+     *      summary="IMPORTACIÓN DE PLANILLA TRANSCRIPCIÓN",
+     *      operationId="import_payroll_transcript",
+     *      description="Paso 3 importación de planilla transcripción",
+     *      @OA\RequestBody(
+     *          description= "Provide auth credentials",
+     *          required=true,
+     *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
+     *             @OA\Property(property="date_payroll", type="string",description="fecha de planilla required",example= "1999-01-01")
+     *            )
+     *          ),
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     },
+     *      @OA\Response(
+     *          response=200,
+     *          description="Success",
+     *          @OA\JsonContent(
+     *            type="object"
+     *         )
+     *      )
+     * )
+     *
+     * Logs user into the system.
+     *
+     * @param Request $request
+     * @return void
+    */
+    public function import_payroll_transcript(Request $request){
+        $request->validate([
+            'date_payroll' => 'required|date_format:"Y-m-d"',
+          ]);
+        $data_count['num_total_data_payroll'] = 0;
+        $message = "Realizado con éxito";
+        $date_payroll = Carbon::parse($request->date_payroll);
+        $year = (int)$date_payroll->format("Y");
+        $month = (int)$date_payroll->format("m");
+        $connection_db_aux = Util::connection_db_aux();
+        $user = Auth::user();
+        $exists_data_payroll = "select count(id) from payroll_transcripts where month_p = $month::INTEGER and year_p = $year::INTEGER";
+        $exists_data_payroll = DB::select($exists_data_payroll);
+        if($exists_data_payroll[0]->count = 0){
+            $query_create_affiliate = "select create_affiliate_transcript('$connection_db_aux',$user->id,$month,$year);";
+            $data_validated = DB::select($query_create_affiliate);
+            $query_import_payroll = "select import_payroll_transcript('$connection_db_aux',$user->id,$month,$year);";
+            $data_validated = DB::select($query_import_payroll);
+        }
+        $count_data_payroll = "select count(id) from payroll_transcripts where month_p = $month::INTEGER and year_p = $year::INTEGER";
+        $data_count['num_total_data_payroll'] = DB::select($count_data_payroll)[0]->count;
+        return response()->json([
+            'message' => $message,
+            'payload' => [
+               'data_count' => $data_count
+            ],
+        ]);
     }
 }

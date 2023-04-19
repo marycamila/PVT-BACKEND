@@ -13,7 +13,7 @@ Route::group([
     Route::group([
         'middleware' => ['auth:sanctum']
     ], function () {
-        Route::get('/list_years', [App\Http\Controllers\Contribution\ImportationController::class, 'list_years']);
+        Route::get('/list_years/{type}', [App\Http\Controllers\Contribution\ImportationController::class, 'list_years']);
         Route::post('/active_affiliate_contribution', [App\Http\Controllers\Contribution\ContributionController::class, 'show']);
         Route::post('/passive_affiliate_contribution', [App\Http\Controllers\Contribution\ContributionPassiveController::class, 'show']);
         Route::get('/search_passive_affiliate_contribution', [App\Http\Controllers\Contribution\ContributionPassiveController::class, 'SearchContributionPassive']);

@@ -21,7 +21,10 @@ class ImportationController extends Controller
      *         in="path",
      *         description="typo de importación, los valores son senasir, command, transcript ",
      *         example="transcript",
-     *         required=true
+     *         required=true,
+     *         @OA\Schema(
+     *             type="string"
+     *         )
      *       ),
      *     security={
      *         {"bearerAuth": {}}
@@ -42,6 +45,14 @@ class ImportationController extends Controller
     */
     public function list_years($type)
     {
+        if (!is_string($type)) {
+            return response()->json([
+                'message' => "Error, el valor tipo no es cadena.",
+                'payload' => [
+                    'successfully' => false
+                ],
+            ]);
+        }
         switch($type) {
             case 'senasir':
                 $start_year = 1999;
@@ -63,6 +74,7 @@ class ImportationController extends Controller
         return response()->json([
             'message' => "Éxito",
             'payload' => [
+                'successfully' => true,
                 'list_years' =>  Util::list_years($start_year,$end_year)
             ],
         ]);

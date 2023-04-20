@@ -870,7 +870,7 @@ class ImportPayrollTranscriptController extends Controller
         $month = (int)$date_payroll->format("m");
         $connection_db_aux = Util::connection_db_aux();
         $user = Auth::user();
-        $count_data_validated_affiliate = "SELECT count(id) FROM payroll_copy_transcripts where mes = $month::INTEGER and a_o = $year::INTEGER and affiliate_id is null and criteria!='5-CREAR';";
+        $count_data_validated_affiliate = "SELECT count(id) FROM payroll_copy_transcripts where mes = $month::INTEGER and a_o = $year::INTEGER and ((affiliate_id is null and criteria!='5-CREAR') OR criteria ='4-CI');";
         $count_data_validated_affiliate = DB::connection('db_aux')->select($count_data_validated_affiliate);
         if($count_data_validated_affiliate[0]->count==0){
             $exists_data_payroll = "select count(id) from payroll_transcripts where month_p = $month::INTEGER and year_p = $year::INTEGER";

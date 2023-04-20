@@ -17,8 +17,6 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('affiliate_id')->comment('Id del afiliado titular');
             $table->foreign('affiliate_id')->references('id')->on('affiliates');
-            $table->unsignedBigInteger('unit_id')->nullable()->comment('Unidad');
-            $table->foreign('unit_id')->references('id')->on('units');
             $table->integer('month_p')->comment('Mes');
             $table->integer('year_p')->comment('Año');
             $table->unique(['affiliate_id','month_p','year_p']);
@@ -31,6 +29,8 @@ return new class extends Migration
             $table->foreign('hierarchy_id')->references('id')->on('hierarchies');
             $table->unsignedBigInteger('degree_id')->nullable()->comment('Grado');
             $table->foreign('degree_id')->references('id')->on('degrees');
+            $table->unsignedBigInteger('category_id')->nullable()->comment('Categoria');
+            $table->foreign('category_id')->references('id')->on('categories');
             $table->decimal('base_wage', 13, 2)->comment('Sueldo');
             $table->decimal('seniority_bonus', 13, 2)->comment('Bono antiguedad');
             $table->decimal('gain', 13, 2)->comment('Total ganado');
@@ -39,8 +39,6 @@ return new class extends Migration
             $table->decimal('position_bonus', 13, 2)->comment('Bono cargo');
             $table->decimal('border_bonus', 13, 2)->comment('Bono frontera');
             $table->decimal('east_bonus', 13, 2)->comment('Bono oriente');
-            $table->date('birth_date')->nullable()->comment('Fecha de nacimiento');
-            $table->date('date_entry')->nullable()->comment('Fecha de ingreso');
             $table->enum('affiliate_type', ['REGULAR', 'NUEVO'])->default('REGULAR')->comment('Afiliado regular o nuevo');
             $table->timestamps();
             $table->softDeletes();

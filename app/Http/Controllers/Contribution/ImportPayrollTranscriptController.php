@@ -870,29 +870,44 @@ class ImportPayrollTranscriptController extends Controller
         $month = (int)$date_payroll->format("m");
         $connection_db_aux = Util::connection_db_aux();
         $user = Auth::user();
-        $count_data_validated_affiliate = "SELECT count(id) FROM payroll_copy_transcripts where mes = $month::INTEGER and a_o = $year::INTEGER and ((affiliate_id is null and criteria!='5-CREAR') OR criteria ='4-CI');";
+        //conteo de  affiliate_id is null distito del criterio 5-CREAR
+        $count_data_validated_affiliate = "SELECT count(id) FROM payroll_copy_transcripts where mes = $month::INTEGER and a_o = $year::INTEGER and affiliate_id is null and criteria!='5-CREAR';";
         $count_data_validated_affiliate = DB::connection('db_aux')->select($count_data_validated_affiliate);
-        if($count_data_validated_affiliate[0]->count==0){
-            $exists_data_payroll = "select count(id) from payroll_transcripts where month_p = $month::INTEGER and year_p = $year::INTEGER";
-            $exists_data_payroll = DB::select($exists_data_payroll);
-            if($exists_data_payroll[0]->count == 0){
-                $query_create_affiliate = "select create_affiliate_import_transcript('$connection_db_aux',$user->id,$month,$year);";
-                $data_validated = DB::select($query_create_affiliate);
-                $successfully = true;
-            }else{
-                if($exists_data_payroll[0]->count > 0){
+        if($count_data_validated_affiliate[0]->count == 0){
+            //conteo de criterio similares
+            $count_data_similarity = "SELECT count(id) FROM payroll_copy_transcripts where mes = $month::INTEGER and a_o = $year::INTEGER and criteria='4-CI';";
+            $count_data_similarity = DB::connection('db_aux')->select($count_data_similarity);
+            if($count_data_similarity[0]->count == 0){
+               //conteo de registros payroll_transcripts
+                $exists_data_payroll = "select count(id) from payroll_transcripts where month_p = $month::INTEGER and year_p = $year::INTEGER";
+                $exists_data_payroll = DB::select($exists_data_payroll);
+                if($exists_data_payroll[0]->count == 0){
+                    $query_create_affiliate = "select create_affiliate_import_transcript('$connection_db_aux',$user->id,$month,$year);";
+                    $data_validated = DB::select($query_create_affiliate);
                     $successfully = true;
+                }else{
+                    if($exists_data_payroll[0]->count > 0){
+                       $successfully = true;
+                    }
                 }
+                $count_data_payroll = "select count(id) from payroll_transcripts where month_p = $month::INTEGER and year_p = $year::INTEGER";
+                $data_count['num_total_data_payroll'] = DB::select($count_data_payroll)[0]->count;
+                return response()->json([
+                    'message' => $message,
+                    'payload' => [
+                       'successfully' => $successfully,
+                       'data_count' => $data_count
+                    ],
+                ]);
+            }else{
+                return response()->json([
+                    'message' => 'Error en el copiado de datos',
+                    'payload' => [
+                       'successfully' => $successfully,
+                       'data_count' => $data_count
+                    ],
+                ]);
             }
-            $count_data_payroll = "select count(id) from payroll_transcripts where month_p = $month::INTEGER and year_p = $year::INTEGER";
-            $data_count['num_total_data_payroll'] = DB::select($count_data_payroll)[0]->count;
-            return response()->json([
-                'message' => $message,
-                'payload' => [
-                   'successfully' => $successfully,
-                   'data_count' => $data_count
-                ],
-            ]);
         }else{
             return response()->json([
                 'message' => 'Error en el copiado de datos',

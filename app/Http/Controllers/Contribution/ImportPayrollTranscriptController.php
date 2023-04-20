@@ -734,7 +734,12 @@ class ImportPayrollTranscriptController extends Controller
         $result['query_step_3'] = false;
         $result['query_step_4'] = false;
 
-        $result['query_step_1'] = $this->exists_data_payroll_copy_transcrips($month,$year);
+        $task['task_step_1'] = false;
+        $task['task_step_2'] = false;
+        $task['task_step_3'] = false;
+        $task['task_step_4'] = false;
+
+        $task['task_step_1'] = $this->exists_data_payroll_copy_transcrips($month,$year);
         //****** paso 2 *****/
         $step_2 = "select count(id) from payroll_copy_transcripts where mes = $month::INTEGER and a_o = $year::INTEGER and (error_messaje is not null or criteria like '4-CI')";
         $step_2 = DB::connection('db_aux')->select($step_2);
@@ -742,15 +747,15 @@ class ImportPayrollTranscriptController extends Controller
         $step = "select count(id) from payroll_copy_transcripts where mes = $month::INTEGER and a_o = $year::INTEGER and state like 'accomplished'";
         $step = DB::connection('db_aux')->select($step);
 
-        $result['query_step_2'] = $this->exists_data_payroll_copy_transcrips($month,$year) && $step_2[0]->count == 0 && $step[0]->count > 0? true : false;
+        $task['task_step_2']  = $this->exists_data_payroll_copy_transcrips($month,$year) && $step_2[0]->count == 0 && $step[0]->count > 0? true : false;
         //****** paso 3 *****/
         $step_3 = "select count(id) from payroll_transcripts where month_p = $month::INTEGER and year_p = $year::INTEGER";
         $step_3 = DB::select($step_3);
-        $result['query_step_3'] = $step_3[0]->count > 0? true : false;
+        $task['task_step_3'] = $step_3[0]->count > 0? true : false;
         //****** paso 3 *****/
         $step_4 = "select count(id) from contributions where month_year = '$request->date_payroll' and contributionable_type like 'payroll_transcripts';";
         $step_4 = DB::select($step_4);
-        $result['query_step_4'] = $step_4[0]->count > 0? true : false;
+        $task['task_step_4'] = $step_4[0]->count > 0? true : false;
 
         //verificamos si existe el archivo de importación
         $date_month= strlen($month)==1?'0'.$month:$month;
@@ -761,15 +766,18 @@ class ImportPayrollTranscriptController extends Controller
             $result['file_exists'] = true;
         }
 
-        if($result['file_exists'] == true && $result['query_step_1'] == true && $result['query_step_2'] == true && $result['query_step_3'] == true && $result['query_step_4'] == true){
+        if($result['file_exists'] == true && $task['task_step_1'] == true && $task['task_step_2']  == true && $task['task_step_3'] == true && $task['task_step_4'] == true){
             $result['percentage'] = 100;
-        }elseif($result['file_exists'] == true && $result['query_step_1'] == true && $result['query_step_2'] == false && $result['query_step_3'] == false && $result['query_step_4'] == false){
+        }elseif($result['file_exists'] == true && $task['task_step_1'] == true && $task['task_step_2']  == false && $task['task_step_3'] == false && $task['task_step_4'] == false){
             $result['percentage'] = 25;
-        }elseif($result['file_exists'] == true && $result['query_step_1'] == true && $result['query_step_2'] == true && $result['query_step_3'] == false && $result['query_step_4'] == false){
+            $result['query_step_2'] = true;
+        }elseif($result['file_exists'] == true && $task['task_step_1'] == true && $task['task_step_2']  == true && $task['task_step_3'] == false && $task['task_step_4'] == false){
             $result['percentage'] = 50;
-        }elseif($result['file_exists'] == true && $result['query_step_1'] == true && $result['query_step_2'] == true && $result['query_step_3'] == true && $result['query_step_4'] == false){
+            $result['query_step_3'] = true;
+        }elseif($result['file_exists'] == true && $task['task_step_1'] == true && $task['task_step_2']  == true && $task['task_step_3'] == true && $task['task_step_4'] == false){
             $result['percentage'] = 75;
-        }elseif($result['query_step_1'] == false && $result['query_step_2'] == false && $result['query_step_3'] == false && $result['query_step_4'] == false){
+            $result['query_step_4'] = true;
+        }elseif($task['task_step_1'] == false && $task['task_step_2']  == false && $task['task_step_3'] == false && $task['task_step_4'] == false){
             $result['percentage'] = 0;
         }else{
             $result['percentage'] = -1;
@@ -780,7 +788,8 @@ class ImportPayrollTranscriptController extends Controller
             'message' => $message,
             'payload' => [
                 'import_progress_bar' =>  $result,
-                 'data_count' =>  $this->data_count($month,$year)
+                'data_count' =>  $this->data_count($month,$year),
+                'task'=>$task
             ],
         ]);
     }

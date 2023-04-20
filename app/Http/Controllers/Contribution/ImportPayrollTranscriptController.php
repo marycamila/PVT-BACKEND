@@ -871,11 +871,9 @@ class ImportPayrollTranscriptController extends Controller
         $user = Auth::user();
         $exists_data_payroll = "select count(id) from payroll_transcripts where month_p = $month::INTEGER and year_p = $year::INTEGER";
         $exists_data_payroll = DB::select($exists_data_payroll);
-        if($exists_data_payroll[0]->count = 0){
-            $query_create_affiliate = "select create_affiliate_transcript('$connection_db_aux',$user->id,$month,$year);";
+        if($exists_data_payroll[0]->count == 0){
+            $query_create_affiliate = "select create_affiliate_import_transcript('$connection_db_aux',$user->id,$month,$year);";
             $data_validated = DB::select($query_create_affiliate);
-            $query_import_payroll = "select import_payroll_transcript('$connection_db_aux',$user->id,$month,$year);";
-            $data_validated = DB::select($query_import_payroll);
         }
         $count_data_payroll = "select count(id) from payroll_transcripts where month_p = $month::INTEGER and year_p = $year::INTEGER";
         $data_count['num_total_data_payroll'] = DB::select($count_data_payroll)[0]->count;

@@ -927,4 +927,80 @@ class ImportPayrollTranscriptController extends Controller
             ]);
         }
     }
+
+    /**
+     * @OA\Post(
+     *      path="/api/contribution/import_contribution_transcript",
+     *      tags={"IMPORTACION-PLANILLA-TRANSCRIPCIÓN"},
+     *      summary="PASO 4 IMPORTACIÓN DE TRANSCRIPCIONES",
+     *      operationId="import_contribution_transcript",
+     *      description="Importación de aportes de Transcripciones",
+     *      @OA\RequestBody(
+     *          description= "Provide auth credentials",
+     *          required=true,
+     *          @OA\JsonContent(
+     *              type="object",
+     *              @OA\Property(property="date_payroll", type="string",description="fecha de aporte required",example= "1999-01-01")
+     *            )
+     *     ),
+     *     security={
+     *         {"bearerAuth": {}}
+     *     },
+     *      @OA\Response(
+     *          response=200,
+     *          description="Success",
+     *          @OA\JsonContent(
+     *            type="object"
+     *         )
+     *      )
+     * )
+     *
+     * Logs user into the system.
+     *
+     * @param Request $request
+     * @return void
+    */
+    public function import_contribution_transcript(Request $request){
+        $request->validate([
+            'date_payroll' => 'required|date_format:"Y-m-d"',
+        ]);
+     try{
+        DB::beginTransaction();
+        $user_id = Auth::user()->id;
+        $message ='No existen datos de la planilla.';
+        $count_created = 0;
+        $successfully = false;
+        $date_payroll = Carbon::parse($request->date_payroll);
+        $year = (int)$date_payroll->format("Y");
+        $month = (int)$date_payroll->format("m");
+
+        $count_data_payroll = "select count(id) from payroll_transcripts where month_p = $month::INTEGER and year_p = $year::INTEGER";
+        $num_total_data_payroll = DB::select($count_data_payroll)[0]->count;
+
+        if($num_total_data_payroll > 0){
+            $query ="select import_period_contribution_transcript('$request->date_payroll',$user_id,$year,$month)";
+            $query = DB::select($query);
+            $message ='Realizado con éxito!';
+            $successfully = true;
+            DB::commit();
+        }
+
+        return response()->json([
+            'message' => $message,
+            'payload' => [
+                'successfully' => $successfully,
+                'num_total_data_contribution' => $query[0]->import_period_contribution_transcript,
+            ],
+        ]);
+     }catch(Exception $e){
+        DB::rollBack();
+        return response()->json([
+            'message' => 'Error al realizar la importación',
+            'payload' => [
+                'successfully' => false,
+                'error' => $e->getMessage(),
+            ],
+        ]);
+     }
+    }
 }

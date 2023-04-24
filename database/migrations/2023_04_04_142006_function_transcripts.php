@@ -180,6 +180,32 @@ return new class extends Migration
                    END;
             $$;");
 
+        DB::statement("CREATE OR REPLACE FUNCTION public.get_retirement_fund_amount_transcript(date_period date, total numeric)
+        RETURNS numeric
+        LANGUAGE plpgsql
+       AS $$
+            declare
+                cr_retirement_fund numeric:=0;
+                retirement_fund_into numeric:=0;
+                cr_mortuary_quota numeric:=0;
+                cr_fcsspn numeric:=0;
+            begin
+            --*****************************************************************************************--
+            --Funcion para obtener monto de fondo de retiro consierando solo el total aporte------------
+            --*****************************************************************************************--
+                select retirement_fund into cr_retirement_fund from contribution_rates cr where month_year = date_period limit 1;
+                select mortuary_quota into cr_mortuary_quota from contribution_rates cr where month_year = date_period limit 1;
+                select fcsspn into cr_fcsspn from contribution_rates cr where month_year = date_period limit 1;
+
+                if(date_period > '1987-04-01') then
+                    retirement_fund_into:= (total * cr_retirement_fund)/(cr_retirement_fund + cr_mortuary_quota);
+                else
+                    retirement_fund_into:= (total * cr_retirement_fund)/(cr_retirement_fund + cr_fcsspn);
+                end if;
+            return round(retirement_fund_into,2);
+            end;
+          $$;");
+
         DB::statement("CREATE OR REPLACE FUNCTION public.import_period_contribution_transcript(date_period date, user_id_into integer, year_period integer, month_period integer)
         RETURNS numeric
         LANGUAGE plpgsql
@@ -192,6 +218,7 @@ return new class extends Migration
                       retirement_fund_amount numeric:=0;
                       mortuary_quota_amount numeric:=0;
                       contribution_id bigInt:=0;
+                      json_old json;
                               -- Declaración EXPLICITA del cursor
                               cur_contribution CURSOR FOR select * from payroll_transcripts where year_p = year_period and month_p = month_period and total >0;
                               record_row payroll_transcripts%ROWTYPE;
@@ -210,15 +237,16 @@ return new class extends Migration
                                retirement_fund_amount  := 0;
                                mortuary_quota_amount:= 0;
 
-                                -- percentage:= round((record_row.total/quotable)*100,2);
-                                -- retirement_fund_amount :=  get_retirement_fund_amount(date_period,percentage,record_row.total);
-                                -- mortuary_quota_amount:= record_row.total - retirement_fund_amount; 
+                                retirement_fund_amount :=  get_retirement_fund_amount_transcript(date_period,record_row.total);
+                                if(date_period > '1987-04-01') then
+                                    mortuary_quota_amount:= record_row.total - retirement_fund_amount;
+                                end if;
 
                                 INSERT INTO contributions (
                                 user_id,affiliate_id,degree_id,
                                 --unit_id,
                                 --breakdown_id,
-                                --category_id,
+                                category_id,
                                 month_year,type,base_wage,seniority_bonus,
                                 study_bonus,position_bonus,border_bonus,east_bonus,
                                 gain,
@@ -232,7 +260,7 @@ return new class extends Migration
                                   record_row.degree_id,
                                   --record_row.unit_id,
                                   --record_row.breakdown_id,
-                                  --record_row.category_id,
+                                  record_row.category_id,
                                   date_period,
                                   'Planilla',
                                   record_row.base_wage,
@@ -254,20 +282,22 @@ return new class extends Migration
                                   num_import:=num_import+1;
 
                                 else
-                               --contribution_id := (select id from contributions where affiliate_id = record_row.affiliate_id and month_year = date_period and deleted_at is null);
+                               json_old :=  (SELECT row_to_json(u) FROM (select * FROM contributions c  WHERE id = contribution_id) u);
+                               update payroll_transcripts set old_contribution = json_old where id = record_row.id;                             
+
                                  UPDATE contributions
                                    set contributionable_type = 'payroll_transcripts',
                                    contributionable_id = record_row.id,
-                                   updated_at = current_timestamp
-                                   --user_id = user_id_into,
-                                  ---base_wage  = case WHEN base_wage = 0 THEN record_row.base_wage else base_wage end,
-                                  ---seniority_bonus = case WHEN seniority_bonus = 0 THEN record_row.seniority_bonus else seniority_bonus end,
-                                  ---study_bonus = case WHEN study_bonus = 0 THEN record_row.study_bonus else study_bonus end,
-                                   --position_bonus = case WHEN position_bonus = 0 THEN record_row.position_bonus else position_bonus end,
-                                   --east_bonus  = case WHEN east_bonus = 0 THEN record_row.east_bonus else east_bonus end,
-                                  -- gain  = case WHEN gain = 0 THEN record_row.gain else gain end,
-                                   --quotable  = case WHEN quotable  = 0 THEN quotable_into else quotable end,
-                                  -- total  = case WHEN total  = 0 THEN record_row.total else total end
+                                   updated_at = current_timestamp,
+                                   user_id = user_id_into,
+                                   base_wage  = case WHEN base_wage = 0 THEN record_row.base_wage else base_wage end,
+                                   seniority_bonus = case WHEN seniority_bonus = 0 THEN record_row.seniority_bonus else seniority_bonus end,
+                                   study_bonus = case WHEN study_bonus = 0 THEN record_row.study_bonus else study_bonus end,
+                                   position_bonus = case WHEN position_bonus = 0 THEN record_row.position_bonus else position_bonus end,
+                                   east_bonus  = case WHEN east_bonus = 0 THEN record_row.east_bonus else east_bonus end,
+                                   gain  = case WHEN gain = 0 THEN record_row.gain else gain end,
+                                   quotable  = case WHEN quotable  = 0 THEN quotable_into else quotable end,
+                                   total  = case WHEN total  = 0 THEN record_row.total else total end
                                   where id = contribution_id;
                                  num_import:=num_import+1;
                                 end if;
@@ -275,8 +305,8 @@ return new class extends Migration
                              acction:='Importación realizada con éxito';
                              RETURN num_import;
                          end;
-                  $$
-                 ;");
+                  $$;
+                 ");
     }
 
     /**

@@ -29,6 +29,7 @@ Route::group([
         Route::post('/import_payroll_transcript_progress_bar', [App\Http\Controllers\Contribution\ImportPayrollTranscriptController::class, 'import_payroll_transcript_progress_bar']);
         Route::post('/import_payroll_transcript', [App\Http\Controllers\Contribution\ImportPayrollTranscriptController::class, 'import_payroll_transcript']);// paso 3
         Route::post('/import_contribution_transcript', [App\Http\Controllers\Contribution\ImportPayrollTranscriptController::class, 'import_contribution_transcript']);
+        Route::post('/report_import_contribution_transcript', [App\Http\Controllers\Contribution\ImportPayrollTranscriptController::class, 'report_import_contribution_transcript']);
         Route::group([
             'middleware' => 'permission:delete-contribution-passive'
         ], function () {

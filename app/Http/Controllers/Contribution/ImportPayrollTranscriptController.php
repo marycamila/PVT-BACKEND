@@ -354,6 +354,8 @@ class ImportPayrollTranscriptController extends Controller
                 $data_count['count_data_automatic_link'] = 0;
                 $data_count['count_data_revision'] = 0;
                 $data_count['count_data_creation'] = 0;
+                $data_count['num_total_data_payroll'] = 0;
+                $data_count['num_total_data_contribution'] = 0;
                 $route = '';
                 $route_file_name = '';
                 $date_payroll_format = $request->date_payroll;
@@ -1011,6 +1013,8 @@ class ImportPayrollTranscriptController extends Controller
             $successfully = true;
             DB::commit();
         }
+        $count_data_contribution = "select count(id) from contributions where month_year = '$date_payroll' and contributionable_type = 'payroll_transcripts'";
+        $count_data_contribution = DB::select($count_data_contribution)[0]->count;
 
         return response()->json([
             'message' => $message,

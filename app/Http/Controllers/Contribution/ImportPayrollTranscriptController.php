@@ -260,7 +260,7 @@ class ImportPayrollTranscriptController extends Controller
       * @OA\Post(
       *      path="/api/contribution/download_error_data_archive",
       *      tags={"IMPORTACION-PLANILLA-TRANSCRIPCIÓN"},
-      *      summary="Descarga el archivo, con el listado de afiliados que tengan observaciones en el archivo ",
+      *      summary="DESCARGA EL ARCHIVO, CON EL LISTADO DE AFILIADOS QUE TENGAN OBSERVACIONES EN EL ARCHIVO",
       *      operationId="download_error_data_archive",
       *      description="Descarga el archivo con el listado de afiliados con CI duplicado, primer nombre nulo, apellido paterno y materno en nulo ",
       *      @OA\RequestBody(
@@ -442,7 +442,7 @@ class ImportPayrollTranscriptController extends Controller
       * @OA\Post(
       *      path="/api/contribution/download_data_revision",
       *      tags={"IMPORTACION-PLANILLA-TRANSCRIPCIÓN"},
-      *      summary="Descarga el archivo, para la revisión de datos de los afiliados",
+      *      summary="DESCARGA EL ARCHIVO, PARA LA REVISIÓN DE DATOS DE LOS AFILIADOS",
       *      operationId="download_data_revision",
       *      description="Descarga el archivo, para la revisión de datos de los afiliados identificados con CI iguales y CI Distintos",
       *      @OA\RequestBody(
@@ -874,7 +874,12 @@ class ImportPayrollTranscriptController extends Controller
         $request->validate([
             'date_payroll' => 'required|date_format:"Y-m-d"',
           ]);
+        $data_count['num_total_data_copy'] = 0;
+        $data_count['count_data_automatic_link'] = 0;
+        $data_count['count_data_revision'] = 0;
+        $data_count['count_data_creation'] = 0;
         $data_count['num_total_data_payroll'] = 0;
+        $data_count['num_total_data_contribution'] = 0;
         $message = "Realizado con éxito";
         $successfully = false;
         $date_payroll = Carbon::parse($request->date_payroll);

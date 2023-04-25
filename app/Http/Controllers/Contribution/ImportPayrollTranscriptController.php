@@ -12,6 +12,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ArchivoPrimarioExport;
 use App\Models\Contribution\PayrollTranscriptPeriod;
 use App\Models\Contribution\PayrollTranscript;
+use App\Models\Contribution\Contribution;
 use Auth;
 
 class ImportPayrollTranscriptController extends Controller
@@ -839,7 +840,7 @@ class ImportPayrollTranscriptController extends Controller
      * @OA\Post(
      *      path="/api/contribution/import_payroll_transcript",
      *      tags={"IMPORTACION-PLANILLA-TRANSCRIPCIÓN"},
-     *      summary="IMPORTACIÓN DE PLANILLA TRANSCRIPCIÓN",
+     *      summary="PASO 3 IMPORTACIÓN DE PLANILLA TRANSCRIPCIÓN",
      *      operationId="import_payroll_transcript",
      *      description="Paso 3 importación de planilla transcripción",
      *      @OA\RequestBody(
@@ -973,11 +974,37 @@ class ImportPayrollTranscriptController extends Controller
         $date_payroll = Carbon::parse($request->date_payroll);
         $year = (int)$date_payroll->format("Y");
         $month = (int)$date_payroll->format("m");
+        $date_payroll = $request->date_payroll;
 
         $count_data_payroll = "select count(id) from payroll_transcripts where month_p = $month::INTEGER and year_p = $year::INTEGER";
-        $num_total_data_payroll = DB::select($count_data_payroll)[0]->count;
+        $count_data_payroll = DB::select($count_data_payroll)[0]->count;
 
-        if($num_total_data_payroll > 0){
+        $count_data_contribution = "select count(id) from contributions where month_year = '$date_payroll' and contributionable_type = 'payroll_transcripts'";
+        $count_data_contribution = DB::select($count_data_contribution)[0]->count;
+
+        if(!Contribution::exist_contribution_rate($date_payroll)){
+            $message ="No existe la taza de contribución para el periodo : ". $date_payroll.", el dato es requerido para continuar.";
+            return response()->json([
+                'message' => $message,
+                'payload' => [
+                    'successfully' => $successfully,
+                    'num_total_data_contribution' => $count_data_contribution,
+                ],
+            ]);
+        }
+
+        if($count_data_contribution > 0){
+            $message = 'Error al realizar la importación, el periodo ya fue importado.'.$date_payroll;
+            return response()->json([
+                'message' => $message,
+                'payload' => [
+                    'successfully' => $successfully,
+                    'num_total_data_contribution' => $count_data_contribution,
+                ],
+            ]);
+        }
+
+        if($count_data_payroll > 0){
             $query ="select import_period_contribution_transcript('$request->date_payroll',$user_id,$year,$month)";
             $query = DB::select($query);
             $message ='Realizado con éxito!';
@@ -989,7 +1016,7 @@ class ImportPayrollTranscriptController extends Controller
             'message' => $message,
             'payload' => [
                 'successfully' => $successfully,
-                'num_total_data_contribution' => $query[0]->import_period_contribution_transcript,
+                'num_total_data_contribution' => $count_data_contribution,
             ],
         ]);
      }catch(Exception $e){

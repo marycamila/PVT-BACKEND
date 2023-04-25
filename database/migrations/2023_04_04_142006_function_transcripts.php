@@ -12,7 +12,10 @@ return new class extends Migration
      * @return void
      */
     public function up()
-    {   DB::statement("CREATE OR REPLACE FUNCTION public.identified_affiliate_transcript(order_entry integer, identity_card_entry character varying, first_name_entry character varying, second_name_entry character varying, last_name_entry character varying, mothers_last_name_entry character varying)
+    {
+        DB::statement("CREATE EXTENSION IF NOT EXISTS pg_trgm;"); //funcion para determinar similitud
+
+        DB::statement("CREATE OR REPLACE FUNCTION public.identified_affiliate_transcript(order_entry integer, identity_card_entry character varying, first_name_entry character varying, second_name_entry character varying, last_name_entry character varying, mothers_last_name_entry character varying)
         RETURNS integer
         LANGUAGE plpgsql
         AS $$

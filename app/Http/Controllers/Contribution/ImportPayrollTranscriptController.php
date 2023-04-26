@@ -1050,7 +1050,7 @@ class ImportPayrollTranscriptController extends Controller
      *          description= "Provide auth credentials",
      *          required=true,
      *          @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
-     *             @OA\Property(property="date_contribution", type="string",description="fecha de planilla required",example= "2022-03-01")
+     *             @OA\Property(property="date_payroll", type="string",description="fecha de planilla required",example= "1999-01-01")
      *            )
      *          ),
      *     ),
@@ -1074,41 +1074,39 @@ class ImportPayrollTranscriptController extends Controller
     public function report_import_contribution_transcript(request $request) {
 
         $request->validate([
-            'date_contribution' => 'required|date_format:"Y-m-d"',
+            'date_payroll' => 'required|date_format:"Y-m-d"',
         ]);
-
-        DB::beginTransaction();
         $message = "No hay datos";
        // ini_set('max_execution_time', 300);
         ini_set('memory_limit', '512M');
-        $date_contribution_format = $request->date_contribution;
+        $date_contribution_format = $request->date_payroll;
 
-        $data_cabeceras=array(array("PERIODO","TIPO","ID_AFILIADO","CÉDULA_DE_IDENTIDAD","UNIDAD","DESGLOSE","PATERNO",
+        $data_cabeceras=array(array("PERIODO","TIPO","NUP","CÉDULA_DE_IDENTIDAD","UNIDAD","DESGLOSE","PATERNO",
         "MATERNO","AP_CASADA", "P_NOMBRE","S_NOMBRE","ESTADO_CIVIL","GRADO", "CATEGORÍA","SUELDO_BASE","BONO_ANTIGÜEDAD", "BONO_ESTUDIO",
         "BONO_A_CARGO","BONO_FRONTERA","BONO_ORIENTE","TOTAL_GANADO","LÍQUIDO_PAGABLE","COTIZABLE","FONDO_DE_RETIRO",
         "CUOTA_MORTUORIA","TOTAL_APORTE"));
 
-        $date_contribution = Carbon::parse($request->date_contribution);
-        $year = (string)$date_contribution->format("Y");
-        $month = (string)$date_contribution->format("m");
-        $day = (string)$date_contribution->format("d");
-        $date_contribution = $year.'-'.$month.'-'.$day;
-        $data_contribution_command = "select c.month_year, c.type, a.id, a.identity_card, u.name, b.name as breakdown, a.last_name, a.mothers_last_name, 
+        $date_payroll = Carbon::parse($request->date_payroll);
+        $year = (string)$date_payroll->format("Y");
+        $month = (string)$date_payroll->format("m");
+        $day = (string)$date_payroll->format("d");
+        $date_payroll = $year.'-'.$month.'-'.$day;
+        $data_contribution_transcript = "select c.month_year, c.type, a.id, a.identity_card, u.name, b.name as breakdown, a.last_name, a.mothers_last_name, 
         a.surname_husband, a.first_name, a.second_name, a.civil_status, d.name as degree, c3.name as category, c.base_wage, c.seniority_bonus,c.study_bonus, 
         c.position_bonus, c.border_bonus, c.east_bonus, c.gain, c.payable_liquid, c.quotable, c.retirement_fund, c.mortuary_quota, c.total
-        from contributions c
+        from contributions c 
         left join affiliates a on c.affiliate_id = a.id
         left join units u on u.id = c.unit_id
         left join breakdowns b on b.id = c.breakdown_id
         left join degrees d on d.id = c.degree_id
         left join categories c3 on c3.id = c.category_id
-        where c.type = 'Planilla' and c.month_year = '1999-01-01'
+        where c.type = 'Planilla' and c.month_year = '$date_contribution_format'
         and contributionable_type = 'payroll_transcripts'";
-                    $data_contribution_command = DB::select($data_contribution_command);
+                    $data_contribution_transcript = DB::select($data_contribution_transcript);
 
-                            if(count($data_contribution_command)> 0){
+                            if(count($data_contribution_transcript)> 0){
                                 $message = "Excel";
-                                foreach ($data_contribution_command as $row){
+                                foreach ($data_contribution_transcript as $row){
                                     array_push($data_cabeceras, array($row->month_year ,'PLANILLA TRANSCRITA' ,$row->id ,$row->identity_card,
                                     $row->name, $row->breakdown, $row->last_name , $row->mothers_last_name ,$row->surname_husband, $row->first_name,
                                     $row->second_name,$row->civil_status,$row->degree,$row->category,$row->base_wage,$row->seniority_bonus,$row->study_bonus,$row->position_bonus,
@@ -1123,7 +1121,7 @@ class ImportPayrollTranscriptController extends Controller
 
                             }else{
                                 return response()->json([
-                                    'message' => "Error!",
+                                    'message' => "Error! no existen datos de importación del periodo ".$date_contribution_format,
                                     ],
                                 );
                             }

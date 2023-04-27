@@ -134,6 +134,8 @@ class ImportPayrollTranscriptController extends Controller
                                 'payload' => [
                                     'successfully' => false,
                                     'error' => 'Existen datos incorrectos en la(s) columnas de mes o año.',
+                                    'route' => $route,
+                                    'route_file_name' => $route_file_name
                                 ],
                             ]);
                         }

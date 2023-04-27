@@ -556,7 +556,7 @@ class ImportPayrollTranscriptController extends Controller
                 }
             }
            if($with_data_count)
-           $month->data_count =  $this->data_count_payroll_transcript($month->period_month,$period_year);
+           $month->data_count = $this->data_count($month->period_month,$period_year);
         }
         return response()->json([
             'message' => "Exito",
@@ -612,7 +612,7 @@ class ImportPayrollTranscriptController extends Controller
 
            $year = (int)$date_payroll->format("Y");
            $month = (int)$date_payroll->format("m");
-    
+
            if($this->exists_data_payroll_copy_transcrips($month,$year) && !PayrollTranscript::data_period($month,$year)['exist_data']){
                $result['delete_step_1'] = $this->delete_payroll_copy_transcrips($month,$year);
 
@@ -622,7 +622,7 @@ class ImportPayrollTranscriptController extends Controller
                }
            }else{
                if(PayrollTranscript::data_period($month,$year)['exist_data'])
-                   $message = "No se puede rehacer, por que ya realizó la validación del la planilla de transcrita";
+               $message = "No se puede rehacer, por que ya realizó la validación del la planilla de transcrita";
                else
                    $message = "No existen datos para rehacer";
            }
@@ -878,12 +878,6 @@ class ImportPayrollTranscriptController extends Controller
         $request->validate([
             'date_payroll' => 'required|date_format:"Y-m-d"',
           ]);
-        $data_count['num_total_data_copy'] = 0;
-        $data_count['count_data_automatic_link'] = 0;
-        $data_count['count_data_revision'] = 0;
-        $data_count['count_data_creation'] = 0;
-        $data_count['num_total_data_payroll'] = 0;
-        $data_count['num_total_data_contribution'] = 0;
         $message = "Realizado con éxito";
         $successfully = false;
         $date_payroll = Carbon::parse($request->date_payroll);
@@ -911,13 +905,11 @@ class ImportPayrollTranscriptController extends Controller
                        $successfully = true;
                     }
                 }
-                $count_data_payroll = "select count(id) from payroll_transcripts where month_p = $month::INTEGER and year_p = $year::INTEGER";
-                $data_count['num_total_data_payroll'] = DB::select($count_data_payroll)[0]->count;
                 return response()->json([
                     'message' => $message,
                     'payload' => [
                        'successfully' => $successfully,
-                       'data_count' => $data_count
+                       'data_count' => $this->data_count($month,$year)
                     ],
                 ]);
             }else{
@@ -925,7 +917,7 @@ class ImportPayrollTranscriptController extends Controller
                     'message' => 'Error en el copiado de datos',
                     'payload' => [
                        'successfully' => $successfully,
-                       'data_count' => $data_count
+                       'data_count' => $this->data_count($month,$year)
                     ],
                 ]);
             }
@@ -934,7 +926,7 @@ class ImportPayrollTranscriptController extends Controller
                 'message' => 'Error en el copiado de datos',
                 'payload' => [
                    'successfully' => $successfully,
-                   'data_count' => $data_count
+                   'data_count' => $this->data_count($month,$year)
                 ],
             ]);
         }

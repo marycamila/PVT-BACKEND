@@ -118,7 +118,9 @@ class ImportPayrollTranscriptController extends Controller
                                 'message' => 'Error en el copiado de datos',
                                 'payload' => [
                                     'successfully' => false,
-                                    'error' => 'El total de registros ingresado no coincide con la cantidad de registros del archivo.'
+                                    'error' => 'El total de registros ingresado no coincide con la cantidad de registros del archivo.',
+                                    'route' => $route,
+                                    'route_file_name' => $route_file_name
                                 ],
                             ]);
                         }
@@ -145,6 +147,8 @@ class ImportPayrollTranscriptController extends Controller
                                 'payload' => [
                                     'successfully' => false,
                                     'error' => 'El monto total ingresado no coincide con el monto total de la planilla, favor de verificar.'.$verify_amount[0]->sum . ' distinto a '.$request->total_amount,
+                                    'route' => $route,
+                                    'route_file_name' => $route_file_name
                                 ],
                             ]);
                         }
@@ -618,7 +622,7 @@ class ImportPayrollTranscriptController extends Controller
                }
            }else{
                if(PayrollTranscript::data_period($month,$year)['exist_data'])
-                   $message = "No se puede rehacer, por que ya realizó la validación del la planilla de Comando General";
+                   $message = "No se puede rehacer, por que ya realizó la validación del la planilla de transcrita";
                else
                    $message = "No existen datos para rehacer";
            }

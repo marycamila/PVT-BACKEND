@@ -40,6 +40,7 @@ return new class extends Migration
             $table->unsignedBigInteger('affiliate_id')->nullable()->comment('Id del afiliado titular');
             $table->enum('state', ['accomplished','unrealized'])->default('unrealized')->comment('Estado si fue encontrado o no encontrado');
             $table->string('criteria')->nullable()->comment('critetio de identificacion del afiliado');
+            $table->string('img')->comment('ruta de la imagen de la planilla física');
             $table->timestamps();
             $table->softDeletes();
         });

@@ -91,6 +91,7 @@ class ImportPayrollTranscriptController extends Controller
 
                         $image_name = "foto-planilla-fisica-".$month."-".$year.'.'.$extension_imge;
                         $base_path_image = 'planillas/planilla_transcripcion/'.$month.'-'.$year;
+                        $base_path_image_save = $base_path_image.'/'.$image_name;
                         $image_path = Storage::disk('ftp')->putFileAs($base_path_image,$request->image,$image_name);
                         $base_path_image ='ftp://'.env('FTP_HOST').env('FTP_ROOT').$image_path;
 
@@ -199,7 +200,7 @@ class ImportPayrollTranscriptController extends Controller
                         $payroll_period = new PayrollTranscriptPeriod;
                         $payroll_period->updateOrInsert(
                             ['month_p' => $month_format, 'year_p' => $year],
-                            ['total_amount' => $request->total_amount,'number_records' => $request->number_records]
+                            ['total_amount' => $request->total_amount,'number_records' => $request->number_records,'img'=> $base_path_image_save]
                         );
 
                         if($data_count['num_total_data_copy'] > 0){

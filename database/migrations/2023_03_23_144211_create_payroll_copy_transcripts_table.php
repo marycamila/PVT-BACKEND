@@ -40,7 +40,6 @@ return new class extends Migration
             $table->unsignedBigInteger('affiliate_id')->nullable()->comment('Id del afiliado titular');
             $table->enum('state', ['accomplished','unrealized'])->default('unrealized')->comment('Estado si fue encontrado o no encontrado');
             $table->string('criteria')->nullable()->comment('critetio de identificacion del afiliado');
-            $table->string('img')->comment('ruta de la imagen de la planilla física');
             $table->timestamps();
             $table->softDeletes();
         });
@@ -51,6 +50,7 @@ return new class extends Migration
             $table->integer('year_p')->comment('Año');
             $table->integer('number_records')->comment('numero de registros ingresado por el usuario');
             $table->decimal('total_amount', 13, 2)->comment('monto total ingresado por el usuario');
+            $table->string('img')->comment('ruta de la imagen de la planilla física');
             $table->timestamps();
         });
     }

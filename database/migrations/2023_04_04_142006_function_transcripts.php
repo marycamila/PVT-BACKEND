@@ -224,107 +224,93 @@ AS $$
     end;
   $$;");
 
-        DB::statement("CREATE OR REPLACE FUNCTION public.import_period_contribution_transcript(date_period date, user_id_into integer, year_period integer, month_period integer)
-        RETURNS numeric
-        LANGUAGE plpgsql
-       AS $$
-                         declare
-                             acction varchar;
-                             quotable_into numeric:=0;
-                             percentage numeric:=0;
-                             num_import int:=0;
-                             retirement_fund_amount numeric:=0;
-                             mortuary_quota_amount numeric:=0;
-                             contribution_id bigInt:=0;
-                             json_old json;
-                                     -- Declaración EXPLICITA del cursor
-                                     cur_contribution CURSOR FOR select * from payroll_transcripts where year_p = year_period and month_p = month_period and total >0;
-                                     record_row payroll_transcripts%ROWTYPE;
-                                 begin
-                                    --***************************************
-                                    --Funcion importar planilla transcrita--
-                                    --***************************************
-                                    -- Procesa el cursor
-                                    FOR record_row IN cur_contribution loop
-                                      contribution_id := (select id from contributions where affiliate_id = record_row.affiliate_id and month_year = date_period and deleted_at is null);
-                                      quotable_into:= record_row.base_wage + record_row.seniority_bonus + record_row.study_bonus + 
-                                                    record_row.position_bonus + record_row.border_bonus + record_row.east_bonus;
+DB::statement("CREATE OR REPLACE FUNCTION public.import_period_contribution_transcript(date_period date, user_id_into integer, year_period integer, month_period integer)
+RETURNS numeric
+LANGUAGE plpgsql
+AS $$
+                 declare
+                     acction varchar;
+                     quotable_into numeric:=0;
+                     percentage numeric:=0;
+                     num_import int:=0;
+                     retirement_fund_amount numeric:=0;
+                     mortuary_quota_amount numeric:=0;
+                     contribution_id bigInt:=0;
+                             -- Declaración EXPLICITA del cursor
+                             cur_contribution CURSOR FOR select * from payroll_transcripts where year_p = year_period and month_p = month_period and total >0;
+                             record_row payroll_transcripts%ROWTYPE;
+                         begin
+                            --***************************************
+                            --Funcion importar planilla transcrita--
+                            --***************************************
+                            -- Procesa el cursor
+                            FOR record_row IN cur_contribution loop
+                              contribution_id := (select id from contributions where affiliate_id = record_row.affiliate_id and month_year = date_period and deleted_at is null);
+                               quotable_into:= 0;
+                               retirement_fund_amount  := 0;
+                               mortuary_quota_amount:= 0;
 
-                                       retirement_fund_amount  := 0;
-                                       mortuary_quota_amount:= 0;
+                               retirement_fund_amount :=  get_retirement_fund_amount_transcript(date_period,record_row.total);
+                               if(date_period > '1987-04-01') then
+                                mortuary_quota_amount:= record_row.total - retirement_fund_amount;
+                               end if;
 
-                                       retirement_fund_amount :=  get_retirement_fund_amount_transcript(date_period,record_row.total);
-                                       if(date_period > '1987-04-01') then
-                                        mortuary_quota_amount:= record_row.total - retirement_fund_amount;
-                                       end if;
-
-                                       if contribution_id is null then
-                                            INSERT INTO contributions (
-                                            user_id,affiliate_id,degree_id,
-                                            --unit_id,
-                                            --breakdown_id,
-                                            category_id,
-                                            month_year,type,base_wage,seniority_bonus,
-                                            study_bonus,position_bonus,border_bonus,east_bonus,
-                                            gain,
-                                            --payable_liquid,
-                                            quotable,
-                                            retirement_fund,mortuary_quota,total,
-                                            created_at,updated_at,contributionable_type,contributionable_id)
-                                            VALUES (
-                                            user_id_into,
-                                            record_row.affiliate_id,
-                                            record_row.degree_id,
-                                            --record_row.unit_id,
-                                            --record_row.breakdown_id,
-                                            record_row.category_id,
-                                            date_period,
-                                            'Planilla',
-                                            record_row.base_wage,
-                                            record_row.seniority_bonus,
-                                            record_row.study_bonus,
-                                            record_row.position_bonus,
-                                            record_row.border_bonus,
-                                            record_row.east_bonus,
-                                            record_row.gain,
-                                            --record_row.payable_liquid,
-                                            quotable_into,
-                                            retirement_fund_amount,
-                                            mortuary_quota_amount,
-                                            record_row.total,
-                                            current_timestamp,
-                                            current_timestamp,
-                                            'payroll_transcripts',
-                                            record_row.id);
-                                            num_import:=num_import+1;
-                                      else
-                                      json_old :=  (SELECT row_to_json(u) FROM (select * FROM contributions c  WHERE id = contribution_id) u);
-                                      update payroll_transcripts set old_contribution = json_old where id = record_row.id;
-
-                                        UPDATE contributions
-                                          set contributionable_type = 'payroll_transcripts',
-                                          contributionable_id = record_row.id,
-                                          retirement_fund = retirement_fund_amount,
-                                          mortuary_quota = mortuary_quota_amount,
-                                          updated_at = current_timestamp,
-                                          user_id = user_id_into,
-                                          base_wage  = case WHEN base_wage = 0 THEN record_row.base_wage else base_wage end,
-                                          seniority_bonus = case WHEN seniority_bonus = 0 THEN record_row.seniority_bonus else seniority_bonus end,
-                                          study_bonus = case WHEN study_bonus = 0 THEN record_row.study_bonus else study_bonus end,
-                                          position_bonus = case WHEN position_bonus = 0 THEN record_row.position_bonus else position_bonus end,
-                                          east_bonus  = case WHEN east_bonus = 0 THEN record_row.east_bonus else east_bonus end,
-                                          gain  = case WHEN gain = 0 THEN record_row.gain else gain end,
-                                          quotable  = case WHEN quotable  = 0 THEN quotable_into else quotable end,
-                                          total  = case WHEN total  = 0 THEN record_row.total else total end
-                                         where id = contribution_id;
-                                        num_import:=num_import+1;
-                                       end if;
-                                    END LOOP;
-                                    acction:='Importación realizada con éxito';
-                                    RETURN num_import;
-                                end;
-                         $$
-       ;");
+                               if contribution_id is null then
+                                    INSERT INTO contributions (
+                                    user_id,affiliate_id,degree_id,
+                                    --unit_id,
+                                    --breakdown_id,
+                                    category_id,
+                                    month_year,type,base_wage,seniority_bonus,
+                                    study_bonus,position_bonus,border_bonus,east_bonus,
+                                    gain,
+                                    --payable_liquid,
+                                    quotable,
+                                    retirement_fund,mortuary_quota,total,
+                                    created_at,updated_at,contributionable_type,contributionable_id)
+                                    VALUES (
+                                    user_id_into,
+                                    record_row.affiliate_id,
+                                    record_row.degree_id,
+                                    --record_row.unit_id,
+                                    --record_row.breakdown_id,
+                                    record_row.category_id,
+                                    date_period,
+                                    'Planilla',
+                                    record_row.base_wage,
+                                    record_row.seniority_bonus,
+                                    record_row.study_bonus,
+                                    record_row.position_bonus,
+                                    record_row.border_bonus,
+                                    record_row.east_bonus,
+                                    record_row.gain,
+                                    --record_row.payable_liquid,
+                                    quotable_into,
+                                    retirement_fund_amount,
+                                    mortuary_quota_amount,
+                                    record_row.total,
+                                    current_timestamp,
+                                    current_timestamp,
+                                    'payroll_transcripts',
+                                    record_row.id);
+                                    num_import:=num_import+1;
+                              else 
+                                UPDATE contributions
+                                  set contributionable_type = 'payroll_transcripts',
+                                  contributionable_id = record_row.id,
+                                  retirement_fund = retirement_fund_amount,
+                                  mortuary_quota = mortuary_quota_amount,
+                                  updated_at = current_timestamp,
+                                  total  = case WHEN total  = 0 THEN record_row.total else total end
+                                 where id = contribution_id;
+                                num_import:=num_import+1;
+                               end if;
+                            END LOOP;
+                            acction:='Importación realizada con éxito';
+                            RETURN num_import;
+                        end;
+                 $$
+;");
     }
 
     /**

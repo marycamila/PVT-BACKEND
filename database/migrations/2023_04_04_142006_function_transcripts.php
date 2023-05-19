@@ -146,7 +146,7 @@ return new class extends Migration
                 --- Declaración EXPLICITA del cursor
                 cur_payroll_create_affiliate CURSOR for (SELECT * FROM dblink(db_name_intext,'SELECT id,car,pat,mat,nom,nom2,
                       niv,gra,cat,sue,criteria,affiliate_id,mes,a_o  FROM payroll_copy_transcripts
-                      WHERE criteria=''5-CREAR''and affiliate_id is null and mes = '||month_copy||' and a_o = '||year_copy||'')
+                      WHERE criteria=''6-CREAR''and affiliate_id is null and mes = '||month_copy||' and a_o = '||year_copy||'')
                       AS  payroll_copy_transcripts(id integer,car character varying(250),pat character varying(250),mat character varying(250),nom character varying(250),
                         nom2 character varying(250),niv character varying(250),gra character varying(250),cat NUMERIC(13,2),sue NUMERIC(13,2),criteria character varying(250), affiliate_id character varying(250),mes integer, a_o integer ));
                   begin
@@ -182,7 +182,7 @@ return new class extends Migration
                          IF record_row_payroll.niv = '4' AND record_row_payroll.gra = '15' THEN
                             record_row_payroll.niv:= '3';
                          END IF;
-                         IF record_row_payroll.criteria = '5-CREAR' THEN
+                         IF record_row_payroll.criteria = '6-CREAR' THEN
                             affiliate_type_into:= 'NUEVO';
                          ELSE
                             affiliate_type_into:= 'REGULAR';

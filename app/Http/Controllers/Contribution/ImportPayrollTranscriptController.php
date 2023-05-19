@@ -380,10 +380,10 @@ class ImportPayrollTranscriptController extends Controller
                 $count_data_automatic_link = "select count(id) from payroll_copy_transcripts pct where mes ='$month' and a_o ='$year' and criteria in ('1-CI-PN-PA-SA','2-CI-sPN-sPA-sSA','3-partCI-PN-PA-SA')";
                 $count_data_automatic_link = DB::connection('db_aux')->select($count_data_automatic_link);
 
-                $count_data_revision = "select count(id) from payroll_copy_transcripts pct where mes ='$month' and a_o ='$year' and criteria in ('4-CI')";
+                $count_data_revision = "select count(id) from payroll_copy_transcripts pct where mes ='$month' and a_o ='$year' and criteria in ('4-CI','5-sCI-sPN-sAP-sSN-FI')";
                 $count_data_revision = DB::connection('db_aux')->select($count_data_revision);
 
-                $count_data_creation = "select count(id) from payroll_copy_transcripts pct where mes ='$month' and a_o ='$year' and criteria in ('5-CREAR')";
+                $count_data_creation = "select count(id) from payroll_copy_transcripts pct where mes ='$month' and a_o ='$year' and criteria in ('6-CREAR')";
                 $count_data_creation = DB::connection('db_aux')->select($count_data_creation);
 
                 $data_count['num_total_data_copy'] = $num_total_data_copy['num_total_data_copy'];
@@ -822,10 +822,10 @@ class ImportPayrollTranscriptController extends Controller
         $count_data_automatic_link = "select count(id) from payroll_copy_transcripts pct where mes ='$month' and a_o ='$year' and criteria in ('1-CI-PN-PA-SA','2-CI-sPN-sPA-sSA','3-partCI-PN-PA-SA')";
         $count_data_automatic_link = DB::connection('db_aux')->select($count_data_automatic_link);
 
-        $count_data_revision = "select count(id) from payroll_copy_transcripts pct where mes ='$month' and a_o ='$year' and criteria in ('4-CI')";
+        $count_data_revision = "select count(id) from payroll_copy_transcripts pct where mes ='$month' and a_o ='$year' and criteria in ('4-CI','5-sCI-sPN-sAP-sSN-FI')";
         $count_data_revision = DB::connection('db_aux')->select($count_data_revision);
 
-        $count_data_creation = "select count(id) from payroll_copy_transcripts pct where mes ='$month' and a_o ='$year' and criteria in ('5-CREAR')";
+        $count_data_creation = "select count(id) from payroll_copy_transcripts pct where mes ='$month' and a_o ='$year' and criteria in ('6-CREAR')";
         $count_data_creation = DB::connection('db_aux')->select($count_data_creation);
 
         $data_count['count_data_automatic_link'] = $count_data_automatic_link[0]->count;

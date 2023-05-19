@@ -43,9 +43,11 @@ return new class extends Migration
                             AND first_name ILIKE first_name_entry
                             AND (COALESCE(last_name, '') ILIKE COALESCE(last_name_entry, ''))
                             AND (COALESCE(mothers_last_name, '') ILIKE COALESCE(mothers_last_name_entry, ''));
+
                         WHEN (order_entry = 4 ) then --Busqueda de afiliado por CI para sugerir--
                             select id into affiliate_id from affiliates where
                             identity_card ILIKE identity_card_entry;
+
                         WHEN (order_entry = 5 ) then  --Busqueda de afiliado por CI ,nombre, paterno y materno similares--
                             select id into affiliate_id from affiliates where
                             word_similarity(identity_card , identity_card_entry) >= 0.5

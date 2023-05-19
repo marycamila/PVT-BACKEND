@@ -487,10 +487,10 @@ class ImportPayrollTranscriptController extends Controller
     $year = (int)$date_payroll->format("Y");
     $month = (int)$date_payroll->format("m");
     $data_payroll_copy_transcripts = "select a_o,mes,car,pat,mat,nom,nom2,mus,'***',
-    (CASE WHEN (criteria = '4-CI') then
+    (CASE WHEN (criteria = '4-CI' OR criteria = '5-sCI-sPN-sAP-sSN-FI' ) then
          'IDENTIFICADO PARA SUBSANAR'
      ELSE
-         'IDENTIFICADO PARA CREAR'
+         'NO SE ENCONTRÓ FAVOR DE REVISAR'
     END) as criteria, affiliate_id from payroll_copy_transcripts pct where mes ='$month' and a_o ='$year' and criteria in('4-CI','5-CREAR') order by criteria DESC";
     $data_payroll_copy_transcripts = DB::connection('db_aux')->select($data_payroll_copy_transcripts);
         foreach ($data_payroll_copy_transcripts as $row){

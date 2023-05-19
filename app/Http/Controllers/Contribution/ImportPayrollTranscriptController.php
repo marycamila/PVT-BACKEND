@@ -487,11 +487,11 @@ class ImportPayrollTranscriptController extends Controller
     $year = (int)$date_payroll->format("Y");
     $month = (int)$date_payroll->format("m");
     $data_payroll_copy_transcripts = "select a_o,mes,car,pat,mat,nom,nom2,mus,'***',
-    (CASE WHEN (criteria = '4-CI') then
+    (CASE WHEN (criteria = '4-CI' OR criteria = '5-sCI-sPN-sAP-sSN-FI' ) then
          'IDENTIFICADO PARA SUBSANAR'
      ELSE
-         'IDENTIFICADO PARA CREAR'
-    END) as criteria, affiliate_id from payroll_copy_transcripts pct where mes ='$month' and a_o ='$year' and criteria in('4-CI','5-CREAR') order by criteria DESC";
+         'NO SE ENCONTRÓ SIMILITUDES, FAVOR DE REVISAR ANTES DE SU CREACIÓN'
+    END) as criteria, affiliate_id from payroll_copy_transcripts pct where mes ='$month' and a_o ='$year' and criteria in('4-CI','5-sCI-sPN-sAP-sSN-FI','6-CREAR') order by criteria DESC";
     $data_payroll_copy_transcripts = DB::connection('db_aux')->select($data_payroll_copy_transcripts);
         foreach ($data_payroll_copy_transcripts as $row){
             array_push($data_header, array($row->a_o,$row->mes,$row->car,$row->pat,
@@ -888,12 +888,12 @@ class ImportPayrollTranscriptController extends Controller
         $month = (int)$date_payroll->format("m");
         $connection_db_aux = Util::connection_db_aux();
         $user = Auth::user();
-        //conteo de  affiliate_id is null distito del criterio 5-CREAR
-        $count_data_validated_affiliate = "SELECT count(id) FROM payroll_copy_transcripts where mes = $month::INTEGER and a_o = $year::INTEGER and affiliate_id is null and criteria!='5-CREAR';";
+        //conteo de  affiliate_id is null distito del criterio 6-CREAR
+        $count_data_validated_affiliate = "SELECT count(id) FROM payroll_copy_transcripts where mes = $month::INTEGER and a_o = $year::INTEGER and affiliate_id is null and criteria!='6-CREAR';";
         $count_data_validated_affiliate = DB::connection('db_aux')->select($count_data_validated_affiliate);
         if($count_data_validated_affiliate[0]->count == 0){
             //conteo de criterio similares
-            $count_data_similarity = "SELECT count(id) FROM payroll_copy_transcripts where mes = $month::INTEGER and a_o = $year::INTEGER and criteria='4-CI';";
+            $count_data_similarity = "SELECT count(id) FROM payroll_copy_transcripts where mes = $month::INTEGER and a_o = $year::INTEGER and (criteria='4-CI' or criteria='5-sCI-sPN-sAP-sSN-FI');";
             $count_data_similarity = DB::connection('db_aux')->select($count_data_similarity);
             if($count_data_similarity[0]->count == 0){
                //conteo de registros payroll_transcripts

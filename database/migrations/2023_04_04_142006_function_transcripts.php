@@ -15,49 +15,58 @@ return new class extends Migration
     {
         DB::statement("CREATE EXTENSION IF NOT EXISTS pg_trgm;"); //funcion para determinar similitud
 
-        DB::statement("CREATE OR REPLACE FUNCTION public.identified_affiliate_transcript(order_entry integer, identity_card_entry character varying, first_name_entry character varying, second_name_entry character varying, last_name_entry character varying, mothers_last_name_entry character varying)
+        DB::statement("CREATE OR REPLACE FUNCTION public.identified_affiliate_transcript(order_entry integer, identity_card_entry character varying, first_name_entry character varying, second_name_entry character varying, last_name_entry character varying, mothers_last_name_entry character varying, date_contribution date)
         RETURNS integer
         LANGUAGE plpgsql
         AS $$
-                        DECLARE
-                              affiliate_id integer;
-                              begin
-                                  CASE
-                                     WHEN (order_entry = 1 ) THEN --Busqueda de afiliado por CI, nombre, paterno y materno iguales--
-                                         select id into affiliate_id from affiliates where
-                                         identity_card ILIKE identity_card_entry
-                                         AND first_name ILIKE first_name_entry
-                                         AND (COALESCE(last_name, '') ILIKE COALESCE(last_name_entry, ''))
-                                         AND (COALESCE(mothers_last_name, '') ILIKE COALESCE(mothers_last_name_entry, ''));
+           DECLARE
+                affiliate_id integer;
+                begin
+                     CASE
+                        WHEN (order_entry = 1 ) THEN --Busqueda de afiliado por CI, nombre, paterno y materno iguales--
+                            select id into affiliate_id from affiliates where
+                            identity_card ILIKE identity_card_entry
+                            AND first_name ILIKE first_name_entry
+                            AND (COALESCE(last_name, '') ILIKE COALESCE(last_name_entry, ''))
+                            AND (COALESCE(mothers_last_name, '') ILIKE COALESCE(mothers_last_name_entry, ''));
 
-                                     WHEN (order_entry = 2  ) THEN --Busqueda de afiliado por CI igual y nombre, paterno y materno similares--
-                                         select id into affiliate_id from affiliates where
-                                         identity_card ILIKE  identity_card_entry
-                                         AND word_similarity(first_name , first_name_entry) >= 0.5
-                                         AND word_similarity(last_name, last_name_entry) >= 0.5
-                                         AND word_similarity(mothers_last_name, mothers_last_name_entry) >= 0.5;
+                        WHEN (order_entry = 2 ) THEN --Busqueda de afiliado por CI igual y nombre, paterno y materno similares--
+                            select id into affiliate_id from affiliates where
+                            identity_card ILIKE  identity_card_entry
+                            AND word_similarity(first_name , first_name_entry) >= 0.5
+                            AND word_similarity(last_name, last_name_entry) >= 0.5
+                            AND word_similarity(mothers_last_name, mothers_last_name_entry) >= 0.5;
 
-                                     WHEN (order_entry = 3  ) THEN --Busqueda de afiliado por CI sin complemento,nombre, paterno y materno iguales--
-                                         select id into affiliate_id from affiliates where
-                                         split_part(identity_card,'-',1) ILIKE identity_card_entry
-                                         AND first_name ILIKE first_name_entry
-                                         AND (COALESCE(last_name, '') ILIKE COALESCE(last_name_entry, ''))
-                                         AND (COALESCE(mothers_last_name, '') ILIKE COALESCE(mothers_last_name_entry, ''));
+                        WHEN (order_entry = 3 ) THEN --Busqueda de afiliado por CI sin complemento,nombre, paterno y materno iguales--
+                            select id into affiliate_id from affiliates where
+                            split_part(identity_card,'-',1) ILIKE identity_card_entry
+                            AND first_name ILIKE first_name_entry
+                            AND (COALESCE(last_name, '') ILIKE COALESCE(last_name_entry, ''))
+                            AND (COALESCE(mothers_last_name, '') ILIKE COALESCE(mothers_last_name_entry, ''));
 
-                                     WHEN (order_entry = 4  ) THEN
-                                         select id into affiliate_id from affiliates where
-                                         identity_card ILIKE identity_card_entry;
-                                     ELSE
-                                      affiliate_id := 0;
-                                  END CASE;
+                        WHEN (order_entry = 4 ) then --Busqueda de afiliado por CI para sugerir--
+                            select id into affiliate_id from affiliates where
+                            identity_card ILIKE identity_card_entry;
 
-                            IF affiliate_id  is not NULL THEN
-                               affiliate_id := affiliate_id;
-                            ELSE
-                               affiliate_id := 0;
-                            END IF;
-                         return affiliate_id;
-                         END;
+                        WHEN (order_entry = 5 ) then  --Busqueda de afiliado por CI ,nombre, paterno y materno similares--
+                            select id into affiliate_id from affiliates where
+                            word_similarity(identity_card , identity_card_entry) >= 0.5
+                            AND word_similarity(first_name , first_name_entry) >= 0.5
+                            AND word_similarity(last_name, last_name_entry) >= 0.5
+                            AND word_similarity(mothers_last_name, mothers_last_name_entry) >= 0.5
+                            and date_entry <= date_contribution
+                            limit 1;
+                        ELSE
+                         affiliate_id := 0;
+                        END CASE;
+
+               IF affiliate_id  is not NULL THEN
+                  affiliate_id := affiliate_id;
+               ELSE
+                  affiliate_id := 0;
+               END IF;
+            return affiliate_id;
+            END;
             $$;"
         );
 
@@ -159,7 +168,7 @@ return new class extends Migration
                      ---Realizar Actualización del affiliate _id en la tabla payroll_copy_transcripts
                      update_affiliate:=  (SELECT dblink_exec(db_name_intext, 'UPDATE payroll_copy_transcripts SET affiliate_id='||id_affiliate||' WHERE payroll_copy_transcripts.id= '||record_row.id||''));  
                      ---Registro historial de creación del afiliado
-                     message_into := 'Creacion de Afiliado';
+                     message_into := 'Creación de Afiliado';
                      INSERT INTO affiliate_records(user_id, affiliate_id, degree_id, category_id, type_id, message,created_at, updated_at)
                      VALUES (user_id_reg, id_affiliate, degree_id_into, category_id_into, type_reg,message_into, current_timestamp, current_timestamp);
                      END LOOP;

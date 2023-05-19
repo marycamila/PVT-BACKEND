@@ -490,7 +490,7 @@ class ImportPayrollTranscriptController extends Controller
     (CASE WHEN (criteria = '4-CI' OR criteria = '5-sCI-sPN-sAP-sSN-FI' ) then
          'IDENTIFICADO PARA SUBSANAR'
      ELSE
-         'NO SE ENCONTRÓ FAVOR DE REVISAR'
+         'NO SE ENCONTRÓ SIMILITUDES, FAVOR DE REVISAR ANTES DE SU CREACIÓN'
     END) as criteria, affiliate_id from payroll_copy_transcripts pct where mes ='$month' and a_o ='$year' and criteria in('4-CI','5-sCI-sPN-sAP-sSN-FI','6-CREAR') order by criteria DESC";
     $data_payroll_copy_transcripts = DB::connection('db_aux')->select($data_payroll_copy_transcripts);
         foreach ($data_payroll_copy_transcripts as $row){

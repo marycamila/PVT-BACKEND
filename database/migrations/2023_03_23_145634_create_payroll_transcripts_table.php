@@ -40,7 +40,6 @@ return new class extends Migration
             $table->decimal('border_bonus', 13, 2)->comment('Bono frontera');
             $table->decimal('east_bonus', 13, 2)->comment('Bono oriente');
             $table->enum('affiliate_type', ['REGULAR', 'NUEVO'])->default('REGULAR')->comment('Afiliado regular o nuevo');
-            $table->json('old_contribution')->nullable()->default(null);
             $table->timestamps();
             $table->softDeletes();
         });

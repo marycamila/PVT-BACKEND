@@ -893,7 +893,7 @@ class ImportPayrollTranscriptController extends Controller
         $count_data_validated_affiliate = DB::connection('db_aux')->select($count_data_validated_affiliate);
         if($count_data_validated_affiliate[0]->count == 0){
             //conteo de criterio similares
-            $count_data_similarity = "SELECT count(id) FROM payroll_copy_transcripts where mes = $month::INTEGER and a_o = $year::INTEGER and (criteria='4-CI' or criteria='5-sCI-sPN-sAP-sSN-FI');";
+            $count_data_similarity = "SELECT count(id) FROM payroll_copy_transcripts where mes = $month::INTEGER and a_o = $year::INTEGER and criteria in ('4-CI','5-sCI-sPN-sAP-sSN-FI');";
             $count_data_similarity = DB::connection('db_aux')->select($count_data_similarity);
             if($count_data_similarity[0]->count == 0){
                //conteo de registros payroll_transcripts

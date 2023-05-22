@@ -888,6 +888,8 @@ class ImportPayrollTranscriptController extends Controller
         $month = (int)$date_payroll->format("m");
         $connection_db_aux = Util::connection_db_aux();
         $user = Auth::user();
+      DB::beginTransaction();
+      try{
         //conteo de  affiliate_id is null distito del criterio 6-CREAR
         $count_data_validated_affiliate = "SELECT count(id) FROM payroll_copy_transcripts where mes = $month::INTEGER and a_o = $year::INTEGER and affiliate_id is null and criteria!='6-CREAR';";
         $count_data_validated_affiliate = DB::connection('db_aux')->select($count_data_validated_affiliate);
@@ -902,6 +904,7 @@ class ImportPayrollTranscriptController extends Controller
                 if($exists_data_payroll[0]->count == 0){
                     $query_create_affiliate = "select registration_payroll_command_transcript('$connection_db_aux',$user->id,$month,$year);";
                     $data_validated = DB::select($query_create_affiliate);
+                    DB::commit();
                     $successfully = true;
                 }else{
                     if($exists_data_payroll[0]->count > 0){
@@ -933,6 +936,16 @@ class ImportPayrollTranscriptController extends Controller
                 ],
             ]);
         }
+      }catch(Exception $e){
+          DB::rollBack();
+              return response()->json([
+              'message' => 'Error al realizar la importación',
+              'payload' => [
+                  'successfully' => $successfully,
+                  'error' => $e->getMessage(),
+                  ],
+              ]);
+      }
     }
 
     /**

@@ -13,6 +13,7 @@ use App\Exports\ArchivoPrimarioExport;
 use App\Models\Contribution\PayrollTranscriptPeriod;
 use App\Models\Contribution\PayrollTranscript;
 use App\Models\Contribution\Contribution;
+use App\Models\Contribution\ContributionImportPeriod;
 use Auth;
 
 class ImportPayrollTranscriptController extends Controller
@@ -888,8 +889,8 @@ class ImportPayrollTranscriptController extends Controller
         $month = (int)$date_payroll->format("m");
         $connection_db_aux = Util::connection_db_aux();
         $user = Auth::user();
-      DB::beginTransaction();
-      try{
+        DB::beginTransaction();
+        try{
         //conteo de  affiliate_id is null distito del criterio 6-CREAR
         $count_data_validated_affiliate = "SELECT count(id) FROM payroll_copy_transcripts where mes = $month::INTEGER and a_o = $year::INTEGER and affiliate_id is null and criteria!='6-CREAR';";
         $count_data_validated_affiliate = DB::connection('db_aux')->select($count_data_validated_affiliate);
@@ -911,6 +912,11 @@ class ImportPayrollTranscriptController extends Controller
                        $successfully = true;
                     }
                 }
+                $contribution_import_period = new ContributionImportPeriod;
+                $contribution_import_period->updateOrInsert(
+                    ['month_year' => $request->date_payroll,'table' => 'payroll_transcripts'],
+                    ['type' => 'planilla-activo']
+                );
                 return response()->json([
                     'message' => $message,
                     'payload' => [
@@ -936,16 +942,16 @@ class ImportPayrollTranscriptController extends Controller
                 ],
             ]);
         }
-      }catch(Exception $e){
-          DB::rollBack();
-              return response()->json([
-              'message' => 'Error al realizar la importación',
-              'payload' => [
-                  'successfully' => $successfully,
-                  'error' => $e->getMessage(),
-                  ],
-              ]);
-      }
+    }catch(Exception $e){
+    DB::rollBack();
+    return response()->json([
+    'message' => 'Error al realizar la importación',
+    'payload' => [
+        'successfully' => $successfully,
+        'error' => $e->getMessage(),
+        ],
+    ]);
+    }
     }
 
     /**
@@ -1028,6 +1034,10 @@ class ImportPayrollTranscriptController extends Controller
             $query = DB::select($query);
             $message ='Realizado con éxito!';
             $successfully = true;
+            $contribution_import_period = new ContributionImportPeriod;
+            $contribution_import_period->updateOrInsert(
+                ['month_year' => $date_payroll,'table' => 'contributions','type' => 'aporte-activo']
+            );
             DB::commit();
         }
         $count_data_contribution = "select count(id) from contributions where month_year = '$date_payroll' and contributionable_type = 'payroll_transcripts'";

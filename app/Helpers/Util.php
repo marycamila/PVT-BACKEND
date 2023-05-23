@@ -63,12 +63,7 @@ class Util
 
     public static function list_years($start_year,$end_year)
     {
-           $list_years =[];
-           while ($start_year <= $end_year  ) {
-               array_push($list_years, (int)$end_year);
-               $end_year--;
-           }
-           return $list_years;
+        return range($end_year, $start_year);
     }
 
     public static function connection_db_aux()
